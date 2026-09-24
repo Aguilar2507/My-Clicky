@@ -58,5 +58,7 @@ Menu bar icon → **Open Settings File** (`~/Library/Application Support/MyClick
 - Rebuilding with the default ad-hoc signature makes macOS ask for Screen Recording and Accessibility again. To avoid that,
   create a self-signed "Code Signing" certificate named `MyClicky Dev` in Keychain Access and build with
   `SIGN_IDENTITY="MyClicky Dev" ./build.sh`.
+- The menu shows this month's API spend, estimated from each response's token counts at list prices
+  (`~/Library/Application Support/MyClicky/usage.json`). Agent tasks aren't included; they run on your Claude plan.
 - Prompt caching is enabled, but Haiku 4.5 only caches prompts over ~4,000 tokens, so it mostly helps with longer conversations and Sonnet.
 - Personal use only: the agent runs on your own Claude subscription.

@@ -114,6 +114,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                                      action: nil, keyEquivalent: "")
         agentStatus.isEnabled = false
         menu.addItem(agentStatus)
+        let month = UsageLog.thisMonth
+        let spend = NSMenuItem(title: "API this month: \(month.formattedCost) · \(month.questions) questions",
+                               action: nil, keyEquivalent: "")
+        spend.isEnabled = false
+        menu.addItem(spend)
         menu.addItem(.separator())
         menu.addItem(item("Quit MyClicky", #selector(quit), key: "q"))
     }

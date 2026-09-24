@@ -110,8 +110,9 @@ final class Assistant {
         do {
             let reply = try await claude.ask(question: text, screenshots: screenshots, history: history,
                                              model: model, apiKey: apiKey)
+            UsageLog.record(reply.usage) // billed even if the user interrupted
             guard !Task.isCancelled else { return }
-            let (spoken, point) = PointTag.parse(reply)
+            let (spoken, point) = PointTag.parse(reply.text)
             remember(ChatTurn(user: text, assistant: spoken))
 
             if let point, screenshots.indices.contains(point.screen - 1) {

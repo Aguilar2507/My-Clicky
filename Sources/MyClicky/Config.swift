@@ -30,6 +30,7 @@ struct Config: Codable {
     static func load() -> Config {
         if let data = try? Data(contentsOf: fileURL),
            let config = try? JSONDecoder().decode(Config.self, from: data) {
+            config.save() // writes any newly added settings into the file
             return config
         }
         let config = Config()
@@ -48,5 +49,22 @@ struct Config: Codable {
 
     var locale: Locale {
         speechLocale.isEmpty ? Locale.current : Locale(identifier: speechLocale)
+    }
+}
+
+extension Config {
+    /// Missing keys keep their defaults, so adding a setting later doesn't reset your config.json.
+    init(from decoder: Decoder) throws {
+        self.init()
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        fastModel = try c.decodeIfPresent(String.self, forKey: .fastModel) ?? fastModel
+        pointingModel = try c.decodeIfPresent(String.self, forKey: .pointingModel) ?? pointingModel
+        speechLocale = try c.decodeIfPresent(String.self, forKey: .speechLocale) ?? speechLocale
+        voiceIdentifier = try c.decodeIfPresent(String.self, forKey: .voiceIdentifier) ?? voiceIdentifier
+        speechRate = try c.decodeIfPresent(Float.self, forKey: .speechRate) ?? speechRate
+        maxHistoryTurns = try c.decodeIfPresent(Int.self, forKey: .maxHistoryTurns) ?? maxHistoryTurns
+        claudePath = try c.decodeIfPresent(String.self, forKey: .claudePath) ?? claudePath
+        agentWorkingDirectory = try c.decodeIfPresent(String.self, forKey: .agentWorkingDirectory) ?? agentWorkingDirectory
+        agentAllowedTools = try c.decodeIfPresent([String].self, forKey: .agentAllowedTools) ?? agentAllowedTools
     }
 }

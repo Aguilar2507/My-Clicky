@@ -42,11 +42,13 @@ enum Prompts {
 enum Router {
     private static let agentPrefixes = ["hey agent", "ok agent", "okay agent", "clicky agent", "agent", "agente"]
 
-    private static let pointingPhrases = [
-        "where", "how do i", "how can i", "how to", "show me", "point", "click", "find the", "which button",
-        "locate", "dónde", "donde", "cómo", "como hago", "como puedo", "muéstrame", "muestrame",
-        "enséñame", "ensename", "señala", "senala", "haz clic", "botón", "boton",
-    ]
+    /// Whole words/phrases only, so "appointment" doesn't match "point" and a plain Spanish "como" stays on the
+    /// cheap model. Only these go to the pricier pointing model.
+    private static let pointingPattern = try! NSRegularExpression(
+        pattern: #"\b(where|how (do|can|would|should) i|how to|show me|point (at|to|me)|find the|locate|click|"#
+            + #"which (button|menu|icon|tab|option|setting)|dónde|donde|cómo (hago|puedo|le hago)|"#
+            + #"como (hago|puedo|le hago)|muéstrame|muestrame|enséñame|ensename|señala|senala|clic|botón|boton)\b"#,
+        options: [.caseInsensitive])
 
     /// If the request starts with "agent", returns the task without that word.
     static func agentTask(_ text: String) -> String? {
@@ -62,7 +64,6 @@ enum Router {
     }
 
     static func wantsPointing(_ text: String) -> Bool {
-        let lower = text.lowercased()
-        return pointingPhrases.contains { lower.contains($0) }
+        pointingPattern.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil
     }
 }

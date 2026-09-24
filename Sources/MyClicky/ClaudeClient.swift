@@ -14,8 +14,13 @@ struct ClaudeClient {
 
     private let endpoint = URL(string: "https://api.anthropic.com/v1/messages")!
 
+    struct Reply {
+        let text: String
+        let usage: Usage
+    }
+
     func ask(question: String, screenshots: [Screenshot], history: [ChatTurn],
-             model: String, apiKey: String) async throws -> String {
+             model: String, apiKey: String) async throws -> Reply {
         var messages: [[String: Any]] = []
         for turn in history {
             messages.append(["role": "user", "content": turn.user])
@@ -67,13 +72,22 @@ struct ClaudeClient {
             let error = json?["error"] as? [String: Any]
             throw APIError(message: (error?["message"] as? String) ?? "Claude API returned status \(status).")
         }
+        let usageJSON = json["usage"] as? [String: Any] ?? [:]
+        func tokens(_ key: String) -> Int { usageJSON[key] as? Int ?? 0 }
+        let usage = Usage(model: model,
+                          inputTokens: tokens("input_tokens"),
+                          outputTokens: tokens("output_tokens"),
+                          cacheWriteTokens: tokens("cache_creation_input_tokens"),
+                          cacheReadTokens: tokens("cache_read_input_tokens"))
+
         if json["stop_reason"] as? String == "refusal" {
-            return "Sorry, I can't help with that one."
+            return Reply(text: "Sorry, I can't help with that one.", usage: usage)
         }
         let blocks = json["content"] as? [[String: Any]] ?? []
-        return blocks.compactMap { $0["type"] as? String == "text" ? $0["text"] as? String : nil }
+        let text = blocks.compactMap { $0["type"] as? String == "text" ? $0["text"] as? String : nil }
             .joined()
             .trimmingCharacters(in: .whitespacesAndNewlines)
+        return Reply(text: text, usage: usage)
     }
 }
 
