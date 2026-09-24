@@ -1,0 +1,31 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build & Run MyClicky",
+            "type": "shell",
+            "command": "./build.sh && open ~/Applications/MyClicky.app",
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": ["$swiftc"]
+        },
+        {
+            "label": "Build only (check for errors)",
+            "type": "shell",
+            "command": "swift build",
+            "group": "build",
+            "problemMatcher": ["$swiftc"]
+        },
+        {
+            "label": "Quit MyClicky",
+            "type": "shell",
+            "command": "pkill -x MyClicky || true",
+            "problemMatcher": []
+        },
+        {
+            "label": "Open MyClicky settings file",
+            "type": "shell",
+            "command": "open -a 'Visual Studio Code' ~/Library/Application\\ Support/MyClicky/config.json",
+            "problemMatcher": []
+        }
+    ]
+}
