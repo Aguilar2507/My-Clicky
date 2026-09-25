@@ -6,13 +6,13 @@ Two separate things live on your Mac:
 
 | What | Where | What it is |
 |---|---|---|
-| **The project (source code)** | `/Users/joseaguilar/Projects/my-clicky` | The code you edit. Think of it as the recipe. |
+| **The project (source code)** | `/Users/joseaguilar/Desktop/my-clicky` | The code you edit. Think of it as the recipe. |
 | **The app** | `/Users/joseaguilar/Applications/MyClicky.app` | The finished program you use. Think of it as the cooked meal. |
 
 When you change the code, you have to **build** again to update the app (see Part 5).
 
 > **What does `~` mean?** It's shorthand for your home folder, `/Users/joseaguilar`.
-> So `~/Projects/my-clicky` is the same as `/Users/joseaguilar/Projects/my-clicky`.
+> So `~/Desktop/my-clicky` is the same as `/Users/joseaguilar/Desktop/my-clicky`.
 
 > **Careful: there are two "Applications" folders.** The main one (`/Applications`) holds apps like Safari and VS Code.
 > MyClicky is in the **one inside your home folder** (`~/Applications`).
@@ -24,13 +24,13 @@ When you change the code, you have to **build** again to update the app (see Par
 **Option A: click your way there**
 1. Click the **Finder** icon (the blue smiley face) in the Dock.
 2. In the top menu bar, click **Go → Home** (or press **⌘ Command + ⇧ Shift + H**).
-3. Double-click the **Projects** folder.
+3. Double-click the **Desktop** folder.
 4. Double-click the **my-clicky** folder. This is the project.
 
 **Option B: jump straight there**
 1. Open Finder.
 2. Press **⌘ Command + ⇧ Shift + G**. A small "Go to Folder" box appears.
-3. Type `~/Projects/my-clicky` and press **Enter**.
+3. Type `~/Desktop/my-clicky` and press **Enter**.
 
 **Tip:** drag the `my-clicky` folder into Finder's left sidebar (under Favorites) so it's always one click away.
 
@@ -65,7 +65,7 @@ my-clicky/
 1. Open **Visual Studio Code** (in your main Applications folder, or press **⌘ Space**, type `Visual Studio Code`, press Enter).
 2. In the top menu, click **File → Open Folder…**
 3. In the window that opens, go to your home folder (click `joseaguilar` in the sidebar, or press **⌘ ⇧ H**).
-4. Click **Projects** once, then click **my-clicky** once (don't go inside it).
+4. Click **Desktop** once, then click **my-clicky** once (don't go inside it).
 5. Click the **Open** button.
 6. If VS Code asks **"Do you trust the authors of the files in this folder?"**, click **Yes, I trust the authors**.
 
@@ -89,7 +89,7 @@ my-clicky/
 The **Terminal** is a window where you type commands instead of clicking. You can open it in two ways:
 - **Inside VS Code:** Terminal → New Terminal (recommended; it's already in the project folder).
 - **The Terminal app:** press **⌘ Space**, type `Terminal`, press Enter. It starts in your home folder, so first type
-  `cd ~/Projects/my-clicky` and press Enter.
+  `cd ~/Desktop/my-clicky` and press Enter.
 
 To run a command, **type it (or paste it) and press Enter.**
 
@@ -97,10 +97,11 @@ To run a command, **type it (or paste it) and press Enter.**
 
 | Command | What it means | When to use it |
 |---|---|---|
-| `cd ~/Projects/my-clicky` | **c**hange **d**irectory: "go into this folder". Like double-clicking a folder in Finder. | Only in the separate Terminal app, before the other commands. |
+| `cd ~/Desktop/my-clicky` | **c**hange **d**irectory: "go into this folder". Like double-clicking a folder in Finder. | Only in the separate Terminal app, before the other commands. |
 | `./build.sh` | Runs the build script in this folder (`./` means "in this folder"). It **(1)** turns the code into a program, **(2)** packages it as `MyClicky.app`, **(3)** quits the old app, **(4)** copies the new app to `~/Applications`. Takes about 30 seconds. | After every change to the code. |
 | `open ~/Applications/MyClicky.app` | Starts the app, the same as double-clicking it in Finder. | After building, or any time you want to start it. |
 | `swift build` | Only checks that the code compiles; doesn't install anything. | To quickly check for mistakes after editing. |
+| `swift run MyClickyChecks` | Runs MyClicky's automatic checks and ends with "All N checks passed" (or lists what failed). | After every change, before building the app. |
 | `pkill -x MyClicky` | Force-quits the app ("kill the process named exactly MyClicky"). | If the app gets stuck. |
 | `curl -fsSL https://claude.ai/install.sh \| bash` | Downloads Anthropic's official Claude Code installer (`curl`) and runs it (`\| bash`). | **Once**, to enable "agent" mode. |
 | `claude` | Opens Claude Code in the terminal. The first time, it asks you to log in. | **Once**, to log in with your Claude subscription. Type `/exit` to leave. |

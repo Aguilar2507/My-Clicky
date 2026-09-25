@@ -1,4 +1,5 @@
 import Foundation
+import MyClickyCore
 
 /// Runs agent tasks with the Claude Code CLI, billed to your Claude subscription (not the API key).
 @MainActor
@@ -26,18 +27,18 @@ final class AgentRunner {
         process?.terminate()
     }
 
-    static func findClaude(_ config: Config) -> String? {
+    static func findClaude(_ settings: Settings) -> String? {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
-        let candidates = [config.claudePath, "\(home)/.local/bin/claude", "\(home)/.claude/local/claude",
+        let candidates = [settings.claudePath, "\(home)/.local/bin/claude", "\(home)/.claude/local/claude",
                           "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
         return candidates.first { !$0.isEmpty && FileManager.default.isExecutableFile(atPath: $0) }
     }
 
-    func run(task: String, config: Config) async throws -> Result {
-        guard let claude = Self.findClaude(config) else {
+    func run(task: String, settings: Settings) async throws -> Result {
+        guard let claude = Self.findClaude(settings) else {
             throw AgentError(message: "Claude Code isn't installed yet. Install it and run claude once in Terminal to log in.")
         }
-        let workDir = NSString(string: config.agentWorkingDirectory).expandingTildeInPath
+        let workDir = NSString(string: settings.agentWorkingDirectory).expandingTildeInPath
         try FileManager.default.createDirectory(atPath: workDir, withIntermediateDirectories: true)
 
         var args = ["-p", task,
@@ -46,7 +47,7 @@ final class AgentRunner {
         if let sessionID, Date().timeIntervalSince(lastRun) < followUpWindow {
             args += ["--resume", sessionID]
         }
-        args += ["--allowedTools"] + config.agentAllowedTools // variadic, keep last
+        args += ["--allowedTools"] + settings.agentAllowedTools // variadic, keep last
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: claude)

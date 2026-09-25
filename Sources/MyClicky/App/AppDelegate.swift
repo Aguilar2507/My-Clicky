@@ -1,12 +1,16 @@
 import AppKit
+import SwiftUI
 import ApplicationServices
+import MyClickyCore
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
-    private let assistant = Assistant()
+    let model = AppModel.shared
+    private lazy var assistant = Assistant(model: model)
     private var statusItem: NSStatusItem!
     private var hotkeyMonitors: [Any] = []
     private var hotkeyDown = false
+    private var galleryWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -22,6 +26,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if Keychain.apiKey() == nil {
             promptForAPIKey()
         }
+        if CommandLine.arguments.contains("--gallery") { showDesignGallery() }
+    }
+
+    /// Developer screen with every shared control (spec 002, US3).
+    private func showDesignGallery() {
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1000, height: 760),
+                              styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
+        window.title = "MyClicky Design Gallery"
+        window.contentView = NSHostingView(rootView: DesignGallery())
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        galleryWindow = window
     }
 
     // MARK: Permissions
@@ -109,12 +127,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(item(Keychain.apiKey() == nil ? "Set Anthropic API Key…" : "Change Anthropic API Key…",
                           #selector(promptForAPIKey), key: ""))
         menu.addItem(item("Open Settings File", #selector(openSettings), key: ","))
-        let claudeFound = AgentRunner.findClaude(assistant.config) != nil
+        let claudeFound = AgentRunner.findClaude(model.settings) != nil
         let agentStatus = NSMenuItem(title: claudeFound ? "Agent: Claude Code ready" : "Agent: Claude Code not installed",
                                      action: nil, keyEquivalent: "")
         agentStatus.isEnabled = false
         menu.addItem(agentStatus)
-        let month = UsageLog.thisMonth
+        let month = model.thisMonth
         let spend = NSMenuItem(title: "API this month: \(month.formattedCost) · \(month.questions) questions",
                                action: nil, keyEquivalent: "")
         spend.isEnabled = false
@@ -162,9 +180,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func clearHistory() { assistant.clearHistory() }
     @objc private func quit() { NSApp.terminate(nil) }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        model.flush()
+    }
+
     @objc private func openSettings() {
-        assistant.config.save()
-        NSWorkspace.shared.open(Config.fileURL)
+        model.flush()
+        NSWorkspace.shared.open(model.paths.settings)
     }
 
     @objc private func openPrivacyPane(_ sender: NSMenuItem) {

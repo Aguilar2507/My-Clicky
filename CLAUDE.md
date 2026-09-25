@@ -22,5 +22,11 @@ on the Claude subscription via Claude Code, API spend always visible.
 - Check it compiles: `swift build`
 - Core logic checks (after 002 lands): `swift run MyClickyChecks`. XCTest/Swift Testing don't work here (Command Line
   Tools only).
+- Render a screen to PNG for comparison with the references: `.build/debug/MyClicky --snapshot <screen> <out.png>`
+  (`--snapshot x` lists screens).
+- SwiftUI `@State` does NOT compile here (macro plugin missing in Command Line Tools). Use
+  `@StateObject private var x = Box(value)` (see `DesignSystem/Theme.swift`). `@Observable`, `@Bindable`,
+  `@Environment`, `@FocusState` and `@StateObject` work.
+- Stroked capsules render notches on macOS 27: use `BorderedCapsule` (layered fills) for capsule borders.
 - Build, install and launch: `./build.sh && open ~/Applications/MyClicky.app` (VS Code: ⌘⇧B)
 - Each rebuild with the default ad-hoc signature asks for Screen Recording and Accessibility again (see README).

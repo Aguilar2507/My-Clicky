@@ -1,4 +1,5 @@
 import AVFoundation
+import MyClickyCore
 
 /// Text-to-speech with the built-in macOS voices (free, on-device).
 @MainActor
@@ -13,11 +14,11 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
 
     var isSpeaking: Bool { synthesizer.isSpeaking }
 
-    func speak(_ text: String, config: Config) {
+    func speak(_ text: String, settings: Settings) {
         stop()
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = Self.voice(for: config)
-        utterance.rate = config.speechRate
+        utterance.voice = Self.voice(for: settings)
+        utterance.rate = settings.speechRate
         synthesizer.speak(utterance)
     }
 
@@ -27,17 +28,17 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
 
     /// Uses the configured voice, otherwise the highest-quality installed voice for the speech language.
     /// Tip: download a Premium/Enhanced voice in System Settings → Accessibility → Spoken Content.
-    static func voice(for config: Config) -> AVSpeechSynthesisVoice? {
-        if !config.voiceIdentifier.isEmpty, let voice = AVSpeechSynthesisVoice(identifier: config.voiceIdentifier) {
+    static func voice(for settings: Settings) -> AVSpeechSynthesisVoice? {
+        if !settings.voiceIdentifier.isEmpty, let voice = AVSpeechSynthesisVoice(identifier: settings.voiceIdentifier) {
             return voice
         }
-        let language = config.locale.language.languageCode?.identifier ?? "en"
-        let region = config.locale.region?.identifier
+        let language = settings.locale.language.languageCode?.identifier ?? "en"
+        let region = settings.locale.region?.identifier
         let candidates = AVSpeechSynthesisVoice.speechVoices().filter {
             $0.language.hasPrefix(language) && !$0.voiceTraits.contains(.isNoveltyVoice)
         }
         return candidates.max { rank($0, region) < rank($1, region) }
-            ?? AVSpeechSynthesisVoice(language: config.locale.identifier)
+            ?? AVSpeechSynthesisVoice(language: settings.locale.identifier)
     }
 
     private static func rank(_ voice: AVSpeechSynthesisVoice, _ region: String?) -> Int {

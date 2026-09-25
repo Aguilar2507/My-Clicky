@@ -44,7 +44,8 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
 
 ## Settings
 
-Menu bar icon → **Open Settings File** (`~/Library/Application Support/MyClicky/config.json`). Restart the app after editing.
+Menu bar icon → **Open Settings File** (`~/Library/Application Support/MyClicky/settings.json`; v0.1's `config.json` is migrated
+automatically and kept as `config.v1.backup.json`). Restart the app after editing.
 
 - `speechLocale`: e.g. `"en-US"` or `"es-ES"` (empty = system language)
 - `fastModel` / `pointingModel`: which Claude models to use
@@ -52,6 +53,15 @@ Menu bar icon → **Open Settings File** (`~/Library/Application Support/MyClick
 - `agentAllowedTools`: what the agent may do without asking. `Bash` lets it run commands, including AppleScript to control apps.
   The agent is told to ask before anything irreversible (sending, deleting, buying).
 - `agentWorkingDirectory`: where the agent puts files (default `~/MyClickyAgent`)
+
+## Checks
+
+`swift run MyClickyChecks` runs the automatic checks for MyClicky's core logic (routing, pricing, saving and loading).
+It ends with `All N checks passed`, or lists each failure and exits with status 1. XCTest isn't used because it doesn't
+build with Command Line Tools alone.
+
+Developer tools: `MyClicky --gallery` opens the design gallery; `.build/debug/MyClicky --snapshot <screen> <file.png>`
+renders a screen to an image (run with an unknown name to list screens).
 
 ## Notes
 
