@@ -18,6 +18,10 @@ public struct Settings: Codable, Equatable, Sendable {
     public var agentWorkingDirectory = "~/MyClickyAgent"
     public var agentAllowedTools = ["Read", "Write", "Edit", "Glob", "Grep", "WebSearch", "WebFetch", "Bash"]
 
+    // 003 notch home
+    public var showInDock = false
+    public var notchOnAllDisplays = true
+
     public init() {}
 }
 

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Observation
 import MyClickyCore
 
@@ -55,6 +56,19 @@ final class AppModel {
     func append(_ message: Message, to id: UUID) {
         updateChat(id) { $0.append(message) }
     }
+
+    // MARK: Notch status
+
+    /// Clickys with something new (blue dot); drives the notch badge. Filled in by spec 005.
+    var unreadCount: Int { previewUnreadCount ?? 0 }
+    /// Snapshot/preview override for the badge.
+    var previewUnreadCount: Int?
+    /// True while any agent task runs (notch activity indicator).
+    var isAgentRunning = false
+    /// True while the notch panel is open (the companion hides over it).
+    var isNotchOpen = false
+    /// Color of the companion when docked in the notch (spec 006); nil = not docked.
+    var dockedCompanionColor: Color? { nil }
 
     // MARK: Usage
 

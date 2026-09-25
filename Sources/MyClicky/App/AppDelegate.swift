@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var hotkeyMonitors: [Any] = []
     private var hotkeyDown = false
     private var galleryWindow: NSWindow?
+    private var notch: NotchController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -22,6 +23,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         requestPermissions()
         installHotkey()
+
+        // Spec 003: MyClicky lives in the notch. (The v0.1 status item stays until spec 004 replaces it.)
+        notch = NotchController(model: model)
+        observeChanges({ self.model.settings.showInDock }) { DockPolicy.apply(showInDock: $0) }
 
         if Keychain.apiKey() == nil {
             promptForAPIKey()
@@ -179,6 +184,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func stopAgent() { assistant.agent.cancel() }
     @objc private func clearHistory() { assistant.clearHistory() }
     @objc private func quit() { NSApp.terminate(nil) }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        notch?.popOutNow() // Dock icon click opens the window (spec 003 US5)
+        return false
+    }
 
     func applicationWillTerminate(_ notification: Notification) {
         model.flush()

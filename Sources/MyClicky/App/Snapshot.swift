@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import MyClickyCore
 
 /// Renders app screens to PNG files without launching the app, so layouts can be compared with
 /// `references/heyclicky/` (developer tool; see CLAUDE.md).
@@ -8,7 +9,27 @@ enum Snapshot {
     /// Screen name → view and size. Features register their screens here.
     static var screens: [String: (size: CGSize, view: () -> AnyView)] = [
         "gallery": (CGSize(width: 1000, height: 1000), { AnyView(DesignGallery()) }),
+        "notch-collapsed": (CGSize(width: 520, height: 60), { AnyView(notchPreview(expanded: false).frame(width: 520, height: 60, alignment: .top).background(Color(hex: 0x7A7A7A))) }),
+        "notch-expanded": (NotchGeometry.expandedSize, { AnyView(notchPreview(expanded: true)) }),
     ]
+
+    /// A model backed by a temporary folder, so snapshots never read or change your real data.
+    static let previewModel: AppModel = {
+        let base = FileManager.default.temporaryDirectory.appendingPathComponent("MyClickySnapshot-\(UUID().uuidString)")
+        return AppModel(paths: AppPaths(base: base))
+    }()
+
+    static func notchPreview(expanded: Bool) -> some View {
+        // 16" MacBook Pro geometry (1728×1117 pt, 184 pt notch).
+        let geometry = NotchGeometry(screenFrame: CGRect(x: 0, y: 0, width: 1728, height: 1117),
+                                     auxLeftWidth: 772, auxRightWidth: 772, safeAreaTop: 38, menuBarHeight: 24)
+        let ui = NotchPanelUI(geometry: geometry)
+        ui.isExpanded = expanded
+        previewModel.previewUnreadCount = 1
+        let view = NotchContainerView(ui: ui).environment(previewModel)
+        return expanded ? AnyView(view) : AnyView(view.frame(width: 990, height: 60, alignment: .top).clipped()
+            .frame(width: 520, height: 60))
+    }
 
     static func run(screen: String, output: String) -> Bool {
         _ = NSApplication.shared
