@@ -171,6 +171,7 @@ enum Snapshot {
 
     static func run(screen: String, output: String) -> Bool {
         _ = NSApplication.shared
+        Keychain.snapshotMode = true
         guard let entry = screens[screen] else {
             print("Unknown screen '\(screen)'. Available: \(screens.keys.sorted().joined(separator: ", "))")
             return false

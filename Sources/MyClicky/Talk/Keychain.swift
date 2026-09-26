@@ -6,7 +6,11 @@ enum Keychain {
     private static let service = "com.myclicky.anthropic"
     private static let account = "api-key"
 
+    /// Snapshots (developer tool) never read the real key, so rendered screens can't leak it.
+    nonisolated(unsafe) static var snapshotMode = false
+
     static func apiKey() -> String? {
+        if snapshotMode { return "sk-ant-demo-0000000000000000000000000000EXMP" }
         if let env = ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"], !env.isEmpty {
             return env
         }

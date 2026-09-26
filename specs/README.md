@@ -15,6 +15,10 @@ live in `references/heyclicky/` (git-ignored):
 Each feature has `spec.md` → `plan.md` (+ `research.md`, `data-model.md`, `contracts/`, `quickstart.md`) → `tasks.md`.
 Build them in this order; each one depends on those above it.
 
+**Implementation status (2026-09-25):** 207/221 tasks done, 377 checks passing; see
+[docs/IMPLEMENTATION-REPORT.md](../docs/IMPLEMENTATION-REPORT.md). The open tasks are the manual quickstart runs and
+the Claude Code verifications.
+
 | # | Feature | Depends on | What you get |
 |---|---|---|---|
 | 001 | [baseline](001-baseline/spec.md) | — | What v0.1 does (history; partly replaced by the features below) |

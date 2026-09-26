@@ -6,9 +6,6 @@ struct SettingsView: View {
     let page: SettingsPage
     @StateObject private var editingProfile = Box(false)
 
-    /// Pages provided by later features (voice, cursor, agents…), keyed by page.
-    static var pageViews: [SettingsPage: () -> AnyView] = [:]
-
     var body: some View {
         HStack(spacing: 0) {
             SettingsSidebar(selected: page) { editingProfile.value = true }
@@ -44,8 +41,6 @@ struct SettingsView: View {
         case .dictation: DictationPage()
         case .agents: AgentsPage()
         case .integrations: IntegrationsPage(integrations: model.integrations)
-        default:
-            if let view = Self.pageViews[page] { view() } else { GeneralPage() }
         }
     }
 }
