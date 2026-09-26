@@ -22,8 +22,11 @@ struct ConversationView: View {
                                     .onAppear { shown.value += 50 }
                             }
                             if messages.isEmpty { emptyHint(chat) }
-                            ForEach(messages) { message in
-                                MessageBubble(message: message, chat: chat).id(message.id)
+                            ForEach(Self.group(messages), id: \.id) { item in
+                                switch item {
+                                case .message(let message): MessageBubble(message: message, chat: chat).id(message.id)
+                                case .steps(let steps): StepGroupView(steps: steps).id(steps.last!.id)
+                                }
                             }
                         }
                         .padding(.horizontal, 28)
@@ -41,6 +44,32 @@ struct ConversationView: View {
                 if confirmingDelete.value { deleteCard(chat) }
             }
         }
+    }
+
+    enum Item {
+        case message(Message)
+        case steps([Message])
+        var id: UUID {
+            switch self {
+            case .message(let m): m.id
+            case .steps(let s): s.first!.id
+            }
+        }
+    }
+
+    /// Consecutive agent steps collapse into one "N steps" group (contracts/ui-agents.md).
+    static func group(_ messages: [Message]) -> [Item] {
+        var items: [Item] = []
+        var run: [Message] = []
+        func flush() {
+            if run.count == 1 { items.append(.message(run[0])) } else if run.count > 1 { items.append(.steps(run)) }
+            run = []
+        }
+        for message in messages {
+            if message.kind == .step { run.append(message) } else { flush(); items.append(.message(message)) }
+        }
+        flush()
+        return items
     }
 
     private func scrollToEnd(_ proxy: ScrollViewProxy, _ chat: Chat) {

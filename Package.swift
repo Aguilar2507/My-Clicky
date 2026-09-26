@@ -10,5 +10,7 @@ let package = Package(
         .executableTarget(name: "MyClicky", dependencies: ["MyClickyCore"], path: "Sources/MyClicky"),
         // `swift run MyClickyChecks`: XCTest/Swift Testing don't build with Command Line Tools only.
         .executableTarget(name: "MyClickyChecks", dependencies: ["MyClickyCore"], path: "Sources/MyClickyChecks"),
+        // 009: MCP server that Claude Code launches; forwards approvals and computer use to the app over a socket.
+        .executableTarget(name: "MyClickyComputer", dependencies: ["MyClickyCore"], path: "Sources/MyClickyComputer"),
     ]
 )

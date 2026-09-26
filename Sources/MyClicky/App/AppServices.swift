@@ -8,11 +8,13 @@ final class AppServices {
     let shortcuts: ShortcutCenter
     let notch: NotchController
     let assistant: Assistant
+    let agents: AgentSupervisor
 
-    init(shortcuts: ShortcutCenter, notch: NotchController, assistant: Assistant) {
+    init(shortcuts: ShortcutCenter, notch: NotchController, assistant: Assistant, agents: AgentSupervisor) {
         self.shortcuts = shortcuts
         self.notch = notch
         self.assistant = assistant
+        self.agents = agents
     }
 }
 

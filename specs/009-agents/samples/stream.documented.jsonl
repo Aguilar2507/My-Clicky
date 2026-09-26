@@ -1,0 +1,6 @@
+{"type":"system","subtype":"init","session_id":"4f1c2a9e-0000-4000-8000-000000000001","tools":["Read","WebSearch","mcp__myclicky__click"],"model":"claude-sonnet-5"}
+{"type":"assistant","message":{"content":[{"type":"text","text":"I'll look up today's AI news first."},{"type":"tool_use","id":"toolu_01","name":"WebSearch","input":{"query":"AI news today"}}]},"session_id":"4f1c2a9e-0000-4000-8000-000000000001"}
+{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_01","content":"1. Model release…","is_error":false}]},"session_id":"4f1c2a9e-0000-4000-8000-000000000001"}
+{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_02","name":"Write","input":{"file_path":"/Users/x/MyClickyAgent/signal-radar/ai-news.md","content":"# AI news"}}]},"session_id":"4f1c2a9e-0000-4000-8000-000000000001"}
+{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_02","content":[{"type":"text","text":"File created"}],"is_error":false}]}}
+{"type":"result","subtype":"success","is_error":false,"result":"Done. The summary is in ai-news.md.","num_turns":4,"duration_ms":38211,"session_id":"4f1c2a9e-0000-4000-8000-000000000001","total_cost_usd":0.21}

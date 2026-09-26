@@ -40,4 +40,15 @@ enum Prompts {
         Your working folder is \(workingDirectory). Put files you create there unless the user says otherwise.
         """
     }
+
+    /// Clicky system prompt (spec 009 contracts/agent-bridge.md): v0.1's agent rules + who this Clicky is.
+    static func clicky(name: String, purpose: String, folder: String) -> String {
+        agent(workingDirectory: folder) + """
+
+        You are \(name), one of the user's Clickys.\(purpose.isEmpty ? "" : " Your job: \(purpose)") Your folder is \(folder).
+        To see or use the user's screen, use the myclicky tools: take a screenshot first, then click, type, press keys \
+        or scroll using that screenshot's pixel coordinates. Never send, delete, buy, post or change system settings \
+        without asking in your final message first.
+        """
+    }
 }

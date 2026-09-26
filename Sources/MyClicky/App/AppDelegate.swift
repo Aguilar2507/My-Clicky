@@ -13,6 +13,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let textMode = TextModeField()
     private var quiet: QuietMonitor?
     private lazy var dictation = DictationController(model: model, companion: companion)
+    private lazy var agents = AgentSupervisor(model: model, companion: companion)
+    private var suggestions: SuggestionScheduler?
     private var galleryWindow: NSWindow?
     private var notch: NotchController!
     private var shortcuts: ShortcutCenter!
@@ -25,7 +27,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         shortcuts = ShortcutCenter(model: model)
         shortcuts.onEvent = { [weak self] event in self?.handle(event) }
         shortcuts.onEscape = { [weak self] in self?.dictation.escape() ?? false }
-        AppServices.shared = AppServices(shortcuts: shortcuts, notch: notch, assistant: assistant)
+        AppServices.shared = AppServices(shortcuts: shortcuts, notch: notch, assistant: assistant, agents: agents)
+        assistant.agents = agents
+        MessageBubble.custom = { message, chat in AgentCards.render(message, chat: chat) }
+        ChatHeader.trailing = { chat, model in
+            AnyView(Group {
+                if model.workingChatIDs.contains(chat.id) {
+                    Button("Stop") { AppServices.shared?.agents.stop(chatID: chat.id) }.buttonStyle(.pill(.dark, compact: true))
+                }
+            })
+        }
+        agents.announce = { [weak self] text, bubble in self?.assistant.announce(text, bubble: bubble) }
 
         observeChanges({ self.model.settings.showInDock }) { DockPolicy.apply(showInDock: $0) }
         observeChanges({ self.model.settings.showInScreenRecordings }) { _ in
@@ -35,7 +47,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         requestPermissions()
         startShortcuts()
         quiet = QuietMonitor(model: model)
-        notch.extraMenuItems = { [weak self] menu in self?.addQuietMenu(to: menu) }
+        suggestions = SuggestionScheduler(model: model)
+        suggestions?.onStart = { [weak self] idea in self?.startSuggestion(idea) }
+        notch.extraMenuItems = { [weak self] menu in
+            self?.addAgentsMenu(to: menu)
+            self?.addQuietMenu(to: menu)
+        }
 
         if Keychain.apiKey() == nil {
             // Until the welcome tour (012) exists, open Settings → General where the key is added.
@@ -79,6 +96,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if textMode.isOpen { textMode.close(); return }
         textMode.onSubmit = { [weak self] text in self?.assistant.ask(typed: text) }
         textMode.show(near: NSEvent.mouseLocation)
+    }
+
+    // MARK: Agents menu (spec 009)
+
+    private func addAgentsMenu(to menu: NSMenu) {
+        if let ideas = suggestions?.todaysIdeas, !ideas.isEmpty {
+            menu.addItem(MenuAction.item("Today's ideas (\(ideas.count))") { [weak self] in self?.suggestions?.show() })
+        }
+        if NSEvent.modifierFlags.contains(.option) { // developer: hold ⌥ while right-clicking
+            menu.addItem(MenuAction.item("Run suggestions now") { [weak self] in Task { await self?.suggestions?.run() } })
+        }
+        let running = agents.runningChatIDs.compactMap { model.chat($0) }
+        guard !running.isEmpty else { return }
+        let item = NSMenuItem(title: "Stop agents", action: nil, keyEquivalent: "")
+        let sub = NSMenu()
+        for chat in running {
+            sub.addItem(MenuAction.item("Stop \(chat.title)") { [weak self] in self?.agents.stop(chatID: chat.id) })
+        }
+        if running.count > 1 {
+            sub.addItem(.separator())
+            sub.addItem(MenuAction.item("Stop all") { [weak self] in self?.agents.stopAll() })
+        }
+        item.submenu = sub
+        menu.addItem(.separator())
+        menu.addItem(item)
+    }
+
+    /// A morning idea → its Clicky (by name), or a new Clicky.
+    private func startSuggestion(_ idea: Suggestion) {
+        let existing = model.clickys.first { SearchIndex.fold($0.title) == SearchIndex.fold(idea.clickyTitle ?? "") }
+        let id = existing?.id ?? model.createClicky(purpose: idea.text)
+        if existing == nil { Task { await ClickyNamer.name(id, from: idea.text, model: model) } }
+        model.append(Message(role: .user, text: idea.text, via: .typed), to: id)
+        agents.start(chatID: id, instruction: idea.text)
     }
 
     // MARK: Quiet mode (spec 007 US4)

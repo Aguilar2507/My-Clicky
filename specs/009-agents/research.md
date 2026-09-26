@@ -13,6 +13,10 @@
   num_turns, duration_ms, session_id, is_error). Unknown types are ignored.
 - **Rationale**: Gives live steps plus resumable sessions, on the subscription.
 
+- **As built (2026-09-25), still unverified** (Claude Code isn't installed here, T001): the exact flag names, the
+  `Edit(./**)`/`Write(./**)` rule syntax and the stream shape follow the documentation; the parser is tested against
+  `samples/stream.documented.jsonl`. Replace it with a real capture when T001 is done.
+
 ## R2 Permissions → Allow cards
 
 - **Decision**: `--permission-prompt-tool mcp__myclicky__approve`. Claude Code calls the tool with `{tool_name, input}`
@@ -45,6 +49,12 @@
 - **Decision**: Daily `claude -p` with `--max-turns 1 --allowedTools ""` and a prompt containing Clicky names,
   purposes and memory summaries (text only) → JSON `[{"text","clicky"}]` ×3. Trigger: first user activity after 07:00
   local, if the last run is > 20 h ago.
+
+## R3b Socket server (as built)
+
+- **Decision**: a small POSIX Unix-domain socket server (`MyClickyCore/Logic/BridgeSocketServer.swift`) instead of
+  `NWListener`: it's Foundation-only, so `MyClickyChecks` runs a real bridge round trip (MyClickyComputer process →
+  socket → server → reply) and verifies the socket is 0600.
 
 ## R6 Concurrency and watchdog
 

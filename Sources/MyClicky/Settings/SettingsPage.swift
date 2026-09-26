@@ -56,7 +56,7 @@ enum SettingsPage: String, CaseIterable, Identifiable {
     }
 
     /// Pages whose feature has been built. Each feature adds its page here (specs 006–010).
-    static var available: Set<SettingsPage> = [.general, .voice, .microphone, .dictation, .shortcuts, .cursor]
+    static var available: Set<SettingsPage> = [.general, .voice, .microphone, .dictation, .shortcuts, .cursor, .agents]
 
     var isAvailable: Bool { Self.available.contains(self) }
 }

@@ -30,7 +30,10 @@ final class Assistant {
     let companion: CompanionController
     private let claude = ClaudeClient()
     private lazy var memory = MemoryManager(model: model)
-    let agent = AgentRunner()
+    /// Set by AppDelegate: runs Clicky tasks (spec 009).
+    weak var agents: AgentSupervisor?
+    /// While announcing with its own bubble, the speech doesn't overwrite it.
+    private var bubbleFollowsSpeech = true
     private var listenStart = Date()
     private var currentRequest: Task<Void, Never>?
     private var spokenSoFar = ""
@@ -50,6 +53,7 @@ final class Assistant {
         self.companion = companion
         voice.onFinish = { [weak self] in
             guard let self, self.state == .speaking || self.state == .thinking else { return }
+            self.bubbleFollowsSpeech = true
             self.state = .idle
             self.companion.setLook(.idle)
             self.companion.hideBubble(after: 3) // fades 3 s after speech ends (spec 006 US2)
@@ -60,7 +64,7 @@ final class Assistant {
             self.spokenSoFar += (self.spokenSoFar.isEmpty ? "" : " ") + sentence
             self.state = .speaking
             self.companion.setLook(.speaking)
-            self.companion.showBubble(self.spokenSoFar, style: .info)
+            if self.bubbleFollowsSpeech { self.companion.showBubble(self.spokenSoFar, style: .info) }
         }
         speech.onLevel = { [weak companion] level in companion?.setLevel(level) }
     }
@@ -270,43 +274,26 @@ final class Assistant {
         voice.speakAll(text, settings: settings)
     }
 
-    // MARK: Clickys (agents; replaced by AgentSupervisor in spec 009)
+    // MARK: Clickys (agents run in AgentSupervisor, spec 009)
 
     private func startAgent(_ task: String, in chatID: UUID, via: Message.Via) {
         model.append(Message(role: .user, text: task, via: via), to: chatID)
-        guard !agent.isRunning else {
-            model.appendReply(Message(role: .system, text: "Waiting: another Clicky is still working. Try again when it finishes."),
-                              to: chatID)
-            say("I'm still working on the last agent task.")
-            return
-        }
-        let name = model.chat(chatID)?.title ?? "Your Clicky"
-        say("\(name) is on it.")
-        model.isAgentRunning = true
-        model.workingChatIDs.insert(chatID)
-        onChange?()
-        let sessionID = model.chat(chatID)?.agentSessionID
+        agents?.start(chatID: chatID, instruction: task)
+    }
+
+    /// Agent start/finish announcements (spec 009 US5): an optional bubble beside the cursor, and a spoken line
+    /// unless MyClicky is keeping quiet. Waits so it never talks over you.
+    func announce(_ text: String, bubble: String?) {
         Task {
-            let result: AgentRunner.Result
-            do {
-                result = try await agent.run(task: task, settings: settings, sessionID: sessionID)
-            } catch {
-                result = .init(summary: error.localizedDescription, isError: true)
-            }
-            model.isAgentRunning = false
-            model.workingChatIDs.remove(chatID)
-            model.updateChat(chatID) {
-                $0.lastAgentUseAt = Date()
-                if let id = result.sessionID { $0.agentSessionID = id }
-            }
-            model.appendReply(Message(role: .assistant, text: result.summary, via: .agent), to: chatID)
-            onChange?()
-            // Don't talk over the user.
             while state == .listening || state == .thinking {
                 try? await Task.sleep(for: .milliseconds(300))
             }
-            let latestName = model.chat(chatID)?.title ?? name
-            say((result.isError ? "\(latestName) ran into a problem. " : "\(latestName) finished. ") + result.summary)
+            if let bubble { companion.showBubble(bubble, style: .agent, autoHide: 10) }
+            guard !text.isEmpty, !model.isQuiet, state != .speaking else { return }
+            bubbleFollowsSpeech = bubble == nil
+            spokenSoFar = ""
+            state = .speaking
+            voice.speakAll(text, settings: settings)
         }
     }
 }

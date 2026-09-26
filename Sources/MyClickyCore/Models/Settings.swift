@@ -53,6 +53,15 @@ public struct Settings: Codable, Equatable, Sendable {
     public var spanishLocale = Settings.defaultSpanishLocale
     public var customWords: [String] = []
 
+    // 009 agents
+    public var autoApproveExtraUsage = false
+    public var alwaysAllowComputerUse = false
+    public var suggestAgentTasks = true
+    public var announceStartFinish = true
+    public var showUpdatesBesideCursor = true
+    public var lastSuggestionsAt: Date?
+    public var lastSuggestions: [Suggestion] = []
+
     public init() {}
 
     /// "es" if the Mac's language is Spanish, otherwise "en".

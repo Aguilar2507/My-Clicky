@@ -20,6 +20,13 @@ enum Snapshot {
             previewModel.settings.customWords = ["Anthropic", "MyClicky", "Jose"]
             return AnyView(routePreview(.settings(.dictation)))
         }),
+        "settings-agents": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.agents))) }),
+        "agent-chat": (NotchGeometry.expandedSize, { AnyView(routePreview(.home, select: seedAgentChat())) }),
+        "morning": (CGSize(width: 420, height: 202), { AnyView(MorningNotchView(ideas: [
+            Suggestion(text: "Draft the weekly update from Build Lab's notes", clickyTitle: "Build Lab", createdAt: Date()),
+            Suggestion(text: "Check new remote AI architect roles", clickyTitle: "Role Scout", createdAt: Date()),
+            Suggestion(text: "Summarize today's top 3 AI announcements", clickyTitle: nil, createdAt: Date()),
+        ], onStart: { _ in }, onClose: {})) }),
         "companion": (CGSize(width: 700, height: 420), { AnyView(CompanionDemo()) }),
         "home": (NotchGeometry.expandedSize, { seedChats(select: nil); return AnyView(routePreview(.home)) }),
         "conversation": (NotchGeometry.expandedSize, { AnyView(routePreview(.home, select: seedChats(select: "Research Buddy"))) }),
@@ -38,6 +45,37 @@ enum Snapshot {
         return HomeRoot(chrome: HomeChrome(showsPopOut: true, onPopOut: {}, onClose: {}))
             .environment(previewModel)
             .frame(width: NotchGeometry.expandedSize.width, height: NotchGeometry.expandedSize.height)
+    }
+
+    /// A Clicky mid-task: steps (grouped), an Allow card and a Keep going card (spec 009 UI contract).
+    static func seedAgentChat() -> UUID {
+        MessageBubble.custom = { message, chat in AgentCards.render(message, chat: chat) }
+        let m = previewModel
+        let id = m.createClicky(purpose: "Keep an eye on the latest AI news")
+        func step(_ text: String, _ tool: String, _ status: String) -> Message {
+            var s = Message(role: .system, text: text, via: .agent)
+            s.kind = .step; s.toolName = tool; s.status = status; s.refID = UUID().uuidString
+            return s
+        }
+        var allow = Message(role: .system, text: "Run a command", via: .agent)
+        allow.kind = .approval; allow.detail = "ls ~/Desktop"; allow.status = "pending"; allow.refID = "demo"
+        var keep = Message(role: .system, text: "Signal Radar has used 40 steps on this. Keep going?", via: .agent)
+        keep.kind = .notice; keep.status = "keepGoing"
+        m.updateChat(id) {
+            $0.title = "Signal Radar"
+            $0.avatarColor = .peach
+            $0.messages = [
+                Message(role: .user, text: "Make a one-page summary of today's top 3 AI news with sources, as a markdown file.", via: .voice),
+                Message(role: .assistant, text: "I'll look up today's AI news first.", via: .agent),
+                step("Searching the web: AI news today", "WebSearch", "done"),
+                step("Reading techcrunch.com", "WebFetch", "done"),
+                step("Reading theverge.com", "WebFetch", "done"),
+                step("Writing ai-news.md", "Write", "done"),
+                allow,
+                keep,
+            ]
+        }
+        return id
     }
 
     /// Sample chats shaped like ref 02 (names, colors, times, previews).

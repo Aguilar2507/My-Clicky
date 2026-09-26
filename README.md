@@ -18,6 +18,11 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
 - **Chats, like any AI app.** Your screen questions are saved in the pinned **Talk** chat. Your **Clickys** are named
   helpers (e.g. "Research Buddy"): click **+** or say "agent, …" to create one; "agent, ask Research Buddy to …" sends
   it a new task; follow-ups within 15 minutes continue the last Clicky. Search, rename, recolor and delete from the app.
+- **Clickys do real work.** Each Clicky runs its tasks with Claude Code on your Claude plan, shows its steps live in
+  its chat, asks with an **Allow card** before running commands, editing outside its folder, using your apps or
+  clicking/typing on your Mac (sending, deleting, buying and posting always need your OK), and tells you when it's
+  done (voice + bubble + blue dot + notch badge). Up to 3 run at once; stop them from the chat or the notch.
+  Settings → Agents has the folder, autonomy, announcements and the Claude Code status. Once a day it can suggest tasks.
 - MyClicky keeps a short written memory of each chat (never screenshots), so it remembers context cheaply.
 
 | Piece | What it uses | Cost |
@@ -26,7 +31,7 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
 | Voice | macOS system voices, one per language (Settings → Voice) | free |
 | Normal questions | `claude-haiku-4-5` via API key | ~$0.003 each |
 | "Where / how do I…" questions | `claude-sonnet-5` via API key (better at pointing) | ~$0.01 each |
-| Agent tasks | Claude Code CLI, logged in with your Claude plan | included in your plan |
+| Agent tasks (Clickys) and daily suggestions | Claude Code CLI, logged in with your Claude plan | included in your plan |
 
 ## Setup
 

@@ -11,6 +11,7 @@ APP="build/MyClicky.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp .build/release/MyClicky "$APP/Contents/MacOS/MyClicky"
+cp .build/release/MyClickyComputer "$APP/Contents/MacOS/MyClickyComputer" # agents bridge (spec 009)
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp Resources/CHANGELOG.md "$APP/Contents/Resources/"
 codesign --force --sign "${SIGN_IDENTITY:--}" "$APP"
