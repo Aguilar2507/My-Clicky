@@ -65,16 +65,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.addQuietMenu(to: menu)
         }
 
-        if Keychain.apiKey() == nil {
-            // Until the welcome tour (012) exists, open Settings → General where the key is added.
-            notch.openNow()
-            model.openSettings(.general)
-        }
+        // Spec 012: first launch (or unfinished setup) opens the welcome tour. People upgrading with a working key
+        // and all permissions aren't forced through it.
+        model.settings.tour = TourFlow.initial(hasAPIKey: Keychain.apiKey() != nil,
+                                               allPermissionsGranted: Permission.allCases.allSatisfy(\.isGranted),
+                                               existing: model.settings.tour)
+        WelcomeTour.controller = WelcomeWindowController(model: model)
+        if !model.settings.tour.finished { WelcomeTour.controller?.show() }
     }
 
     // MARK: Permissions + shortcuts
 
+    /// Permissions are asked step by step in the welcome tour; once it's done, ask again only for what's missing.
     private func requestPermissions() {
+        guard model.settings.tour.finished else { return }
         if !AXIsProcessTrusted() { Permission.accessibility.request() }
         if !ScreenCapture.hasPermission { ScreenCapture.requestPermission() }
         Task { _ = await SpeechRecognizer.requestPermissions() }

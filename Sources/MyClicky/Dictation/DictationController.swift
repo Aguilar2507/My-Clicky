@@ -101,6 +101,7 @@ final class DictationController {
             guard !text.isEmpty else { companion.hideBubble(); return }
             switch TextInserter.insert(text) {
             case .inserted:
+                model.emit(.dictationInserted)
                 companion.hideBubble()
                 if let notice { companion.showBubble(notice, style: .info, autoHide: 2) }
             case .copiedNoField:

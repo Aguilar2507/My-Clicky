@@ -187,6 +187,9 @@ final class AppModel {
         PaidRequestGate.record(self, usage, kind: kind)
     }
 
+    /// Events seen this session (the welcome tour's hands-on checklist, spec 012).
+    var seenEvents: Set<AppEvent> = []
+
     /// Shows the Spending sheet (spec 011).
     var showingSpending = false
 

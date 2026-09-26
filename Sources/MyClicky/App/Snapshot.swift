@@ -50,6 +50,13 @@ enum Snapshot {
             m.showingSpending = true
             return AnyView(routePreview(.home))
         }),
+        "welcome-intro": (CGSize(width: 720, height: 600), { tourPreview(.intro) }),
+        "welcome-permissions": (CGSize(width: 720, height: 600), { tourPreview(.permissions) }),
+        "welcome-handson": (CGSize(width: 720, height: 600), {
+            previewModel.seenEvents = [.notchExpanded, .talkAnswered]
+            return tourPreview(.handsOn)
+        }),
+        "welcome-interview": (CGSize(width: 720, height: 600), { tourPreview(.interview) }),
         "companion": (CGSize(width: 700, height: 420), { AnyView(CompanionDemo()) }),
         "home": (NotchGeometry.expandedSize, { seedChats(select: nil); return AnyView(routePreview(.home)) }),
         "conversation": (NotchGeometry.expandedSize, { AnyView(routePreview(.home, select: seedChats(select: "Research Buddy"))) }),
@@ -60,6 +67,12 @@ enum Snapshot {
         let base = FileManager.default.temporaryDirectory.appendingPathComponent("MyClickySnapshot-\(UUID().uuidString)")
         return AppModel(paths: AppPaths(base: base))
     }()
+
+    static func tourPreview(_ step: TourState.Step) -> AnyView {
+        previewModel.settings.profileName = "Jose"
+        previewModel.settings.tour.step = step
+        return AnyView(WelcomeView(onClose: {}).environment(previewModel))
+    }
 
     static func routePreview(_ route: HomeRoute, select: UUID? = nil) -> some View {
         previewModel.route = route

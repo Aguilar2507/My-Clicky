@@ -72,6 +72,9 @@ public struct Settings: Codable, Equatable, Sendable {
     public var creditUSD: Double?
     public var creditSince: Date?
 
+    // 012 welcome tour
+    public var tour = TourState()
+
     public init() {}
 
     /// "es" if the Mac's language is Spanish, otherwise "en".

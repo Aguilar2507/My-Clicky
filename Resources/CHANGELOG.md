@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0 (3)
+
+- **Chats like any AI app:** a pinned Talk chat for screen questions and named **Clickys** for tasks. Search, rename,
+  recolor, delete. Unread dots and a notch badge. MyClicky keeps short written memories (never screenshots).
+- **A companion beside your cursor:** a glowing triangle that listens, thinks and speaks, shows answers in a bubble,
+  flies to point at things and draws circles, arrows and boxes. Pick its color or dock it in Settings → Cursor.
+- **Faster voice:** answers start speaking while they're still arriving. Choose voices (English and Spanish), speed
+  and microphone. Stays quiet during calls, screen sharing and Focus.
+- **Dictation anywhere:** hold control + fn to type by voice in any app; double-tap for hands-free.
+- **Clickys do real work** with Claude Code on your Claude plan: live steps, Allow cards, computer use, daily ideas.
+- **Integrations:** GitHub, Notion, Linear, Jira & Confluence, Asana, Sentry, or your own connector.
+- **Spending:** a monthly budget ($7 by default) with a ring, notices at 80% and 100%, and a Spending sheet.
+- **Welcome tour** on first launch.
+
 ## 0.2.0 (2)
 
 - MyClicky now lives in your notch. Rest the pointer on it to open the app; move away to close it.

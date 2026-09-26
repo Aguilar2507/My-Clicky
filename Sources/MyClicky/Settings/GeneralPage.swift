@@ -68,6 +68,18 @@ struct GeneralPage: View {
                 .buttonStyle(.plain)
             }
 
+            SectionLabel("Welcome tour").padding(.top, 10)
+            SettingsCard {
+                Button { WelcomeTour.replay(model) } label: {
+                    SettingsRow(title: "Replay the welcome tour",
+                                subtitle: "Watch the intro again, then redo the hands-on tour and the interview. MyClicky makes three new Clickys from your answers; the ones you have stay.") {
+                        Image(systemName: "play.fill").foregroundStyle(Theme.icon)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+
             ForEach(Array(Self.extraSections.enumerated()), id: \.offset) { _, section in section(model) }
         }
         .overlay {

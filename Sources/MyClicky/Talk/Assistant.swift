@@ -222,9 +222,12 @@ final class Assistant {
             model.appendReply(Message(role: .assistant, text: answer, via: via), to: talkID)
             guard !Task.isCancelled else { return }
 
+            model.emit(.talkAnswered)
+            if via == .typed { model.emit(.textModeSent) }
             if case .point(let x, let y, let label, let screen)? = parsed.point, screenshots.indices.contains(screen - 1) {
                 let shot = screenshots[screen - 1]
                 companion.point(at: shot.globalPoint(x: x, y: y), label: label)
+                model.emit(.pointed)
             }
             if !parsed.drawings.isEmpty { companion.draw(parsed.drawings, screenshots: screenshots) }
             if parsed.text.isEmpty && !quiet { voice.enqueue(answer, settings: settings) }

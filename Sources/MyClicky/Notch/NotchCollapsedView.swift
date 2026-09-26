@@ -7,7 +7,13 @@ struct NotchCollapsedView: View {
     var body: some View {
         HStack(spacing: 0) {
             ZStack {
-                if model.unreadCount > 0 { UnreadBadge(count: model.unreadCount) }
+                if model.unreadCount > 0 {
+                    UnreadBadge(count: model.unreadCount)
+                } else if !model.settings.tour.finished {
+                    // "Finish setup" (spec 012): the tour isn't done yet.
+                    Circle().fill(Theme.orange).frame(width: 8, height: 8).shadow(color: Theme.orange, radius: 3)
+                        .help("Finish setting up MyClicky")
+                }
             }
             .frame(width: 88)
             Spacer(minLength: 0)

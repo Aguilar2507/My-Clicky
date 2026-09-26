@@ -38,24 +38,34 @@ When you change the code, you have to **build** again to update the app (see Par
 
 ```
 my-clicky/
-├── Sources/MyClicky/     ← the code (the .swift files)
-│   ├── Prompts.swift        personality and instructions for Claude (easiest to edit)
-│   ├── Assistant.swift      main flow: listen → screenshot → Claude → speak
-│   ├── Overlay.swift        the blue pointer and bubble on screen
-│   ├── AgentRunner.swift    "agent" mode (runs Claude Code)
-│   ├── AppDelegate.swift    menu bar icon and the ⌃⌥ hotkey
-│   ├── SpeechRecognizer.swift  turns your voice into text
-│   ├── Speaker.swift        reads answers out loud
-│   ├── ScreenCapture.swift  takes the screenshots
-│   ├── ClaudeClient.swift   talks to Claude over the internet
-│   ├── Config.swift         settings
-│   ├── Keychain.swift       stores your API key safely
-│   └── Main.swift           starting point of the app
-├── Resources/Info.plist  ← app name and permission messages
-├── build.sh              ← script that builds and installs the app
-├── README.md             ← short technical summary
-└── GUIDE.md              ← this guide
+├── Sources/
+│   ├── MyClicky/            ← the app, one folder per part
+│   │   ├── App/                startup, the app's memory (AppModel), permissions
+│   │   ├── Notch/              the black shape in your notch that opens the app
+│   │   ├── Home/               chats: sidebar, conversations, greeting screen
+│   │   ├── Settings/           every Settings page
+│   │   ├── Companion/          the glowing cursor, bubble, pointing and drawings
+│   │   ├── Talk/               asking about your screen (Claude, prompts, memory)
+│   │   ├── Voice/              listening, speaking, microphones, quiet mode
+│   │   ├── Dictation/          typing by voice into any app
+│   │   ├── Agents/             Clickys doing tasks with Claude Code
+│   │   ├── Integrations/       GitHub, Notion, Linear… connectors
+│   │   ├── Usage/              spending and the monthly budget
+│   │   ├── Onboarding/         the welcome tour
+│   │   ├── Input/              the fn / control shortcuts
+│   │   └── DesignSystem/       colors, buttons, cards, toggles (the HeyClicky look)
+│   ├── MyClickyCore/        ← the "brains" that don't draw anything (checked automatically)
+│   ├── MyClickyChecks/      ← the automatic checks (`swift run MyClickyChecks`)
+│   └── MyClickyComputer/    ← small helper that lets Clickys ask permission and click/type
+├── Resources/               ← app info, changelog, integrations list
+├── specs/                   ← what each feature does and how it was built (Spec Kit)
+├── references/heyclicky/    ← your HeyClicky screenshots (private, not in git)
+├── build.sh                 ← builds and installs the app
+├── README.md                ← short technical summary
+└── GUIDE.md                 ← this guide
 ```
+
+**Easiest file to edit:** `Sources/MyClicky/Talk/Prompts.swift` (MyClicky's personality and instructions).
 
 ---
 
@@ -125,8 +135,13 @@ If the build shows red **error** lines, the code has a mistake. The message give
 
 ## Part 6: First-time setup (do this once)
 
+The first time you open MyClicky, a **welcome window** walks you through everything below, step by step (your name,
+permissions, API key, Claude Code, a short practice, and three questions that create your first Clickys). You can
+replay it anytime from Settings → General → **Replay the welcome tour**. The steps below are the same thing by hand.
+
 1. **Start the app.** In Finder, go to `~/Applications` (⌘ ⇧ G, type `~/Applications`) and double-click **MyClicky**.
-   It has **no window**. It lives in the **notch** at the top of your screen: rest your pointer on the notch and the app opens.
+   It lives in the **notch** at the top of your screen: rest your pointer on the notch and the app opens.
+   The first time, the welcome tour opens by itself.
 2. **Add your Anthropic API key**, which pays for the screen questions:
    - Go to **console.anthropic.com**, sign in, open **API Keys**, and create a key.
    - Also open **Billing → Limits** and set a monthly limit (for example $10).

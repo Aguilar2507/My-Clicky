@@ -44,6 +44,10 @@ model, by kind, last 6 months, and how long your credit will last).
 
 ## Setup
 
+The first launch opens a **welcome tour** that does all of this with you (permissions with live ✓, API key test,
+Claude Code check, a hands-on practice, and an interview that creates your first three Clickys). Replay it from
+Settings → General. By hand:
+
 1. **Install Claude Code** (for agent mode) and log in once:
    ```bash
    curl -fsSL https://claude.ai/install.sh | bash

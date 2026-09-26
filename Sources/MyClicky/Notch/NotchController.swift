@@ -161,6 +161,7 @@ final class NotchController {
             if !open, entry.panel.isKeyWindow { entry.panel.resignKey() }
         }
         model.isNotchOpen = state.isExpanded
+        if state.isExpanded { model.emit(.notchExpanded) }
         updateTicker()
     }
 
@@ -191,6 +192,9 @@ final class NotchController {
         guard entries.values.contains(where: { $0.ui.geometry.collapsedRect.contains(point) }) else { return }
         let menu = NSMenu()
         menu.addItem(MenuAction.item("Open MyClicky") { [weak self] in self?.openNow() })
+        if !model.settings.tour.finished {
+            menu.addItem(MenuAction.item("Finish setup…") { WelcomeTour.resume() })
+        }
         menu.addItem(MenuAction.item("Settings…") { [weak self] in
             self?.openNow()
             self?.onOpenSettings()
