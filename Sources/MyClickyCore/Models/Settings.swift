@@ -22,7 +22,17 @@ public struct Settings: Codable, Equatable, Sendable {
     public var showInDock = false
     public var notchOnAllDisplays = true
 
+    // 004 settings shell
+    public var profileName = Settings.defaultProfileName
+    public var showInScreenRecordings = true
+    public var shortcuts = ShortcutBinding.defaults
+
     public init() {}
+
+    /// First word of the macOS account name ("Jose").
+    public static var defaultProfileName: String {
+        NSFullUserName().split(separator: " ").first.map(String.init) ?? NSUserName()
+    }
 }
 
 /// One-way upgrades of older settings files. Each step runs once, in order, then `version` becomes current.

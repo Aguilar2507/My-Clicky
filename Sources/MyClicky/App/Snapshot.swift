@@ -11,6 +11,8 @@ enum Snapshot {
         "gallery": (CGSize(width: 1000, height: 1000), { AnyView(DesignGallery()) }),
         "notch-collapsed": (CGSize(width: 520, height: 60), { AnyView(notchPreview(expanded: false).frame(width: 520, height: 60, alignment: .top).background(Color(hex: 0x7A7A7A))) }),
         "notch-expanded": (NotchGeometry.expandedSize, { AnyView(notchPreview(expanded: true)) }),
+        "settings-general": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.general))) }),
+        "settings-shortcuts": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.shortcuts))) }),
     ]
 
     /// A model backed by a temporary folder, so snapshots never read or change your real data.
@@ -18,6 +20,14 @@ enum Snapshot {
         let base = FileManager.default.temporaryDirectory.appendingPathComponent("MyClickySnapshot-\(UUID().uuidString)")
         return AppModel(paths: AppPaths(base: base))
     }()
+
+    static func routePreview(_ route: HomeRoute) -> some View {
+        previewModel.route = route
+        previewModel.settings.profileName = "Jose"
+        return HomeRoot(chrome: HomeChrome(showsPopOut: true, onPopOut: {}, onClose: {}))
+            .environment(previewModel)
+            .frame(width: NotchGeometry.expandedSize.width, height: NotchGeometry.expandedSize.height)
+    }
 
     static func notchPreview(expanded: Bool) -> some View {
         // 16" MacBook Pro geometry (1728×1117 pt, 184 pt notch).

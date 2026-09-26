@@ -12,6 +12,7 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp .build/release/MyClicky "$APP/Contents/MacOS/MyClicky"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+cp Resources/CHANGELOG.md "$APP/Contents/Resources/"
 codesign --force --sign "${SIGN_IDENTITY:--}" "$APP"
 
 if [[ "${1:-}" != "--no-install" ]]; then

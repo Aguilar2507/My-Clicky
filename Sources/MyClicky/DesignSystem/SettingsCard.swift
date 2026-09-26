@@ -49,7 +49,7 @@ struct SettingsRow<Trailing: View>: View {
                 }
             }
             Spacer(minLength: 12)
-            trailing
+            trailing.fixedSize() // controls never wrap; the text column gives way instead
         }
         .padding(Theme.rowPadding)
     }

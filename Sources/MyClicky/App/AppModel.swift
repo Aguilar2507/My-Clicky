@@ -57,6 +57,19 @@ final class AppModel {
         updateChat(id) { $0.append(message) }
     }
 
+    // MARK: Navigation
+
+    /// What the notch panel / window shows. Settings' Back returns to `previousRoute`.
+    var route: HomeRoute = .home
+    @ObservationIgnored var previousRoute: HomeRoute = .home
+
+    func openSettings(_ page: SettingsPage = .general) {
+        if case .settings = route {} else { previousRoute = route }
+        route = .settings(page)
+    }
+
+    func closeSettings() { route = previousRoute }
+
     // MARK: Notch status
 
     /// Clickys with something new (blue dot); drives the notch badge. Filled in by spec 005.

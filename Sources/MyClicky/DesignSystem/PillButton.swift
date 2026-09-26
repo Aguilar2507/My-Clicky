@@ -87,5 +87,6 @@ struct KeyCap: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(Theme.keycap, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .fixedSize()
     }
 }

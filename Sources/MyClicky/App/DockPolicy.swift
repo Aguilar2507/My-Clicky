@@ -13,11 +13,6 @@ enum DockPolicy {
 @MainActor
 enum WindowSharing {
     static func apply(to window: NSWindow, model: AppModel) {
-        window.sharingType = model.settings.showInScreenRecordingsValue ? .readOnly : .none
+        window.sharingType = model.settings.showInScreenRecordings ? .readOnly : .none
     }
-}
-
-extension Settings {
-    /// Until spec 004 adds the setting, MyClicky is visible in recordings (HeyClicky's default).
-    var showInScreenRecordingsValue: Bool { true }
 }

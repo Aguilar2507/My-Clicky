@@ -3,11 +3,11 @@
 Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclicky.com/) and the MIT-licensed
 [farzaa/clicky](https://github.com/farzaa/clicky).
 
-- **Hold ⌃ Control + ⌥ Option and talk.** It screenshots your screens, asks Claude, answers out loud and flies a
-  blue pointer to what you need.
+- **MyClicky lives in your notch.** Rest the pointer on the notch to open the app (chats, settings); move away to close.
+- **Hold fn and talk.** It screenshots your screens, asks Claude, answers out loud and flies a pointer to what you need.
+  Double-tap **control** to type instead. Change the keys in Settings → Shortcuts.
 - **Start with "agent…"** ("agent, organize my Downloads folder") to run a background task with Claude Code on your
   Claude subscription. Follow-ups within 15 minutes continue the same task ("agent, yes go ahead").
-- **Ask by Typing…** from the menu bar icon if you'd rather type.
 
 | Piece | What it uses | Cost |
 |---|---|---|
@@ -34,18 +34,20 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
    ```bash
    open ~/Applications/MyClicky.app
    ```
-3. **Grant permissions** when asked: Microphone, Speech Recognition, Screen Recording and Accessibility.
-   Screen Recording and Accessibility need you to flip the switch in System Settings, then quit and reopen MyClicky.
-   The menu bar icon → Permissions shows what's missing.
-4. **Paste your Anthropic API key** when prompted (create it at console.anthropic.com). It's stored in the Keychain.
+3. **Grant permissions** when asked: Microphone, Speech Recognition, Screen Recording, Accessibility and
+   **Input Monitoring** (needed so your shortcut keys work in every app). Some need you to flip the switch in System
+   Settings, then quit and reopen MyClicky. Settings → General → Permissions shows what's missing.
+   Also set System Settings → Keyboard → "Press 🌐 key to" → **Do Nothing**, so fn only talks to MyClicky.
+4. **Paste your Anthropic API key** in Settings → General → API key (create it at console.anthropic.com). It's stored in the Keychain.
    **Set a monthly spend limit** in the Console under Billing → Limits.
 5. **Better voice (recommended):** System Settings → Accessibility → Spoken Content → System Voice → Manage Voices,
    download a *Premium* or *Enhanced* voice for your language. MyClicky picks it up automatically.
 
 ## Settings
 
-Menu bar icon → **Open Settings File** (`~/Library/Application Support/MyClicky/settings.json`; v0.1's `config.json` is migrated
-automatically and kept as `config.v1.backup.json`). Restart the app after editing.
+Open the notch → ⚙ (or right-click the notch → Settings…). Settings apply immediately. They're stored in
+`~/Library/Application Support/MyClicky/settings.json` (v0.1's `config.json` was migrated automatically and kept as
+`config.v1.backup.json`). Advanced values below can be edited in that file.
 
 - `speechLocale`: e.g. `"en-US"` or `"es-ES"` (empty = system language)
 - `fastModel` / `pointingModel`: which Claude models to use
@@ -68,7 +70,7 @@ renders a screen to an image (run with an unknown name to list screens).
 - Rebuilding with the default ad-hoc signature makes macOS ask for Screen Recording and Accessibility again. To avoid that,
   create a self-signed "Code Signing" certificate named `MyClicky Dev` in Keychain Access and build with
   `SIGN_IDENTITY="MyClicky Dev" ./build.sh`.
-- The menu shows this month's API spend, estimated from each response's token counts at list prices
+- The Settings profile card shows this month's API spend, estimated from each response's token counts at list prices
   (`~/Library/Application Support/MyClicky/usage.json`). Agent tasks aren't included; they run on your Claude plan.
 - Prompt caching is enabled, but Haiku 4.5 only caches prompts over ~4,000 tokens, so it mostly helps with longer conversations and Sonnet.
 - Personal use only: the agent runs on your own Claude subscription.

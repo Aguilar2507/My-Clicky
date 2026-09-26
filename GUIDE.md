@@ -114,7 +114,7 @@ To run a command, **type it (or paste it) and press Enter.**
 1. **Edit** a file in VS Code, then press **⌘ S** to save.
 2. **Build and relaunch.** In VS Code press **⌘ ⇧ B** (this runs `./build.sh` and opens the app for you).
    Or type in the terminal: `./build.sh && open ~/Applications/MyClicky.app`
-3. **Try it:** hold **⌃ Control + ⌥ Option** and talk.
+3. **Try it:** hold **fn** and talk.
 
 If the build shows red **error** lines, the code has a mistake. The message gives the file and line number.
 
@@ -126,17 +126,19 @@ If the build shows red **error** lines, the code has a mistake. The message give
 ## Part 6: First-time setup (do this once)
 
 1. **Start the app.** In Finder, go to `~/Applications` (⌘ ⇧ G, type `~/Applications`) and double-click **MyClicky**.
-   It has **no window**. Look for its icon in the **menu bar at the top-right of your screen**: a small arrow with rays.
+   It has **no window**. It lives in the **notch** at the top of your screen: rest your pointer on the notch and the app opens.
 2. **Add your Anthropic API key**, which pays for the screen questions:
    - Go to **console.anthropic.com**, sign in, open **API Keys**, and create a key.
    - Also open **Billing → Limits** and set a monthly limit (for example $10).
-   - Click the MyClicky menu bar icon → **Set Anthropic API Key…**, paste the key, and click **Save**.
+   - Open the notch → ⚙ Settings → General → API key → **Change**, paste the key, and click **Save**.
 3. **Allow the permissions.** macOS asks for Microphone and Speech Recognition (click **Allow**).
-   The other two need manual steps in System Settings:
+   The others need manual steps in System Settings:
    - Open **System Settings → Privacy & Security → Screen & System Audio Recording** and turn on **MyClicky**.
    - Open **System Settings → Privacy & Security → Accessibility** and turn on **MyClicky**.
-   - Then quit MyClicky (menu bar icon → Quit) and open it again.
-   - Shortcut: menu bar icon → **Permissions** shows ✓ / ✗ and opens the right page.
+   - Open **System Settings → Privacy & Security → Input Monitoring** and turn on **MyClicky** (for the fn shortcut).
+   - Open **System Settings → Keyboard**, set **Press 🌐 key to** → **Do Nothing**.
+   - Then quit MyClicky (right-click the notch → Quit) and open it again.
+   - Shortcut: Settings → General → **Permissions** shows ✓ or an **Open** button for each.
 4. **Enable agent mode.** Open a terminal and run the two commands below, one at a time:
    ```
    curl -fsSL https://claude.ai/install.sh | bash
@@ -153,13 +155,14 @@ If the build shows red **error** lines, the code has a mistake. The message give
 
 | You want to… | Do this |
 |---|---|
-| Ask about your screen | Hold **⌃ Control + ⌥ Option**, speak, then let go. |
+| Open the app | Rest your pointer on the **notch**. |
+| Ask about your screen | Hold **fn**, speak, then let go. |
 | Have it point at something | Ask "where is…" or "how do I…" (it uses the smarter model). |
 | Have it do a task | Start with **"agent"**: "agent, create a reminder to call mom at 6". |
 | Answer the agent's question | Within 15 minutes: "agent, yes go ahead". |
-| Type instead of talk | Menu bar icon → **Ask by Typing…** |
-| Make it stop talking | Press ⌃⌥ again, or menu bar icon → **Stop Speaking**. |
-| Change settings (language, voice…) | Menu bar icon → **Open Settings File**, edit, save, then restart the app. |
+| Type instead of talk | Double-tap **control**. |
+| Make it stop talking | Press **fn** again. |
+| Change settings or shortcuts | Open the notch → ⚙ Settings. |
 
 ---
 
@@ -167,8 +170,8 @@ If the build shows red **error** lines, the code has a mistake. The message give
 
 | Problem | Fix |
 |---|---|
-| I can't find the menu bar icon | Too many icons can hide it behind the notch. Close other menu bar apps, or check that it's running: `pgrep -l MyClicky`. |
-| The hotkey does nothing | The Accessibility permission is off (Part 6, step 3). Turn it on, then restart the app. |
+| I can't find MyClicky | It lives in the notch (a black shape around it). Check that it's running: `pgrep -l MyClicky`. |
+| fn does nothing / opens emoji | Turn on Accessibility and Input Monitoring, and set "Press 🌐 key to" → Do Nothing (Part 6, step 3). Restart the app. |
 | It answers without seeing my screen | The Screen Recording permission is off (Part 6, step 3). |
 | It says "set your API key" | Part 6, step 2. |
 | "Claude Code isn't installed" | Part 6, step 4. |

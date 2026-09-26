@@ -67,6 +67,14 @@ final class Assistant {
         }
     }
 
+    /// Push-to-talk was interrupted by a regular key (e.g. fn+arrow): stop without asking anything.
+    func cancelListening() {
+        guard state == .listening else { return }
+        speech.cancel()
+        state = .idle
+        overlay.hideStatus()
+    }
+
     // MARK: Typed input
 
     func ask(typed text: String) {
