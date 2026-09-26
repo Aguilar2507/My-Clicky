@@ -167,6 +167,8 @@ If the build shows red **error** lines, the code has a mistake. The message give
 | Type instead of talk | Double-tap **control**: a small box opens next to your cursor. |
 | Change the companion's color, or hide it | Settings → **Cursor** (Dock cursor keeps it in the notch). |
 | Make it stop talking | Press **fn** again. |
+| Type by voice in any app | Hold **⌃ control + fn**, speak, let go. Double-tap **⌃ fn** for hands-free (double-tap again to finish, Esc to cancel). |
+| Choose English / Spanish, or teach it names | Settings → **Dictation** (Auto-detect, and the Words list). |
 | Change the voice, speed or microphone | Settings → **Voice** / **Microphone** (tap a voice to hear it). |
 | Keep it quiet for a while | Right-click the notch → **Quiet mode** → Quiet for 1 hour. |
 | Change settings or shortcuts | Open the notch → ⚙ Settings. |

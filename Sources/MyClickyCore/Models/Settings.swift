@@ -3,7 +3,7 @@ import Foundation
 /// Every user preference, stored in `settings.json`. Each field has a default, so older files keep loading
 /// (TolerantDecoder fills gaps). Features add fields in their own extension-free block below, marked by spec.
 public struct Settings: Codable, Equatable, Sendable {
-    public static let currentVersion = 3
+    public static let currentVersion = 4
 
     public var version = Settings.currentVersion
 
@@ -47,7 +47,26 @@ public struct Settings: Codable, Equatable, Sendable {
         }
     }
 
+    // 008 dictation
+    public var dictationAutoDetect = true
+    public var dictationLanguage = Settings.defaultDictationLanguage
+    public var spanishLocale = Settings.defaultSpanishLocale
+    public var customWords: [String] = []
+
     public init() {}
+
+    /// "es" if the Mac's language is Spanish, otherwise "en".
+    public static var defaultDictationLanguage: String {
+        Locale.current.language.languageCode?.identifier == "es" ? "es" : "en"
+    }
+
+    /// The Mac's region if it's a Spanish-speaking one, otherwise Mexico.
+    public static var defaultSpanishLocale: String {
+        let spanishRegions = ["ES", "MX", "US", "AR", "CO", "CL", "PE", "VE", "EC", "GT", "CU", "BO", "DO", "HN", "PY",
+                              "SV", "NI", "CR", "PA", "UY", "PR"]
+        let region = Locale.current.region?.identifier ?? ""
+        return spanishRegions.contains(region) && region != "US" ? "es-\(region)" : "es-MX"
+    }
 
     /// First word of the macOS account name ("Jose").
     public static var defaultProfileName: String {
@@ -80,6 +99,16 @@ public enum SettingsMigrations {
             settings.speechSpeed = VoiceRanking.speed(forRate: settings.speechRate)
             if !settings.voiceIdentifier.isEmpty, let language = VoiceRanking.language(ofIdentifier: settings.voiceIdentifier) {
                 settings.voiceByLanguage[language] = settings.voiceIdentifier
+            }
+        }
+        if settings.version < 4 {
+            // 008: v0.1's single speech language becomes the dictation language (+ Spanish region).
+            let legacy = settings.speechLocale.lowercased()
+            if legacy.hasPrefix("es") {
+                settings.dictationLanguage = "es"
+                settings.spanishLocale = settings.speechLocale.replacingOccurrences(of: "_", with: "-")
+            } else if legacy.hasPrefix("en") {
+                settings.dictationLanguage = "en"
             }
         }
         settings.version = Settings.currentVersion

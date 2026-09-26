@@ -71,7 +71,7 @@ final class ComposerDictation: ObservableObject {
             }
         } else {
             do {
-                try speech.start(locale: AppModel.shared.settings.locale)
+                try speech.start(AppModel.shared.settings)
                 isListening = true
             } catch {
                 isListening = false

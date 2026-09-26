@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var assistant = Assistant(model: model, companion: companion)
     private let textMode = TextModeField()
     private var quiet: QuietMonitor?
+    private lazy var dictation = DictationController(model: model, companion: companion)
     private var galleryWindow: NSWindow?
     private var notch: NotchController!
     private var shortcuts: ShortcutCenter!
@@ -23,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         notch.onOpenSettings = { [weak self] in self?.model.openSettings() }
         shortcuts = ShortcutCenter(model: model)
         shortcuts.onEvent = { [weak self] event in self?.handle(event) }
+        shortcuts.onEscape = { [weak self] in self?.dictation.escape() ?? false }
         AppServices.shared = AppServices(shortcuts: shortcuts, notch: notch, assistant: assistant)
 
         observeChanges({ self.model.settings.showInDock }) { DockPolicy.apply(showInDock: $0) }
@@ -63,7 +65,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .ended(.pushToTalk): assistant.endListening()
         case .cancelled(.pushToTalk): assistant.cancelListening()
         case .triggered(.textMode): showTextMode()
-        default: break // dictation arrives in spec 008
+        case .began(.dictate): dictation.holdBegan()
+        case .ended(.dictate): dictation.holdEnded()
+        case .cancelled(.dictate): dictation.holdCancelled()
+        case .triggered(.handsFreeDictation), .began(.handsFreeDictation): dictation.toggleHandsFree()
+        default: break
         }
     }
 

@@ -7,6 +7,8 @@ import MyClickyCore
 final class ShortcutCenter {
     let model: AppModel
     var onEvent: (ShortcutMatcher.Event) -> Void = { _ in }
+    /// Esc outside recording (dictation uses it to cancel). Return true to swallow the key.
+    var onEscape: () -> Bool = { false }
 
     private let tap = HotkeyTap()
     private var matcher: ShortcutMatcher
@@ -71,6 +73,7 @@ final class ShortcutCenter {
             finish(recorder!.keyDown(code))
             return true
         }
+        if code == 53, onEscape() { return true }
         let result = matcher.keyDown(code, at: now)
         result.events.forEach(onEvent)
         return result.swallow

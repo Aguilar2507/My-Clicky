@@ -204,7 +204,3 @@ final class AppModel {
     }
 }
 
-extension Settings {
-    /// Speech recognition / voice language. Empty = system language.
-    var locale: Locale { speechLocale.isEmpty ? Locale.current : Locale(identifier: speechLocale) }
-}

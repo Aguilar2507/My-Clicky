@@ -76,7 +76,7 @@ final class Assistant {
         companion.clearDrawings()
         companion.hideBubble()
         do {
-            try speech.start(locale: settings.locale)
+            try speech.start(settings)
             listenStart = Date()
             state = .listening
             companion.setLook(.listening)

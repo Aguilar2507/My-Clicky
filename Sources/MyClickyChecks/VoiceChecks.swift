@@ -95,7 +95,7 @@ enum VoiceChecks {
             s.speechRate = 0.6
             s.voiceIdentifier = "com.apple.voice.premium.es-MX.Paulina"
             SettingsMigrations.upgrade(&s)
-            Check.equal(s.version, 3)
+            Check.equal(s.version, Settings.currentVersion)
             Check.equal(s.speechSpeed, 1.5)
             Check.equal(s.voiceByLanguage, ["es": "com.apple.voice.premium.es-MX.Paulina"])
             var fresh = Settings()

@@ -12,6 +12,9 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
   Settings → Voice / Microphone. It stays quiet during calls, screen sharing and Focus (answers show in the bubble
   with a ▶ Play chip); right-click the notch → Quiet mode to force it for an hour.
   Double-tap **control** to type a question right next to your cursor. Change the keys in Settings → Shortcuts.
+- **Dictation anywhere.** Hold **⌃ control + fn**, speak, release: your words are typed where your text cursor is,
+  in any app (on-device, never saved or sent). Double-tap **⌃ fn** for hands-free dictation (double-tap again to insert,
+  Esc to cancel). English, Spanish or auto-detect, plus your own words, in Settings → Dictation.
 - **Chats, like any AI app.** Your screen questions are saved in the pinned **Talk** chat. Your **Clickys** are named
   helpers (e.g. "Research Buddy"): click **+** or say "agent, …" to create one; "agent, ask Research Buddy to …" sends
   it a new task; follow-ups within 15 minutes continue the last Clicky. Search, rename, recolor and delete from the app.
