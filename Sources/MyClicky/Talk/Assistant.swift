@@ -177,6 +177,7 @@ final class Assistant {
             say("Please set your Anthropic API key first, in Settings, General.")
             return
         }
+        guard PaidRequestGate.allow(model) else { return } // monthly budget reached (spec 011); notice already shown
 
         state = .thinking
         companion.setLook(.thinking)

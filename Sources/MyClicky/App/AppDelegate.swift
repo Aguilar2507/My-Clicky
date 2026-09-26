@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var dictation = DictationController(model: model, companion: companion)
     private lazy var agents = AgentSupervisor(model: model, companion: companion)
     private var suggestions: SuggestionScheduler?
+    private let topUpChip = TopUpChip()
     private var galleryWindow: NSWindow?
     private var notch: NotchController!
     private var shortcuts: ShortcutCenter!
@@ -47,6 +48,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         requestPermissions()
         startShortcuts()
         quiet = QuietMonitor(model: model)
+        PaidRequestGate.onWarn = { [weak self] percent, budget in
+            self?.assistant.announce("You've used \(percent) percent of this month's budget.",
+                                     bubble: "You've used \(percent)% of this month's \(UsageMonth.format(budget)) budget.")
+        }
+        PaidRequestGate.onBlock = { [weak self] resetsOn in
+            guard let self else { return }
+            let date = resetsOn.formatted(.dateTime.month(.abbreviated).day())
+            self.companion.showBubble("Monthly budget reached. Paid requests are paused until \(date).", style: .info, autoHide: 15)
+            self.topUpChip.show { PaidRequestGate.topUp(self.model) }
+        }
         suggestions = SuggestionScheduler(model: model)
         suggestions?.onStart = { [weak self] idea in self?.startSuggestion(idea) }
         notch.extraMenuItems = { [weak self] menu in

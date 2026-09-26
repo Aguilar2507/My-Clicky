@@ -15,6 +15,9 @@ struct HomeRoot: View {
             }
             chrome
         }
+        .overlay {
+            if model.showingSpending { SpendingSheet { model.showingSpending = false } }
+        }
         .environment(\.colorScheme, .dark)
     }
 }

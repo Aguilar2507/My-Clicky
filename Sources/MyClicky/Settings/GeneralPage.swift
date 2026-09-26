@@ -53,6 +53,8 @@ struct GeneralPage: View {
                 }
             }
 
+            SpendingSection()
+
             SectionLabel("Version").padding(.top, 10)
             SettingsCard {
                 SettingsRow(title: "App version", subtitle: "You're on version \(AppInfo.versionString).")

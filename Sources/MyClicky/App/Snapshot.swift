@@ -33,6 +33,23 @@ enum Snapshot {
             i.statuses = ["github": .connected, "notion": .needsAuth]
             return AnyView(routePreview(.settings(.integrations)))
         }),
+        "spending": (NotchGeometry.expandedSize, {
+            seedChats(select: nil)
+            let m = previewModel
+            let cal = Calendar.current
+            for back in 0..<5 {
+                let date = cal.date(byAdding: .month, value: -back, to: Date())!
+                for i in 0..<(20 + back * 7) {
+                    let model = i % 5 == 0 ? "claude-sonnet-5" : "claude-haiku-4-5"
+                    m.usageStore.record(TokenUsage(model: model, inputTokens: 1600, outputTokens: 90),
+                                        kind: i % 9 == 0 ? .memory : .answer, now: date)
+                }
+            }
+            m.settings.creditUSD = 20
+            m.settings.creditSince = cal.date(byAdding: .day, value: -20, to: Date())
+            m.showingSpending = true
+            return AnyView(routePreview(.home))
+        }),
         "companion": (CGSize(width: 700, height: 420), { AnyView(CompanionDemo()) }),
         "home": (NotchGeometry.expandedSize, { seedChats(select: nil); return AnyView(routePreview(.home)) }),
         "conversation": (NotchGeometry.expandedSize, { AnyView(routePreview(.home, select: seedChats(select: "Research Buddy"))) }),

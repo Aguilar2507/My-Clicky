@@ -65,6 +65,13 @@ public struct Settings: Codable, Equatable, Sendable {
     // 010 integrations (no secrets: Claude Code keeps sign-in tokens)
     public var customIntegrations: [Integration] = []
 
+    // 011 spending and limits
+    public var monthlyBudgetUSD = 7.0          // 0 = off; $20 ÷ ~3 months
+    public var budgetTopUps: [String: Double] = [:]
+    public var budgetWarnedMonth = ""
+    public var creditUSD: Double?
+    public var creditSince: Date?
+
     public init() {}
 
     /// "es" if the Mac's language is Spanish, otherwise "en".

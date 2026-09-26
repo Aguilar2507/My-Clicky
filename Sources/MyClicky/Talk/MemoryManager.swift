@@ -18,7 +18,8 @@ final class MemoryManager {
 
     /// Runs after an answer has been spoken, never before one.
     func foldIfNeeded(_ chatID: UUID) async {
-        guard !running.contains(chatID), let chat = model.chat(chatID), let apiKey = Keychain.apiKey() else { return }
+        guard !running.contains(chatID), let chat = model.chat(chatID), let apiKey = Keychain.apiKey(),
+              PaidRequestGate.allowsBackground(model) else { return }
         let window = ContextWindow(chat: chat)
         guard let last = window.toFold.last else { return }
         running.insert(chatID)
@@ -29,7 +30,7 @@ final class MemoryManager {
         do {
             let reply = try await claude.complete(system: Self.system, user: user, model: model.settings.fastModel,
                                                   maxTokens: 300, apiKey: apiKey)
-            model.recordUsage(reply.usage, countsAsQuestion: false)
+            model.recordUsage(reply.usage, kind: .memory)
             guard !reply.text.isEmpty else { return }
             model.updateChat(chatID) {
                 $0.memorySummary = reply.text
@@ -50,11 +51,11 @@ enum ClickyNamer {
     """
 
     static func name(_ chatID: UUID, from instruction: String, model: AppModel) async {
-        guard let apiKey = Keychain.apiKey() else { return } // keeps "New Clicky N"
+        guard let apiKey = Keychain.apiKey(), PaidRequestGate.allowsBackground(model) else { return } // keeps "New Clicky N"
         do {
             let reply = try await ClaudeClient().complete(system: system, user: instruction, model: model.settings.fastModel,
                                                           maxTokens: 60, apiKey: apiKey)
-            model.recordUsage(reply.usage, countsAsQuestion: false)
+            model.recordUsage(reply.usage, kind: .naming)
             guard let parsed = NamingParser.parse(reply.text) else { return }
             model.rename(chatID, to: parsed.name)
             if let color = parsed.color { model.recolor(chatID, to: color) }

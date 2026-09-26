@@ -22,6 +22,7 @@ struct ChatRow: View {
                             ActivityDots()
                         } else if !chat.messages.isEmpty {
                             Text(RelativeTime.format(chat.updatedAt)).font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
+                                .lineLimit(1).fixedSize()
                         }
                     }
                     Text(snippet ?? previewText).font(.system(size: 14)).foregroundStyle(Color(hex: 0xB0B0B5)).lineLimit(1)

@@ -36,6 +36,12 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
 | "Where / how do I…" questions | `claude-sonnet-5` via API key (better at pointing) | ~$0.01 each |
 | Agent tasks (Clickys) and daily suggestions | Claude Code CLI, logged in with your Claude plan | included in your plan |
 
+**Your budget.** MyClicky shows this month's spend beside your name (the ring fills toward your monthly budget).
+The default budget is **$7/month**, so $20 of credit lasts about 3 months. At 80% it tells you once; at 100% it pauses
+paid requests until the next month (agents keep working: they use your Claude plan) and offers "Allow $2 more this
+month". Change or turn off the budget in Settings → General → Spending. Tap the spend to see the Spending sheet (by
+model, by kind, last 6 months, and how long your credit will last).
+
 ## Setup
 
 1. **Install Claude Code** (for agent mode) and log in once:

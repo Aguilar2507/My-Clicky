@@ -63,5 +63,7 @@ Implemented 2026-09-25. `swift build` ✓, checks: 3 integration groups (21 chec
   Authenticate), and polls `claude mcp list` every 3 s for up to 5 minutes.
 - Snapshot `settings-integrations` matches ref 10 (connected with green/orange status, Reconnect + ✕, Available with
   Connect). Brand logos aren't bundled: rows use letter tiles (a small deviation, avoids shipping trademarks).
+- `ClaudeMCP.swift` (T008) was folded into `Integrations/IntegrationsModel.swift` (the `claude mcp` wrappers + a
+  process runner with a timeout). `IntegrationRow`, `SignInCard` and `CustomConnectorSheet` live in `Settings/IntegrationsPage.swift`.
 - The Apps chip always shows (with "Apps +") and opens the Integrations page; connected icons appear on it.
 - **T015 not done**: needs Claude Code and your accounts (GitHub/Notion/Linear sign-ins). → **Needs you.**

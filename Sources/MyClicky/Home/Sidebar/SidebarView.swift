@@ -83,19 +83,22 @@ struct ProfileFooter: View {
     @Environment(AppModel.self) private var model
     var onAbout: () -> Void
 
-    /// Spend ring (spec 011) — nil until that feature exists.
-    static var spendRing: ((AppModel) -> AnyView)?
-
     var body: some View {
         HStack(spacing: 10) {
             InitialAvatar(name: model.settings.profileName, size: 38)
             VStack(alignment: .leading, spacing: 2) {
+                // "$0.42 · Sep": this month's API spend (tap for the Spending sheet)
                 Text(model.settings.profileName).font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
-                HStack(spacing: 6) {
-                    Text("\(model.thisMonth.formattedCost) this month").font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
-                    if let ring = Self.spendRing { ring(model) }
+                Button { model.showingSpending = true } label: {
+                    HStack(spacing: 6) {
+                        if model.settings.monthlyBudgetUSD > 0 { SpendRing(fraction: model.budgetFraction, size: 13) }
+                        Text("\(model.thisMonth.formattedCost) · \(Date().formatted(.dateTime.month(.abbreviated)))")
+                            .font(.system(size: 13)).foregroundStyle(Theme.textSecondary).lineLimit(1)
+                    }
                 }
+                .buttonStyle(.plain)
+                .help("Spending")
             }
             Spacer(minLength: 4)
             Button(action: onAbout) { Image(systemName: "info.circle") }.help("About MyClicky")

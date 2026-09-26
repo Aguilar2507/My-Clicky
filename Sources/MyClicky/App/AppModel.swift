@@ -183,10 +183,12 @@ final class AppModel {
 
     // MARK: Usage
 
-    func recordUsage(_ usage: TokenUsage, countsAsQuestion: Bool = true) {
-        usageStore.record(usage, countsAsQuestion: countsAsQuestion)
-        usageRevision += 1
+    func recordUsage(_ usage: TokenUsage, kind: UsageMonth.Kind = .answer) {
+        PaidRequestGate.record(self, usage, kind: kind)
     }
+
+    /// Shows the Spending sheet (spec 011).
+    var showingSpending = false
 
     /// Bumped on every recorded usage so views showing spend refresh.
     var usageRevision = 0
