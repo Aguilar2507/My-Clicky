@@ -196,6 +196,10 @@ final class AppModel {
         return usageStore.month()
     }
 
+    // MARK: Integrations (spec 010)
+
+    @ObservationIgnored lazy var integrations = IntegrationsModel(model: self)
+
     // MARK: Lifecycle
 
     func flush() {

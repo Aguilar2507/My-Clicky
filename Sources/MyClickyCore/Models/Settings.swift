@@ -62,6 +62,9 @@ public struct Settings: Codable, Equatable, Sendable {
     public var lastSuggestionsAt: Date?
     public var lastSuggestions: [Suggestion] = []
 
+    // 010 integrations (no secrets: Claude Code keeps sign-in tokens)
+    public var customIntegrations: [Integration] = []
+
     public init() {}
 
     /// "es" if the Mac's language is Spanish, otherwise "en".

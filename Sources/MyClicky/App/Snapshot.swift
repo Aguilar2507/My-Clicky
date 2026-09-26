@@ -27,6 +27,12 @@ enum Snapshot {
             Suggestion(text: "Check new remote AI architect roles", clickyTitle: "Role Scout", createdAt: Date()),
             Suggestion(text: "Summarize today's top 3 AI announcements", clickyTitle: nil, createdAt: Date()),
         ], onStart: { _ in }, onClose: {})) }),
+        "settings-integrations": (NotchGeometry.expandedSize, {
+            let i = previewModel.integrations
+            i.claudeAvailable = true
+            i.statuses = ["github": .connected, "notion": .needsAuth]
+            return AnyView(routePreview(.settings(.integrations)))
+        }),
         "companion": (CGSize(width: 700, height: 420), { AnyView(CompanionDemo()) }),
         "home": (NotchGeometry.expandedSize, { seedChats(select: nil); return AnyView(routePreview(.home)) }),
         "conversation": (NotchGeometry.expandedSize, { AnyView(routePreview(.home, select: seedChats(select: "Research Buddy"))) }),

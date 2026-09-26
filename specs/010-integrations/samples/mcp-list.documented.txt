@@ -1,0 +1,6 @@
+Checking MCP server health...
+
+myclicky-github: https://api.githubcopilot.com/mcp/ (HTTP) - ✓ Connected
+myclicky-notion: https://mcp.notion.com/mcp (HTTP) - ⚠ Needs authentication
+myclicky-linear: https://mcp.linear.app/mcp (HTTP) - ✗ Failed to connect
+filesystem: npx -y @modelcontextprotocol/server-filesystem /Users/x - ✓ Connected

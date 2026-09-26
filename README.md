@@ -23,6 +23,9 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
   clicking/typing on your Mac (sending, deleting, buying and posting always need your OK), and tells you when it's
   done (voice + bubble + blue dot + notch badge). Up to 3 run at once; stop them from the chat or the notch.
   Settings → Agents has the folder, autonomy, announcements and the Claude Code status. Once a day it can suggest tasks.
+- **Integrations.** Settings → Integrations connects GitHub, Notion, Linear, Jira & Confluence, Asana or Sentry (or any
+  custom connector) for your Clickys. Sign-in happens in your browser through Claude Code, which keeps the tokens;
+  every action in a connected app still asks with an Allow card. The sidebar's **Apps** chip shows what's connected.
 - MyClicky keeps a short written memory of each chat (never screenshots), so it remembers context cheaply.
 
 | Piece | What it uses | Cost |

@@ -43,6 +43,7 @@ struct SettingsView: View {
         case .microphone: MicrophonePage()
         case .dictation: DictationPage()
         case .agents: AgentsPage()
+        case .integrations: IntegrationsPage(integrations: model.integrations)
         default:
             if let view = Self.pageViews[page] { view() } else { GeneralPage() }
         }

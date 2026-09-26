@@ -163,6 +163,7 @@ If the build shows red **error** lines, the code has a mistake. The message give
 | See your chats | Open the notch: **Talk** (screen questions) is pinned on top, your **Clickys** below. |
 | Have it do a task | Click **+** and type the task, or say **"agent, …"**: "agent, create a reminder to call mom at 6". |
 | Approve what a Clicky wants to do | Click **Allow**, **Always allow**, or **Deny** on the card in its chat (or next to your cursor). |
+| Connect GitHub, Notion, Linear… | Settings → **Integrations** → Connect, then follow the Terminal + browser sign-in. |
 | Stop a Clicky | Its chat → **Stop**, or right-click the notch → **Stop agents**. |
 | Give a Clicky more work | Open it and type, or say "agent, ask Research Buddy to …". |
 | Answer a Clicky's question | Open its chat and reply, or within 15 minutes say "agent, yes go ahead". |

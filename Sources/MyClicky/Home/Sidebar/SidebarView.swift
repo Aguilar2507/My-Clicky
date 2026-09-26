@@ -7,9 +7,6 @@ struct SidebarView: View {
     @StateObject private var query = Box("")
     @StateObject private var showingAbout = Box(false)
 
-    /// The Apps chip appears once integrations exist (spec 010).
-    static var appsChip: ((AppModel) -> AnyView)?
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             MyClickyLogo().frame(width: 30, height: 30).padding(.leading, 20).padding(.top, 26).padding(.bottom, 26)
@@ -44,7 +41,7 @@ struct SidebarView: View {
             }
             .scrollIndicators(.never)
 
-            if let chip = Self.appsChip { chip(model).padding(.horizontal, 12).padding(.vertical, 12) }
+            AppsChip(integrations: model.integrations).padding(.horizontal, 12).padding(.vertical, 12)
             Rectangle().fill(Color(hex: 0x333333)).frame(height: 1).padding(.horizontal, 12)
             ProfileFooter(onAbout: { showingAbout.value = true })
         }
