@@ -10,6 +10,8 @@
   A default (active) tap needs Accessibility. Listening to key events in other apps also needs Input Monitoring
   (`CGPreflightListenEventAccess` / `CGRequestListenEventAccess`).
 - **Resilience**: On `.tapDisabledByTimeout` / `.tapDisabledByUserInput`, re-enable with `CGEvent.tapEnable`.
+- **As built (2026-09-25)**: flagsChanged events are never swallowed, only key-down events of `press` combos.
+  Swallowing modifier changes risks stuck modifiers in other apps, and the fn/🌐 system action can't be blocked this way anyway (R2).
 
 ## R2 The 🌐/fn system action
 

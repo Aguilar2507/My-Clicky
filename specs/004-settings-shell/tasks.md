@@ -71,6 +71,8 @@ Implemented 2026-09-25. `swift build` ✓, checks: 7 shortcut/settings groups (3
 - Forms (API key, name, shortcut recorder, What's new) are in-panel `ModalCard`s instead of sheets (sheets are
   unreliable in a non-activating panel).
 - Double-tap Control opens the v0.1 "Ask MyClicky" box until 006 adds the field beside the cursor.
+- File placement: the recorder UI (`ShortcutRecorderView`) lives in `Settings/ShortcutsPage.swift`, and
+  `WhatsNewSheet` + `APIKeyEditor` live in `Settings/GeneralPage.swift`.
 - Extra helpers: `App/AppServices.swift` (route + services), `App/Permissions.swift`, `DesignSystem/ModalCard.swift`,
   `Settings/SettingsView.swift`.
 - **T024 not done**: needs the running app (grant Input Monitoring, hold fn, rebind keys, 5-minute typing test,
