@@ -12,7 +12,7 @@ final class Assistant {
     let model: AppModel
     private let speech = SpeechRecognizer()
     private let speaker = Speaker()
-    private let overlay = OverlayController()
+    let companion: CompanionController
     private let claude = ClaudeClient()
     private lazy var memory = MemoryManager(model: model)
     let agent = AgentRunner()
@@ -29,13 +29,16 @@ final class Assistant {
 
     var settings: Settings { model.settings }
 
-    init(model: AppModel) {
+    init(model: AppModel, companion: CompanionController) {
         self.model = model
+        self.companion = companion
         speaker.onFinish = { [weak self] in
             guard let self, self.state == .speaking else { return }
             self.state = .idle
-            if !self.agent.isRunning { self.overlay.hideStatus() }
+            self.companion.setLook(.idle)
+            self.companion.hideBubble(after: 3) // fades 3 s after speech ends (spec 006 US2)
         }
+        speech.onLevel = { [weak companion] level in companion?.setLevel(level) }
     }
 
     // MARK: Voice
@@ -44,15 +47,18 @@ final class Assistant {
         guard state != .listening else { return }
         currentRequest?.cancel()
         speaker.stop()
-        overlay.hidePointer()
+        companion.cancelPointing()
+        companion.clearDrawings()
+        companion.hideBubble()
         do {
             try speech.start(locale: settings.locale)
             listenStart = Date()
             state = .listening
-            overlay.showStatus("Listening…", style: .listening)
+            companion.setLook(.listening)
         } catch {
             state = .idle
-            overlay.showStatus(error.localizedDescription, style: .info, autoHide: 4)
+            companion.setLook(.idle)
+            companion.showBubble(error.localizedDescription, style: .info, autoHide: 4)
         }
     }
 
@@ -63,7 +69,8 @@ final class Assistant {
             let text = await speech.stop()
             if tooShort || text.isEmpty {
                 state = .idle
-                overlay.showStatus(tooShort ? "Hold the key while you talk" : "I didn't catch that", style: .info, autoHide: 1.5)
+                companion.setLook(.idle)
+                companion.showBubble(tooShort ? "Hold the key while you talk" : "I didn't catch that", style: .info, autoHide: 1.5)
                 return
             }
             await handle(text, via: .voice)
@@ -75,7 +82,7 @@ final class Assistant {
         guard state == .listening else { return }
         speech.cancel()
         state = .idle
-        overlay.hideStatus()
+        companion.setLook(.idle)
     }
 
     /// The greeting screen's pill: click to start listening, click again to send.
@@ -109,8 +116,9 @@ final class Assistant {
 
     func stopSpeaking() {
         speaker.stop()
-        overlay.hidePointer()
-        overlay.hideStatus()
+        companion.cancelPointing()
+        companion.hideBubble()
+        companion.setLook(.idle)
         state = .idle
     }
 
@@ -138,7 +146,8 @@ final class Assistant {
         }
 
         state = .thinking
-        overlay.showStatus("“\(text)”", style: .thinking)
+        companion.setLook(.thinking)
+        companion.showBubble("“\(text)”", style: .thinking)
 
         let modelID = Router.wantsPointing(text) ? settings.pointingModel : settings.fastModel
         var screenshots: [Screenshot] = []
@@ -154,15 +163,16 @@ final class Assistant {
             let reply = try await claude.ask(question: text, screenshots: screenshots, history: history,
                                              memory: window.summary, model: modelID, apiKey: apiKey)
             model.recordUsage(reply.usage) // billed even if the user interrupted
-            let (spoken, point) = PointTag.parse(reply.text)
-            let answer = spoken.isEmpty ? "Look here." : spoken
+            let parsed = ScreenTags.parse(reply.text)
+            let answer = parsed.text.isEmpty ? "Look here." : parsed.text
             model.appendReply(Message(role: .assistant, text: answer, via: via), to: talkID)
             guard !Task.isCancelled else { return }
 
-            if let point, screenshots.indices.contains(point.screen - 1) {
-                let shot = screenshots[point.screen - 1]
-                overlay.point(at: shot.globalPoint(x: point.x, y: point.y), label: point.label)
+            if case .point(let x, let y, let label, let screen)? = parsed.point, screenshots.indices.contains(screen - 1) {
+                let shot = screenshots[screen - 1]
+                companion.point(at: shot.globalPoint(x: x, y: y), label: label)
             }
+            if !parsed.drawings.isEmpty { companion.draw(parsed.drawings, screenshots: screenshots) }
             say(answer)
             await memory.foldIfNeeded(talkID)
         } catch {
@@ -173,7 +183,8 @@ final class Assistant {
 
     private func say(_ text: String) {
         state = .speaking
-        overlay.showStatus(text, style: .info)
+        companion.setLook(.speaking)
+        companion.showBubble(text, style: .info)
         speaker.speak(text, settings: settings)
     }
 

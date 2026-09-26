@@ -1,5 +1,6 @@
 import AppKit
 import ScreenCaptureKit
+import MyClickyCore
 
 /// One screenshot per display, downscaled for the model.
 struct Screenshot {
@@ -12,12 +13,12 @@ struct Screenshot {
 
     /// Converts a point in screenshot pixels (origin top-left) to AppKit global coordinates.
     func globalPoint(x: Double, y: Double) -> CGPoint {
-        let px = min(max(x, 0), Double(pixelWidth))
-        let py = min(max(y, 0), Double(pixelHeight))
-        return CGPoint(
-            x: screenFrame.minX + px * screenFrame.width / Double(pixelWidth),
-            y: screenFrame.maxY - py * screenFrame.height / Double(pixelHeight)
-        )
+        ScreenMapping.globalPoint(x: x, y: y, pixelWidth: pixelWidth, pixelHeight: pixelHeight, screenFrame: screenFrame)
+    }
+
+    /// Screenshot pixels → points (radii, widths).
+    func points(_ pixels: Double) -> CGFloat {
+        ScreenMapping.length(pixels, pixelWidth: pixelWidth, screenFrame: screenFrame)
     }
 }
 

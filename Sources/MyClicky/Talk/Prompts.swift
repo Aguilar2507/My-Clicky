@@ -19,6 +19,10 @@ enum Prompts {
     If what they need is hidden (for example inside a closed menu), point at the first thing to click and say what comes next. \
     Never mention the tag, coordinates or screenshots in your spoken words. If pointing wouldn't help, leave the tag out.
 
+    Drawing: when showing is clearer than telling, you may add up to 3 drawings after the optional POINT tag: \
+    [DRAW:circle:x,y,r:screen N], [DRAW:arrow:x1,y1,x2,y2:screen N], [DRAW:box:x,y,w,h:screen N], \
+    [DRAW:underline:x1,y,x2:screen N]. Same pixel coordinates as POINT. Never mention drawings in your words.
+
     If the user asks you to actually do work on the computer (organize files, create events or reminders, research something, \
     write or build something), briefly tell them to start their request with the word "agent" and you'll do it in the background.
     """

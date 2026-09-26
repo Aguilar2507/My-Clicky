@@ -4,8 +4,11 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
 [farzaa/clicky](https://github.com/farzaa/clicky).
 
 - **MyClicky lives in your notch.** Rest the pointer on the notch to open the app (chats, settings); move away to close.
-- **Hold fn and talk.** It screenshots your screens, asks Claude, answers out loud and flies a pointer to what you need.
-  Double-tap **control** to type instead. Change the keys in Settings → Shortcuts.
+- **A companion beside your cursor.** A small glowing triangle follows your pointer. It pulses while listening,
+  shimmers while thinking, shows answers in a bubble, **flies to things** to point at them and can **draw** circles,
+  arrows and boxes on your screen. Pick its color or dock it in the notch in Settings → Cursor.
+- **Hold fn and talk.** It screenshots your screens, asks Claude and answers out loud.
+  Double-tap **control** to type a question right next to your cursor. Change the keys in Settings → Shortcuts.
 - **Chats, like any AI app.** Your screen questions are saved in the pinned **Talk** chat. Your **Clickys** are named
   helpers (e.g. "Research Buddy"): click **+** or say "agent, …" to create one; "agent, ask Research Buddy to …" sends
   it a new task; follow-ups within 15 minutes continue the last Clicky. Search, rename, recolor and delete from the app.

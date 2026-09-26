@@ -64,7 +64,7 @@ struct CompanionTriangle: View {
         TriangleShape()
             .fill(color)
             .shadow(color: color.opacity(0.9), radius: 6)
-            .rotationEffect(.degrees(-20))
+            .rotationEffect(.degrees(10))
     }
 }
 

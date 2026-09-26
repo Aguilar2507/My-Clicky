@@ -13,6 +13,8 @@ enum Snapshot {
         "notch-expanded": (NotchGeometry.expandedSize, { AnyView(notchPreview(expanded: true)) }),
         "settings-general": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.general))) }),
         "settings-shortcuts": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.shortcuts))) }),
+        "settings-cursor": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.cursor))) }),
+        "companion": (CGSize(width: 700, height: 420), { AnyView(CompanionDemo()) }),
         "home": (NotchGeometry.expandedSize, { seedChats(select: nil); return AnyView(routePreview(.home)) }),
         "conversation": (NotchGeometry.expandedSize, { AnyView(routePreview(.home, select: seedChats(select: "Research Buddy"))) }),
     ]

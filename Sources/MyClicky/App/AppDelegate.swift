@@ -8,7 +8,9 @@ import MyClickyCore
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let model = AppModel.shared
-    private lazy var assistant = Assistant(model: model)
+    private lazy var companion = CompanionController(model: model)
+    private lazy var assistant = Assistant(model: model, companion: companion)
+    private let textMode = TextModeField()
     private var galleryWindow: NSWindow?
     private var notch: NotchController!
     private var shortcuts: ShortcutCenter!
@@ -57,29 +59,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .began(.pushToTalk): assistant.beginListening()
         case .ended(.pushToTalk): assistant.endListening()
         case .cancelled(.pushToTalk): assistant.cancelListening()
-        case .triggered(.textMode): askByTyping() // spec 006 replaces this with the field beside the cursor
+        case .triggered(.textMode): showTextMode()
         default: break // dictation arrives in spec 008
         }
     }
 
-    // MARK: Interim text mode (until 006)
+    // MARK: Text mode (spec 006 US5)
 
-    private func askByTyping() {
-        NSApp.activate(ignoringOtherApps: true)
-        let alert = NSAlert()
-        alert.messageText = "Ask MyClicky"
-        alert.informativeText = "It will look at your screen. Start with “agent” to run a task."
-        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 360, height: 24))
-        field.placeholderString = "e.g. where is the export button?"
-        alert.accessoryView = field
-        alert.addButton(withTitle: "Ask")
-        alert.addButton(withTitle: "Cancel")
-        alert.window.initialFirstResponder = field
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-        let text = field.stringValue
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
-            self?.assistant.ask(typed: text)
-        }
+    private func showTextMode() {
+        if textMode.isOpen { textMode.close(); return }
+        textMode.onSubmit = { [weak self] text in self?.assistant.ask(typed: text) }
+        textMode.show(near: NSEvent.mouseLocation)
     }
 
     // MARK: Developer

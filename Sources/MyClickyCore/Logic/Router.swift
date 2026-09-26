@@ -9,7 +9,9 @@ public enum Router {
     private static let pointingPattern = try! NSRegularExpression(
         pattern: #"\b(where|how (do|can|would|should) i|how to|show me|point (at|to|me)|find the|locate|click|"#
             + #"which (button|menu|icon|tab|option|setting)|dónde|donde|cómo (hago|puedo|le hago)|"#
-            + #"como (hago|puedo|le hago)|muéstrame|muestrame|enséñame|ensename|señala|senala|clic|botón|boton)\b"#,
+            + #"como (hago|puedo|le hago)|muéstrame|muestrame|enséñame|ensename|señala|senala|clic|botón|boton|"#
+            // 006: drawing requests also need the pointing model.
+            + #"circle|draw|highlight|underline|encierra|dibuja|subraya|resalta)\b"#,
         options: [.caseInsensitive])
 
     /// If the request starts with "agent", returns the task without that word.

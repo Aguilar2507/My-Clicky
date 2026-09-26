@@ -18,6 +18,8 @@ final class SpeechRecognizer {
     private var transcript = ""
     private var isFinished = false
     private var finishContinuation: CheckedContinuation<String, Never>?
+    /// Microphone level 0…1 while recording (drives the companion's listening pulse, spec 006).
+    var onLevel: ((Float) -> Void)?
 
     static func requestPermissions() async -> Bool {
         let speechOK = await withCheckedContinuation { continuation in
@@ -44,7 +46,9 @@ final class SpeechRecognizer {
         transcript = ""
         isFinished = false
 
-        Self.installTap(on: engine.inputNode, feeding: request)
+        Self.installTap(on: engine.inputNode, feeding: request) { [weak self] level in
+            Task { @MainActor in self?.onLevel?(level) }
+        }
         engine.prepare()
         try engine.start()
 
@@ -90,11 +94,23 @@ final class SpeechRecognizer {
     }
 
     // Built outside the main actor: these callbacks run on audio / recognizer threads.
-    private nonisolated static func installTap(on node: AVAudioInputNode, feeding request: SFSpeechAudioBufferRecognitionRequest) {
+    private nonisolated static func installTap(on node: AVAudioInputNode, feeding request: SFSpeechAudioBufferRecognitionRequest,
+                                               level: @escaping @Sendable (Float) -> Void) {
         let format = node.outputFormat(forBus: 0)
         node.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
             request.append(buffer)
+            level(Self.level(of: buffer))
         }
+    }
+
+    /// RMS of a buffer mapped from -50…0 dB to 0…1.
+    nonisolated static func level(of buffer: AVAudioPCMBuffer) -> Float {
+        guard let samples = buffer.floatChannelData?[0], buffer.frameLength > 0 else { return 0 }
+        var sum: Float = 0
+        for i in 0..<Int(buffer.frameLength) { sum += samples[i] * samples[i] }
+        let rms = (sum / Float(buffer.frameLength)).squareRoot()
+        let db = 20 * log10(max(rms, 0.000_01))
+        return min(1, max(0, (db + 50) / 50))
     }
 
     private nonisolated func makeResultHandler() -> @Sendable (SFSpeechRecognitionResult?, Error?) -> Void {

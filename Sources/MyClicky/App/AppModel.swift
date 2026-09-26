@@ -174,7 +174,7 @@ final class AppModel {
         didSet { if isNotchOpen, let id = visibleChatID { markRead(id) } }
     }
     /// Color of the companion when docked in the notch (spec 006); nil = not docked.
-    var dockedCompanionColor: Color? { nil }
+    var dockedCompanionColor: Color? { settings.cursorDocked ? Color(hex: settings.cursorColor.hex) : nil }
 
     // MARK: Usage
 

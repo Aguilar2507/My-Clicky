@@ -27,11 +27,29 @@ public struct Settings: Codable, Equatable, Sendable {
     public var showInScreenRecordings = true
     public var shortcuts = ShortcutBinding.defaults
 
+    // 006 cursor companion
+    public var cursorColor: CursorColor = .red
+    public var cursorDocked = false
+
     public init() {}
 
     /// First word of the macOS account name ("Jose").
     public static var defaultProfileName: String {
         NSFullUserName().split(separator: " ").first.map(String.init) ?? NSUserName()
+    }
+}
+
+/// The companion's color (Settings → Cursor, ref 08).
+public enum CursorColor: String, Codable, CaseIterable, Sendable {
+    case red, blue, yellow, green
+
+    public var hex: UInt32 {
+        switch self {
+        case .red: 0xF0524A
+        case .blue: 0x3E7BFA
+        case .yellow: 0xE9B53A
+        case .green: 0x3DBE72
+        }
     }
 }
 

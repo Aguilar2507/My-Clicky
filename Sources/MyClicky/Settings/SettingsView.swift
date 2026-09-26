@@ -38,6 +38,7 @@ struct SettingsView: View {
         switch page {
         case .general: GeneralPage()
         case .shortcuts: ShortcutsPage()
+        case .cursor: CursorPage()
         default:
             if let view = Self.pageViews[page] { view() } else { GeneralPage() }
         }

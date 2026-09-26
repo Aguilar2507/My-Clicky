@@ -23,14 +23,14 @@ enum FoundationChecks {
             Check.equal(Router.agentTask("agent"), nil, "empty task")
         }
 
-        Check.group("PointTag") {
-            let (spoken, tag) = PointTag.parse("Click Export. [POINT:120,45:Export button:screen 2]")
-            Check.equal(spoken, "Click Export.")
-            Check.equal(tag, PointTag(x: 120, y: 45, label: "Export button", screen: 2))
-            let (plain, none) = PointTag.parse("No pointing here.")
-            Check.equal(plain, "No pointing here.")
-            Check.equal(none, nil)
-            Check.equal(PointTag.parse("[point: 1.5 , 2 ]").point?.screen, 1, "default screen")
+        Check.group("Point tags (v0.1 format)") {
+            let parsed = ScreenTags.parse("Click Export. [POINT:120,45:Export button:screen 2]")
+            Check.equal(parsed.text, "Click Export.")
+            Check.equal(parsed.point, .point(x: 120, y: 45, label: "Export button", screen: 2))
+            let plain = ScreenTags.parse("No pointing here.")
+            Check.equal(plain.text, "No pointing here.")
+            Check.equal(plain.point, nil)
+            Check.equal(ScreenTags.parse("[point: 1.5 , 2 ]").point?.screen, 1, "default screen")
         }
 
         Check.group("Pricing") {
