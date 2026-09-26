@@ -3,7 +3,7 @@ import Foundation
 /// Every user preference, stored in `settings.json`. Each field has a default, so older files keep loading
 /// (TolerantDecoder fills gaps). Features add fields in their own extension-free block below, marked by spec.
 public struct Settings: Codable, Equatable, Sendable {
-    public static let currentVersion = 2
+    public static let currentVersion = 3
 
     public var version = Settings.currentVersion
 
@@ -30,6 +30,22 @@ public struct Settings: Codable, Equatable, Sendable {
     // 006 cursor companion
     public var cursorColor: CursorColor = .red
     public var cursorDocked = false
+
+    // 007 voice talk
+    public var speechSpeed = 1.0
+    public var voiceByLanguage: [String: String] = [:]
+    public var microphoneUID = ""
+    public var quietOverride = QuietOverride()
+
+    public struct QuietOverride: Codable, Equatable, Sendable {
+        public enum Mode: String, Codable, Sendable { case auto, on, off }
+        public var mode: Mode = .auto
+        public var until: Date?
+        public init(mode: Mode = .auto, until: Date? = nil) {
+            self.mode = mode
+            self.until = until
+        }
+    }
 
     public init() {}
 
@@ -58,6 +74,13 @@ public enum SettingsMigrations {
     public static func upgrade(_ settings: inout Settings) {
         if settings.version < 2 {
             // v0.1 → v0.2: same keys, nothing to convert.
+        }
+        if settings.version < 3 {
+            // 007: rate → speed chip; the chosen voice goes into its language slot.
+            settings.speechSpeed = VoiceRanking.speed(forRate: settings.speechRate)
+            if !settings.voiceIdentifier.isEmpty, let language = VoiceRanking.language(ofIdentifier: settings.voiceIdentifier) {
+                settings.voiceByLanguage[language] = settings.voiceIdentifier
+            }
         }
         settings.version = Settings.currentVersion
     }

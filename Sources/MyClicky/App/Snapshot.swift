@@ -14,6 +14,8 @@ enum Snapshot {
         "settings-general": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.general))) }),
         "settings-shortcuts": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.shortcuts))) }),
         "settings-cursor": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.cursor))) }),
+        "settings-voice": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.voice))) }),
+        "settings-microphone": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.microphone))) }),
         "companion": (CGSize(width: 700, height: 420), { AnyView(CompanionDemo()) }),
         "home": (NotchGeometry.expandedSize, { seedChats(select: nil); return AnyView(routePreview(.home)) }),
         "conversation": (NotchGeometry.expandedSize, { AnyView(routePreview(.home, select: seedChats(select: "Research Buddy"))) }),

@@ -7,7 +7,10 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
 - **A companion beside your cursor.** A small glowing triangle follows your pointer. It pulses while listening,
   shimmers while thinking, shows answers in a bubble, **flies to things** to point at them and can **draw** circles,
   arrows and boxes on your screen. Pick its color or dock it in the notch in Settings → Cursor.
-- **Hold fn and talk.** It screenshots your screens, asks Claude and answers out loud.
+- **Hold fn and talk.** It screenshots your screens, asks Claude and starts answering out loud within a couple of
+  seconds, sentence by sentence as the answer arrives. Pick the voice (English and Spanish), speed and microphone in
+  Settings → Voice / Microphone. It stays quiet during calls, screen sharing and Focus (answers show in the bubble
+  with a ▶ Play chip); right-click the notch → Quiet mode to force it for an hour.
   Double-tap **control** to type a question right next to your cursor. Change the keys in Settings → Shortcuts.
 - **Chats, like any AI app.** Your screen questions are saved in the pinned **Talk** chat. Your **Clickys** are named
   helpers (e.g. "Research Buddy"): click **+** or say "agent, …" to create one; "agent, ask Research Buddy to …" sends
@@ -17,7 +20,7 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
 | Piece | What it uses | Cost |
 |---|---|---|
 | Speech-to-text | Apple on-device recognition | free |
-| Voice | macOS system voices (picks the best installed one) | free |
+| Voice | macOS system voices, one per language (Settings → Voice) | free |
 | Normal questions | `claude-haiku-4-5` via API key | ~$0.003 each |
 | "Where / how do I…" questions | `claude-sonnet-5` via API key (better at pointing) | ~$0.01 each |
 | Agent tasks | Claude Code CLI, logged in with your Claude plan | included in your plan |

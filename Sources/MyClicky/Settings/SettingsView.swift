@@ -39,6 +39,8 @@ struct SettingsView: View {
         case .general: GeneralPage()
         case .shortcuts: ShortcutsPage()
         case .cursor: CursorPage()
+        case .voice: VoicePage()
+        case .microphone: MicrophonePage()
         default:
             if let view = Self.pageViews[page] { view() } else { GeneralPage() }
         }

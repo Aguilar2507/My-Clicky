@@ -73,6 +73,62 @@ struct ClaudeClient {
                        model: model, apiKey: apiKey)
     }
 
+    /// The stream stopped early (network, API error). What arrived so far is kept and still billed.
+    struct StreamInterrupted: LocalizedError {
+        let partial: String
+        let usage: TokenUsage
+        let reason: String
+        var errorDescription: String? { reason }
+    }
+
+    /// Streams a request (spec 007): `onText` receives each text piece as it arrives, on the main actor.
+    func stream(_ body: [String: Any], model: String, apiKey: String,
+                onText: @escaping @MainActor (String) -> Void) async throws -> Reply {
+        var body = body
+        body["stream"] = true
+        let (bytes, response) = try await URLSession.shared.bytes(for: request(body, apiKey: apiKey))
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard status == 200 else {
+            var data = Data()
+            for try await byte in bytes { data.append(byte) }
+            let error = ((try? JSONSerialization.jsonObject(with: data)) as? [String: Any])?["error"] as? [String: Any]
+            throw APIError(message: (error?["message"] as? String) ?? "Claude API returned status \(status).")
+        }
+        let parser = SSEParser()
+        var text = ""
+        var usage = TokenUsage(model: model)
+        var stopReason: String?
+        do {
+            for try await line in bytes.lines {
+                guard let event = parser.parse(line: line) else { continue }
+                switch event {
+                case .start(let input, let cacheRead, let cacheWrite):
+                    usage.inputTokens = input
+                    usage.cacheReadTokens = cacheRead
+                    usage.cacheWriteTokens = cacheWrite
+                case .textDelta(let piece):
+                    text += piece
+                    await onText(piece)
+                case .stop(let reason, let output):
+                    stopReason = reason
+                    usage.outputTokens = output
+                case .error(_, let message):
+                    throw StreamInterrupted(partial: text, usage: usage, reason: message)
+                case .ping:
+                    break
+                }
+            }
+        } catch let interrupted as StreamInterrupted {
+            throw interrupted
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            throw StreamInterrupted(partial: text, usage: usage, reason: error.localizedDescription)
+        }
+        if stopReason == "refusal" { return Reply(text: "Sorry, I can't help with that one.", usage: usage) }
+        return Reply(text: text.trimmingCharacters(in: .whitespacesAndNewlines), usage: usage)
+    }
+
     // MARK: Small text requests (memory summaries, naming Clickys)
 
     func complete(system: String, user: String, model: String, maxTokens: Int = 300, apiKey: String) async throws -> Reply {

@@ -1,6 +1,20 @@
 import AppKit
 import MyClickyCore
 
+/// Text received so far while an answer streams in.
+@MainActor
+private final class StreamState {
+    var raw = ""
+    var emitted = ""
+    var splitter = SentenceSplitter()
+    private var shownText = ""
+
+    func shown(adding sentence: String) -> String {
+        shownText += (shownText.isEmpty ? "" : " ") + sentence
+        return shownText
+    }
+}
+
 /// Orchestrates listening → screenshot → Claude → speech/pointing, and Clicky agent tasks.
 /// Screen questions are saved in the pinned Talk chat; "agent…" requests go to Clickys (spec 005, ChatRouter).
 @MainActor
@@ -11,13 +25,15 @@ final class Assistant {
 
     let model: AppModel
     private let speech = SpeechRecognizer()
-    private let speaker = Speaker()
+    private let voice = SpeechQueue()
+    private let quietChip = QuietPlayChip()
     let companion: CompanionController
     private let claude = ClaudeClient()
     private lazy var memory = MemoryManager(model: model)
     let agent = AgentRunner()
     private var listenStart = Date()
     private var currentRequest: Task<Void, Never>?
+    private var spokenSoFar = ""
 
     private(set) var state: State = .idle {
         didSet {
@@ -32,11 +48,19 @@ final class Assistant {
     init(model: AppModel, companion: CompanionController) {
         self.model = model
         self.companion = companion
-        speaker.onFinish = { [weak self] in
-            guard let self, self.state == .speaking else { return }
+        voice.onFinish = { [weak self] in
+            guard let self, self.state == .speaking || self.state == .thinking else { return }
             self.state = .idle
             self.companion.setLook(.idle)
             self.companion.hideBubble(after: 3) // fades 3 s after speech ends (spec 006 US2)
+        }
+        // The bubble grows with the speech (spec 006 US2 / 007 FR-004).
+        voice.onSentenceStart = { [weak self] sentence in
+            guard let self else { return }
+            self.spokenSoFar += (self.spokenSoFar.isEmpty ? "" : " ") + sentence
+            self.state = .speaking
+            self.companion.setLook(.speaking)
+            self.companion.showBubble(self.spokenSoFar, style: .info)
         }
         speech.onLevel = { [weak companion] level in companion?.setLevel(level) }
     }
@@ -46,7 +70,8 @@ final class Assistant {
     func beginListening() {
         guard state != .listening else { return }
         currentRequest?.cancel()
-        speaker.stop()
+        voice.stopNow()
+        quietChip.close()
         companion.cancelPointing()
         companion.clearDrawings()
         companion.hideBubble()
@@ -97,7 +122,8 @@ final class Assistant {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
         currentRequest?.cancel()
-        speaker.stop()
+        voice.stopNow()
+        quietChip.close()
         currentRequest = Task { await handle(text, via: .typed) }
     }
 
@@ -107,7 +133,8 @@ final class Assistant {
         guard !text.isEmpty, let chat = model.chat(chatID) else { return }
         if chat.kind == .talk {
             currentRequest?.cancel()
-            speaker.stop()
+            voice.stopNow()
+        quietChip.close()
             currentRequest = Task { await talk(text, via: .typed) }
         } else {
             startAgent(text, in: chatID, via: .typed)
@@ -115,7 +142,8 @@ final class Assistant {
     }
 
     func stopSpeaking() {
-        speaker.stop()
+        voice.stopNow()
+        quietChip.close()
         companion.cancelPointing()
         companion.hideBubble()
         companion.setLook(.idle)
@@ -139,6 +167,7 @@ final class Assistant {
 
     // MARK: Talk (screen questions)
 
+    /// Streams the answer and speaks it sentence by sentence as it arrives (spec 007 US1).
     private func talk(_ text: String, via: Message.Via) async {
         guard let apiKey = Keychain.apiKey() else {
             say("Please set your Anthropic API key first, in Settings, General.")
@@ -159,9 +188,29 @@ final class Assistant {
         let window = ContextWindow(chat: model.talkChat)
         let history = window.recent.map { ChatTurn(user: $0.user.text, assistant: $0.assistant.text) }
         model.append(Message(role: .user, text: text, via: via, screensSeen: screenshots.count), to: talkID)
+        let body = claude.talkBody(question: text, screenshots: screenshots, history: history, memory: window.summary, model: modelID)
+
+        let quiet = model.isQuiet
+        let stream = StreamState()
+        spokenSoFar = ""
+        if !quiet { voice.begin() }
+        let settings = self.settings
+        let feed: @MainActor (String) -> Void = { [weak self] sentence in
+            guard let self else { return }
+            if quiet { self.companion.showBubble(stream.shown(adding: sentence), style: .quiet) }
+            else { self.voice.enqueue(sentence, settings: settings) }
+        }
+
         do {
-            let reply = try await claude.ask(question: text, screenshots: screenshots, history: history,
-                                             memory: window.summary, model: modelID, apiKey: apiKey)
+            let reply = try await claude.stream(body, model: modelID, apiKey: apiKey) { piece in
+                stream.raw += piece
+                let visible = ScreenTags.visibleText(partial: stream.raw)
+                guard visible.hasPrefix(stream.emitted) else { return }
+                let delta = String(visible.dropFirst(stream.emitted.count))
+                stream.emitted = visible
+                stream.splitter.append(delta).forEach(feed)
+            }
+            if let rest = stream.splitter.finish() { feed(rest) }
             model.recordUsage(reply.usage) // billed even if the user interrupted
             let parsed = ScreenTags.parse(reply.text)
             let answer = parsed.text.isEmpty ? "Look here." : parsed.text
@@ -173,19 +222,52 @@ final class Assistant {
                 companion.point(at: shot.globalPoint(x: x, y: y), label: label)
             }
             if !parsed.drawings.isEmpty { companion.draw(parsed.drawings, screenshots: screenshots) }
-            say(answer)
+            if parsed.text.isEmpty && !quiet { voice.enqueue(answer, settings: settings) }
+
+            if quiet {
+                finishQuietly(answer)
+            } else {
+                voice.close()
+            }
             await memory.foldIfNeeded(talkID)
+        } catch let interrupted as ClaudeClient.StreamInterrupted {
+            model.recordUsage(interrupted.usage)
+            let partial = ScreenTags.parse(interrupted.partial).text
+            if !partial.isEmpty { model.appendReply(Message(role: .assistant, text: partial + " …connection lost", via: via), to: talkID) }
+            if let rest = stream.splitter.finish(), !quiet { voice.enqueue(rest, settings: settings) }
+            companion.showBubble((partial.isEmpty ? "Sorry, the answer didn't arrive." : partial) + " …connection lost",
+                                 style: .info, autoHide: 6)
+            if quiet { state = .idle; companion.setLook(.idle) } else { voice.close() }
         } catch {
             guard !Task.isCancelled else { return }
             say("Sorry, something went wrong. \(error.localizedDescription)")
         }
     }
 
+    /// Quiet mode (spec 007 US4): show the answer without sound, with a chip to play it.
+    private func finishQuietly(_ answer: String) {
+        state = .idle
+        companion.setLook(.idle)
+        companion.showBubble("🔇 " + answer, style: .quiet, autoHide: 12)
+        quietChip.show(near: NSEvent.mouseLocation) { [weak self] in
+            guard let self else { return }
+            self.spokenSoFar = ""
+            self.voice.speakAll(answer, settings: self.settings)
+        }
+    }
+
+    /// Speaks a complete sentence or two (errors, agent announcements), unless MyClicky is keeping quiet.
     private func say(_ text: String) {
+        if model.isQuiet {
+            companion.showBubble("🔇 " + text, style: .quiet, autoHide: 8)
+            state = .idle
+            return
+        }
         state = .speaking
+        spokenSoFar = ""
         companion.setLook(.speaking)
         companion.showBubble(text, style: .info)
-        speaker.speak(text, settings: settings)
+        voice.speakAll(text, settings: settings)
     }
 
     // MARK: Clickys (agents; replaced by AgentSupervisor in spec 009)

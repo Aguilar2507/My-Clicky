@@ -1,4 +1,5 @@
 import AVFoundation
+import AudioToolbox
 import Speech
 
 /// Push-to-talk speech-to-text using Apple's on-device recognizer (free, private).
@@ -29,8 +30,10 @@ final class SpeechRecognizer {
         return speechOK && micOK
     }
 
-    func start(locale: Locale) throws {
+    /// `deviceUID`: the microphone chosen in Settings → Microphone ("" = System Default).
+    func start(locale: Locale, deviceUID: String? = nil) throws {
         cancel()
+        let deviceUID = deviceUID ?? AppModel.shared.settings.microphoneUID
         guard let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable else {
             throw SpeechError.unavailable("Speech recognition isn't available for \(locale.identifier).")
         }
@@ -46,6 +49,7 @@ final class SpeechRecognizer {
         transcript = ""
         isFinished = false
 
+        Self.selectInput(deviceUID, on: engine)
         Self.installTap(on: engine.inputNode, feeding: request) { [weak self] level in
             Task { @MainActor in self?.onLevel?(level) }
         }
@@ -101,6 +105,13 @@ final class SpeechRecognizer {
             request.append(buffer)
             level(Self.level(of: buffer))
         }
+    }
+
+    /// Points the engine's input at a specific microphone; falls back to the system default if it's gone.
+    static func selectInput(_ uid: String, on engine: AVAudioEngine) {
+        guard !uid.isEmpty, var id = AudioDevices.deviceID(forUID: uid), let unit = engine.inputNode.audioUnit else { return }
+        AudioUnitSetProperty(unit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &id,
+                             UInt32(MemoryLayout<AudioDeviceID>.size))
     }
 
     /// RMS of a buffer mapped from -50…0 dB to 0…1.

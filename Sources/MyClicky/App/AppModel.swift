@@ -167,6 +167,11 @@ final class AppModel {
     var previewUnreadCount: Int?
     /// Mirrors the talk flow (listening, thinking, speaking) for views like the greeting pill.
     var talkState: Assistant.State = .idle
+    /// Why MyClicky is keeping quiet right now (spec 007 US4), from QuietMonitor.
+    var quietReasons: Set<QuietPolicy.Reason> = []
+    var isQuiet: Bool { QuietPolicy.isQuiet(reasons: quietReasons, override: settings.quietOverride) }
+    /// True while dictation records (spec 008), so the mic isn't mistaken for a call.
+    var isDictating = false
     /// True while any agent task runs (notch activity indicator).
     var isAgentRunning = false
     /// True while the notch panel is open (the companion hides over it).

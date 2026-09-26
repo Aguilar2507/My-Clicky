@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var companion = CompanionController(model: model)
     private lazy var assistant = Assistant(model: model, companion: companion)
     private let textMode = TextModeField()
+    private var quiet: QuietMonitor?
     private var galleryWindow: NSWindow?
     private var notch: NotchController!
     private var shortcuts: ShortcutCenter!
@@ -31,6 +32,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         requestPermissions()
         startShortcuts()
+        quiet = QuietMonitor(model: model)
+        notch.extraMenuItems = { [weak self] menu in self?.addQuietMenu(to: menu) }
 
         if Keychain.apiKey() == nil {
             // Until the welcome tour (012) exists, open Settings → General where the key is added.
@@ -70,6 +73,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if textMode.isOpen { textMode.close(); return }
         textMode.onSubmit = { [weak self] text in self?.assistant.ask(typed: text) }
         textMode.show(near: NSEvent.mouseLocation)
+    }
+
+    // MARK: Quiet mode (spec 007 US4)
+
+    private func addQuietMenu(to menu: NSMenu) {
+        let item = NSMenuItem(title: "Quiet mode", action: nil, keyEquivalent: "")
+        let sub = NSMenu()
+        let override = model.settings.quietOverride
+        let active = override.until.map { $0 > Date() } ?? false
+        let automatic = MenuAction.item("Automatic" + (model.isQuiet && !active ? " (quiet now)" : "")) { [weak self] in
+            self?.model.settings.quietOverride = .init()
+        }
+        automatic.state = active ? .off : .on
+        let on = MenuAction.item("Quiet for 1 hour") { [weak self] in
+            self?.model.settings.quietOverride = .init(mode: .on, until: Date().addingTimeInterval(3600))
+        }
+        on.state = active && override.mode == .on ? .on : .off
+        let off = MenuAction.item("Talk for 1 hour") { [weak self] in
+            self?.model.settings.quietOverride = .init(mode: .off, until: Date().addingTimeInterval(3600))
+        }
+        off.state = active && override.mode == .off ? .on : .off
+        [automatic, on, off].forEach(sub.addItem)
+        item.submenu = sub
+        menu.addItem(.separator())
+        menu.addItem(item)
     }
 
     // MARK: Developer

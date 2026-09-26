@@ -146,8 +146,9 @@ If the build shows red **error** lines, the code has a mistake. The message give
    ```
    When `claude` starts, choose to log in with your **Claude account/subscription** (not an API key) and finish the login in the browser.
    Type `/exit` to leave.
-5. **Optional: nicer voice.** Go to System Settings → Accessibility → Spoken Content → System Voice → **Manage Voices…**,
-   and download a voice marked **Premium** or **Enhanced** for your language.
+5. **Recommended: nicer voice.** Your Mac only has basic voices right now. Go to Settings → Voice → **Get more voices**
+   (or System Settings → Accessibility → Spoken Content → System Voice → **Manage Voices…**) and download a voice marked
+   **Premium** or **Enhanced** for English and for Spanish. Then pick them in Settings → Voice.
 
 ---
 
@@ -166,6 +167,8 @@ If the build shows red **error** lines, the code has a mistake. The message give
 | Type instead of talk | Double-tap **control**: a small box opens next to your cursor. |
 | Change the companion's color, or hide it | Settings → **Cursor** (Dock cursor keeps it in the notch). |
 | Make it stop talking | Press **fn** again. |
+| Change the voice, speed or microphone | Settings → **Voice** / **Microphone** (tap a voice to hear it). |
+| Keep it quiet for a while | Right-click the notch → **Quiet mode** → Quiet for 1 hour. |
 | Change settings or shortcuts | Open the notch → ⚙ Settings. |
 
 ---
