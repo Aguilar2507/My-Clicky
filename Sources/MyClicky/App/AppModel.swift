@@ -32,6 +32,7 @@ final class AppModel {
         let loaded = chatStore.loadAll()
         chats = loaded.chats
         damagedChatFiles = loaded.setAside
+        _ = talkChat // Talk is always pinned at the top (spec 005)
     }
 
     // MARK: Chats
@@ -46,6 +47,12 @@ final class AppModel {
 
     func chat(_ id: UUID) -> Chat? { chats.first { $0.id == id } }
 
+    /// Talk without creating it (for lists).
+    var talkChatIfExists: Chat? { chats.first { $0.kind == .talk } }
+
+    /// Clickys with an agent task running right now (spec 009 fills this for real; 005 sets it around each run).
+    var workingChatIDs: Set<UUID> = []
+
     /// Applies a change to a chat and saves it (debounced).
     func updateChat(_ id: UUID, _ change: (inout Chat) -> Void) {
         guard let index = chats.firstIndex(where: { $0.id == id }) else { return }
@@ -55,6 +62,88 @@ final class AppModel {
 
     func append(_ message: Message, to id: UUID) {
         updateChat(id) { $0.append(message) }
+    }
+
+    // MARK: Clickys (spec 005)
+
+    /// The chat open on the right side (nil = greeting screen).
+    var selectedChatID: UUID?
+    /// True while the pop-out window is open.
+    var isWindowOpen = false
+
+    /// The chat the user can currently see, if any (for unread dots).
+    var visibleChatID: UUID? {
+        guard isNotchOpen || isWindowOpen, route == .home else { return nil }
+        return selectedChatID
+    }
+
+    /// Clickys, newest activity first (Talk is pinned separately).
+    var clickys: [Chat] {
+        chats.filter { $0.kind == .clicky }.sorted { $0.updatedAt > $1.updatedAt }
+    }
+
+    var clickyRefs: [ChatRouter.ClickyRef] {
+        clickys.map { ChatRouter.ClickyRef(id: $0.id, title: $0.title, lastAgentUseAt: $0.lastAgentUseAt) }
+    }
+
+    /// Adds a reply to a chat and marks it unread if the user isn't looking at it.
+    func appendReply(_ message: Message, to id: UUID) {
+        let unseen = visibleChatID != id
+        updateChat(id) {
+            $0.append(message)
+            if unseen && $0.kind == .clicky { $0.isUnread = true }
+        }
+    }
+
+    func select(_ id: UUID?) {
+        // Drop a "+" draft the user left without writing anything.
+        if let previous = selectedChatID, previous != id, let draft = chat(previous),
+           draft.kind == .clicky, draft.messages.isEmpty, draft.purpose.isEmpty {
+            deleteChat(previous)
+        }
+        selectedChatID = id
+        if let id { markRead(id) }
+    }
+
+    func markRead(_ id: UUID) {
+        if chat(id)?.isUnread == true { updateChat(id) { $0.isUnread = false } }
+    }
+
+    /// A new, empty Clicky (named after its first message).
+    @discardableResult
+    func createClicky(purpose: String = "") -> UUID {
+        var clicky = Chat(kind: .clicky, title: NamingParser.fallbackName(existing: chats.map(\.title)))
+        clicky.avatarColor = AvatarColor.next(avoiding: clickys.map(\.avatarColor))
+        clicky.purpose = purpose
+        chats.append(clicky)
+        chatStore.save(clicky)
+        return clicky.id
+    }
+
+    func rename(_ id: UUID, to title: String) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let others = chats.filter { $0.id != id }.map(\.title)
+        updateChat(id) { $0.title = NamingParser.unique(trimmed, existing: others) }
+    }
+
+    func recolor(_ id: UUID, to color: AvatarColor) {
+        updateChat(id) { $0.avatarColor = color }
+    }
+
+    func deleteChat(_ id: UUID) {
+        guard chat(id)?.kind == .clicky else { return } // Talk can only be cleared
+        chats.removeAll { $0.id == id }
+        chatStore.delete(id: id)
+        if selectedChatID == id { selectedChatID = nil }
+    }
+
+    func clearTalk() {
+        updateChat(talkChat.id) {
+            $0.messages.removeAll()
+            $0.memorySummary = ""
+            $0.summarizedThroughID = nil
+        }
     }
 
     // MARK: Navigation
@@ -73,13 +162,17 @@ final class AppModel {
     // MARK: Notch status
 
     /// Clickys with something new (blue dot); drives the notch badge. Filled in by spec 005.
-    var unreadCount: Int { previewUnreadCount ?? 0 }
+    var unreadCount: Int { previewUnreadCount ?? chats.filter { $0.kind == .clicky && $0.isUnread }.count }
     /// Snapshot/preview override for the badge.
     var previewUnreadCount: Int?
+    /// Mirrors the talk flow (listening, thinking, speaking) for views like the greeting pill.
+    var talkState: Assistant.State = .idle
     /// True while any agent task runs (notch activity indicator).
     var isAgentRunning = false
     /// True while the notch panel is open (the companion hides over it).
-    var isNotchOpen = false
+    var isNotchOpen = false {
+        didSet { if isNotchOpen, let id = visibleChatID { markRead(id) } }
+    }
     /// Color of the companion when docked in the notch (spec 006); nil = not docked.
     var dockedCompanionColor: Color? { nil }
 

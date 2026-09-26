@@ -9,14 +9,7 @@ struct HomeRoot: View {
         ZStack(alignment: .topTrailing) {
             switch model.route {
             case .home:
-                GreetingPlaceholder()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Theme.windowBackground)
-                    .overlay(alignment: .top) { TopFade() }
-                    .overlay(alignment: .bottomLeading) {
-                        Button { model.openSettings() } label: { Image(systemName: "gearshape.fill") }
-                            .buttonStyle(.plain).font(.system(size: 22)).foregroundStyle(Theme.icon).padding(24)
-                    }
+                HomeView()
             case .settings(let page):
                 SettingsView(page: page)
             }
@@ -32,15 +25,5 @@ struct TopFade: View {
         LinearGradient(colors: [.black, .black.opacity(0)], startPoint: .top, endPoint: .bottom)
             .frame(height: 90)
             .allowsHitTesting(false)
-    }
-}
-
-/// Placeholder greeting until spec 005 delivers the real empty state.
-struct GreetingPlaceholder: View {
-    var body: some View {
-        VStack(spacing: 18) {
-            MascotBlob(color: Color(hex: 0xE8A090), glow: true).frame(width: 200, height: 140)
-            Text("Hi, how can I help ^_^?").font(.system(size: 24, weight: .semibold)).foregroundStyle(Theme.textPrimary)
-        }
     }
 }

@@ -20,7 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         notch.onOpenSettings = { [weak self] in self?.model.openSettings() }
         shortcuts = ShortcutCenter(model: model)
         shortcuts.onEvent = { [weak self] event in self?.handle(event) }
-        AppServices.shared = AppServices(shortcuts: shortcuts, notch: notch)
+        AppServices.shared = AppServices(shortcuts: shortcuts, notch: notch, assistant: assistant)
 
         observeChanges({ self.model.settings.showInDock }) { DockPolicy.apply(showInDock: $0) }
         observeChanges({ self.model.settings.showInScreenRecordings }) { _ in

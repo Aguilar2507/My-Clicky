@@ -34,6 +34,8 @@ final class PopOutWindowController: NSObject, NSWindowDelegate {
         window.setFrameAutosaveName("MyClickyWindow")
         WindowSharing.apply(to: window, model: model)
         self.window = window
+        model.isWindowOpen = true
+        self.model = model
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -42,8 +44,11 @@ final class PopOutWindowController: NSObject, NSWindowDelegate {
         window?.close()
     }
 
+    private weak var model: AppModel?
+
     func windowWillClose(_ notification: Notification) {
         window = nil
+        model?.isWindowOpen = false
         onClose()
     }
 }

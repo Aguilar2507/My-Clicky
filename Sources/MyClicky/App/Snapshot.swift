@@ -13,6 +13,8 @@ enum Snapshot {
         "notch-expanded": (NotchGeometry.expandedSize, { AnyView(notchPreview(expanded: true)) }),
         "settings-general": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.general))) }),
         "settings-shortcuts": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.shortcuts))) }),
+        "home": (NotchGeometry.expandedSize, { seedChats(select: nil); return AnyView(routePreview(.home)) }),
+        "conversation": (NotchGeometry.expandedSize, { AnyView(routePreview(.home, select: seedChats(select: "Research Buddy"))) }),
     ]
 
     /// A model backed by a temporary folder, so snapshots never read or change your real data.
@@ -21,12 +23,56 @@ enum Snapshot {
         return AppModel(paths: AppPaths(base: base))
     }()
 
-    static func routePreview(_ route: HomeRoute) -> some View {
+    static func routePreview(_ route: HomeRoute, select: UUID? = nil) -> some View {
         previewModel.route = route
+        if let select { previewModel.selectedChatID = select }
         previewModel.settings.profileName = "Jose"
         return HomeRoot(chrome: HomeChrome(showsPopOut: true, onPopOut: {}, onClose: {}))
             .environment(previewModel)
             .frame(width: NotchGeometry.expandedSize.width, height: NotchGeometry.expandedSize.height)
+    }
+
+    /// Sample chats shaped like ref 02 (names, colors, times, previews).
+    @discardableResult
+    static func seedChats(select title: String?) -> UUID? {
+        let m = previewModel
+        guard m.clickys.isEmpty else { return m.clickys.first { $0.title == title }?.id }
+        let cal = Calendar.current
+        let now = Date()
+        func day(_ back: Int, _ hour: Int, _ minute: Int = 0) -> Date {
+            cal.date(bySettingHour: hour, minute: minute, second: 0, of: cal.date(byAdding: .day, value: -back, to: now)!)!
+        }
+        let samples: [(String, AvatarColor, Date, String, Bool)] = [
+            ("Signal Radar", .peach, day(0, 12, 29), "Today's new signals: GenAI pricing moves, two funding rounds and a new model release.", true),
+            ("Browser Buddy", .sky, day(2, 10), "The iPhone 18 Pro Max starts at $1,199 in the US store.", false),
+            ("Build Lab", .butter, day(3, 16), "Plans and scopes portfolio projects step by step.", false),
+            ("Role Scout", .lilac, day(3, 9), "Hunts down AI architect roles that match your profile.", false),
+            ("Shippy", .pink, day(5, 18), "Your personalized one-screen launch checklist is ready.", false),
+            ("Research Buddy", .mint, day(5, 11), "Two-page SpaceX competitor summary with sources.", false),
+        ]
+        for (name, color, date, preview, unread) in samples.reversed() {
+            let id = m.createClicky(purpose: preview)
+            m.updateChat(id) {
+                $0.title = name
+                $0.avatarColor = color
+                $0.append(Message(role: .user, text: "Please work on this.", createdAt: date.addingTimeInterval(-60)))
+                $0.append(Message(role: .assistant, text: preview, createdAt: date, via: .agent))
+                $0.isUnread = unread
+            }
+        }
+        m.append(Message(role: .user, text: "What app am I in?", createdAt: day(6, 9), via: .voice, screensSeen: 2), to: m.talkChat.id)
+        m.append(Message(role: .assistant, text: "You're in Safari, on the Apple Store page.", createdAt: day(6, 9)), to: m.talkChat.id)
+        if let research = m.clickys.first(where: { $0.title == "Research Buddy" }) {
+            m.updateChat(research.id) {
+                $0.messages = [
+                    Message(role: .user, text: "Make a two-page summary of SpaceX's main competitors, with sources.", createdAt: day(5, 10, 50), via: .voice),
+                    Message(role: .assistant, text: "On it. I'll compare Blue Origin, Rocket Lab and ULA on launch cadence, cost per kg and upcoming missions.", createdAt: day(5, 10, 51), via: .agent),
+                    Message(role: .user, text: "Add a short table at the end.", createdAt: day(5, 10, 58)),
+                    Message(role: .assistant, text: "Done. The summary with a comparison table is in your MyClickyAgent folder as spacex-competitors.md.", createdAt: day(5, 11), via: .agent),
+                ]
+            }
+        }
+        return m.clickys.first { $0.title == title }?.id
     }
 
     static func notchPreview(expanded: Bool) -> some View {

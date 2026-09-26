@@ -158,8 +158,10 @@ If the build shows red **error** lines, the code has a mistake. The message give
 | Open the app | Rest your pointer on the **notch**. |
 | Ask about your screen | Hold **fn**, speak, then let go. |
 | Have it point at something | Ask "where is…" or "how do I…" (it uses the smarter model). |
-| Have it do a task | Start with **"agent"**: "agent, create a reminder to call mom at 6". |
-| Answer the agent's question | Within 15 minutes: "agent, yes go ahead". |
+| See your chats | Open the notch: **Talk** (screen questions) is pinned on top, your **Clickys** below. |
+| Have it do a task | Click **+** and type the task, or say **"agent, …"**: "agent, create a reminder to call mom at 6". |
+| Give a Clicky more work | Open it and type, or say "agent, ask Research Buddy to …". |
+| Answer a Clicky's question | Open its chat and reply, or within 15 minutes say "agent, yes go ahead". |
 | Type instead of talk | Double-tap **control**. |
 | Make it stop talking | Press **fn** again. |
 | Change settings or shortcuts | Open the notch → ⚙ Settings. |

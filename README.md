@@ -6,8 +6,10 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
 - **MyClicky lives in your notch.** Rest the pointer on the notch to open the app (chats, settings); move away to close.
 - **Hold fn and talk.** It screenshots your screens, asks Claude, answers out loud and flies a pointer to what you need.
   Double-tap **control** to type instead. Change the keys in Settings → Shortcuts.
-- **Start with "agent…"** ("agent, organize my Downloads folder") to run a background task with Claude Code on your
-  Claude subscription. Follow-ups within 15 minutes continue the same task ("agent, yes go ahead").
+- **Chats, like any AI app.** Your screen questions are saved in the pinned **Talk** chat. Your **Clickys** are named
+  helpers (e.g. "Research Buddy"): click **+** or say "agent, …" to create one; "agent, ask Research Buddy to …" sends
+  it a new task; follow-ups within 15 minutes continue the last Clicky. Search, rename, recolor and delete from the app.
+- MyClicky keeps a short written memory of each chat (never screenshots), so it remembers context cheaply.
 
 | Piece | What it uses | Cost |
 |---|---|---|

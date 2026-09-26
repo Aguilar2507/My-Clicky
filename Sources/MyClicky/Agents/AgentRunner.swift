@@ -12,16 +12,11 @@ final class AgentRunner {
     struct Result {
         let summary: String
         let isError: Bool
+        var sessionID: String? = nil
     }
 
     private(set) var isRunning = false
     private var process: Process?
-    private var sessionID: String?
-    private var lastRun = Date.distantPast
-    /// Follow-ups within this window continue the same agent conversation.
-    private let followUpWindow: TimeInterval = 15 * 60
-
-    func resetSession() { sessionID = nil }
 
     func cancel() {
         process?.terminate()
@@ -34,7 +29,8 @@ final class AgentRunner {
         return candidates.first { !$0.isEmpty && FileManager.default.isExecutableFile(atPath: $0) }
     }
 
-    func run(task: String, settings: Settings) async throws -> Result {
+    /// Runs one instruction. Pass the Clicky's `sessionID` to continue its earlier conversation (spec 005).
+    func run(task: String, settings: Settings, sessionID: String? = nil) async throws -> Result {
         guard let claude = Self.findClaude(settings) else {
             throw AgentError(message: "Claude Code isn't installed yet. Install it and run claude once in Terminal to log in.")
         }
@@ -44,9 +40,7 @@ final class AgentRunner {
         var args = ["-p", task,
                     "--output-format", "json",
                     "--append-system-prompt", Prompts.agent(workingDirectory: workDir)]
-        if let sessionID, Date().timeIntervalSince(lastRun) < followUpWindow {
-            args += ["--resume", sessionID]
-        }
+        if let sessionID { args += ["--resume", sessionID] }
         args += ["--allowedTools"] + settings.agentAllowedTools // variadic, keep last
 
         let process = Process()
@@ -69,7 +63,6 @@ final class AgentRunner {
         defer {
             isRunning = false
             self.process = nil
-            lastRun = Date()
         }
 
         try process.run()
@@ -85,9 +78,9 @@ final class AgentRunner {
             let detail = String(data: err, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             throw AgentError(message: detail.isEmpty ? "The agent exited without a result." : String(detail.prefix(300)))
         }
-        if let id = json["session_id"] as? String { sessionID = id }
         let isError = json["is_error"] as? Bool ?? false
         let summary = (json["result"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return Result(summary: summary.isEmpty ? "The agent finished." : summary, isError: isError)
+        return Result(summary: summary.isEmpty ? "The agent finished." : summary, isError: isError,
+                      sessionID: json["session_id"] as? String ?? sessionID)
     }
 }

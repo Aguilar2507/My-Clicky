@@ -11,6 +11,13 @@ public struct Chat: Codable, Equatable, Identifiable, Sendable {
     public var updatedAt = Date()
     public var messages: [Message] = []
     public var memorySummary = ""
+    // 005 Clickys and chats
+    public var avatarColor: AvatarColor = .sky
+    public var purpose = ""
+    public var isUnread = false
+    public var summarizedThroughID: UUID?
+    public var agentSessionID: String?
+    public var lastAgentUseAt: Date?
 
     public init(id: UUID = UUID(), kind: Kind, title: String, createdAt: Date = Date()) {
         self.id = id
@@ -34,6 +41,17 @@ public struct Chat: Codable, Equatable, Identifiable, Sendable {
         updatedAt = c.value(.updatedAt, default: createdAt)
         messages = c.value(.messages, default: [])
         memorySummary = c.value(.memorySummary, default: "")
+        avatarColor = c.value(.avatarColor, default: .sky)
+        purpose = c.value(.purpose, default: "")
+        isUnread = c.value(.isUnread, default: false)
+        summarizedThroughID = c.value(.summarizedThroughID, default: nil)
+        agentSessionID = c.value(.agentSessionID, default: nil)
+        lastAgentUseAt = c.value(.lastAgentUseAt, default: nil)
+    }
+
+    /// Preview line for the sidebar: the latest non-empty message.
+    public var preview: String {
+        messages.last { !$0.text.isEmpty && $0.role != .system }?.text ?? (purpose.isEmpty ? "" : purpose)
     }
 
     public mutating func append(_ message: Message) {
