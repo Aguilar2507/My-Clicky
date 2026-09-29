@@ -107,7 +107,7 @@ struct APIKeyEditor: View {
             Text("Anthropic API key").font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.textPrimary)
             Text("Used for questions about your screen. Stored in your macOS Keychain. Create one at console.anthropic.com and set a monthly limit there.")
                 .font(Theme.rowSubtitle).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
-            SecureField("sk-ant-…", text: $key.value).darkField().onSubmit(save)
+            SecretField(placeholder: "sk-ant-…", text: $key.value, onSubmit: save)
             HStack {
                 Spacer()
                 Button("Cancel", action: onDone).buttonStyle(.pill(.dark))

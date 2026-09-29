@@ -72,7 +72,7 @@ struct DictationPage: View {
                     .menuStyle(.button)
                     .buttonStyle(.plain)
                     .font(.system(size: 13))
-                    .foregroundStyle(Theme.lavender)
+                    .foregroundStyle(Theme.accent)
                     .fixedSize()
                 }
             }

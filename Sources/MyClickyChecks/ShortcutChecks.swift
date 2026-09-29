@@ -6,13 +6,24 @@ enum ShortcutChecks {
     static func run() {
         let defaults = ShortcutBinding.defaults
 
-        Check.group("Shortcuts: fn hold (push to talk)") {
+        Check.group("Shortcuts: ⌃⌥ hold (push to talk)") {
             var m = ShortcutMatcher(bindings: defaults)
-            Check.equal(m.flagsChanged([.fn], at: 0), [.began(.pushToTalk)], "fn has no double-tap → begins at once")
-            Check.equal(m.flagsChanged([], at: 2), [.ended(.pushToTalk)])
-            _ = m.flagsChanged([.fn], at: 5)
-            Check.equal(m.keyDown(126, at: 5.1).events, [.cancelled(.pushToTalk)], "fn+↑ (page up) cancels")
+            Check.equal(m.flagsChanged([.control], at: 0), [], "⌃ alone does nothing yet")
+            Check.equal(m.flagsChanged([.control, .option], at: 0.05), [.began(.pushToTalk)], "⌃⌥ has no double-tap → begins at once")
+            Check.equal(m.flagsChanged([.control], at: 2), [.ended(.pushToTalk)], "letting go of ⌥ sends")
+            Check.equal(m.flagsChanged([], at: 2.1), [])
+            var optionFirst = ShortcutMatcher(bindings: defaults)
+            _ = optionFirst.flagsChanged([.option], at: 0)
+            Check.equal(optionFirst.flagsChanged([.option, .control], at: 0.05), [.began(.pushToTalk)], "either order works")
+            _ = m.flagsChanged([.control, .option], at: 5)
+            Check.equal(m.keyDown(0, at: 5.1).events, [.cancelled(.pushToTalk)], "⌃⌥A cancels")
             Check.equal(m.flagsChanged([], at: 5.2), [], "nothing more after cancel")
+            var fnOnly = ShortcutMatcher(bindings: defaults)
+            Check.equal(fnOnly.flagsChanged([.fn], at: 0), [], "fn alone doesn't talk")
+            Check.equal(fnOnly.flagsChanged([], at: 2), [])
+            var option = ShortcutMatcher(bindings: defaults)
+            Check.equal(option.flagsChanged([.option], at: 0), [], "⌥ alone doesn't talk")
+            Check.equal(option.flagsChanged([.option, .command], at: 0.05), [], "⌥⌘ doesn't talk")
         }
 
         Check.group("Shortcuts: double-tap control (text mode)") {
@@ -48,8 +59,8 @@ enum ShortcutChecks {
             Check.equal(d.flagsChanged([], at: 10.35), [.triggered(.handsFreeDictation)])
 
             var fnFirst = ShortcutMatcher(bindings: defaults)
-            Check.equal(fnFirst.flagsChanged([.fn], at: 0), [.began(.pushToTalk)])
-            Check.equal(fnFirst.flagsChanged([.fn, .control], at: 0.05), [.ended(.pushToTalk)], "adding ⌃ leaves push-to-talk")
+            Check.equal(fnFirst.flagsChanged([.fn], at: 0), [], "fn alone does nothing")
+            Check.equal(fnFirst.flagsChanged([.fn, .control], at: 0.05), [], "⌃fn waits: could be a double tap")
             Check.equal(fnFirst.tick(at: 0.4), [.began(.dictate)])
         }
 
@@ -67,7 +78,7 @@ enum ShortcutChecks {
             Check.expect(press.swallow, "combo key is swallowed")
             Check.equal(m.keyDown(0, at: 3).swallow, false, "other keys pass through")
 
-            let clash = ShortcutBinding(.textMode, KeyChord([.fn]), .hold)
+            let clash = ShortcutBinding(.textMode, KeyChord([.control, .option]), .hold)
             Check.equal(ShortcutBinding.conflict(for: clash, in: defaults), .pushToTalk)
             Check.equal(ShortcutBinding.conflict(for: defaults[1], in: defaults), nil, "own binding isn't a conflict")
             Check.expect(!ShortcutBinding(.textMode, KeyChord([]), .hold).isValid, "empty hold is invalid")

@@ -57,6 +57,7 @@ enum Snapshot {
             return tourPreview(.handsOn)
         }),
         "welcome-interview": (CGSize(width: 720, height: 600), { tourPreview(.interview) }),
+        "welcome-apikey": (CGSize(width: 720, height: 600), { tourPreview(.apiKey) }),
         "companion": (CGSize(width: 700, height: 420), { AnyView(CompanionDemo()) }),
         "home": (NotchGeometry.expandedSize, { seedChats(select: nil); return AnyView(routePreview(.home)) }),
         "conversation": (NotchGeometry.expandedSize, { AnyView(routePreview(.home, select: seedChats(select: "Research Buddy"))) }),
@@ -169,11 +170,36 @@ enum Snapshot {
             .frame(width: 520, height: 60))
     }
 
+    /// Brand artwork (spec 013), drawn with SwiftUI's ImageRenderer because the layer render below drops blur and glow.
+    /// Transparent background, 1 px per point.
+    static var artwork: [String: (size: CGSize, view: () -> AnyView)] = [
+        "app-icon": (CGSize(width: 1024, height: 1024), { AnyView(AppLogo()) }),
+        "bot": (CGSize(width: 1024, height: 1024), {
+            AnyView(ZStack { Brand.midnight; GlassBot(sparkles: true).frame(width: 600, height: 600).offset(x: 60, y: 40) })
+        }),
+    ]
+
+    static func renderArtwork(_ entry: (size: CGSize, view: () -> AnyView), output: String) -> Bool {
+        let renderer = ImageRenderer(content: entry.view().frame(width: entry.size.width, height: entry.size.height)
+            .environment(\.colorScheme, .dark))
+        renderer.scale = 1
+        guard let cgImage = renderer.cgImage,
+              let png = NSBitmapImageRep(cgImage: cgImage).representation(using: .png, properties: [:]),
+              (try? png.write(to: URL(fileURLWithPath: output))) != nil else {
+            print("Rendering failed")
+            return false
+        }
+        print("Wrote \(output)")
+        return true
+    }
+
     static func run(screen: String, output: String) -> Bool {
         _ = NSApplication.shared
         Keychain.snapshotMode = true
+        if let art = artwork[screen] { return renderArtwork(art, output: output) }
         guard let entry = screens[screen] else {
-            print("Unknown screen '\(screen)'. Available: \(screens.keys.sorted().joined(separator: ", "))")
+            let names = (Array(screens.keys) + Array(artwork.keys)).sorted()
+            print("Unknown screen '\(screen)'. Available: \(names.joined(separator: ", "))")
             return false
         }
         let app = NSApplication.shared

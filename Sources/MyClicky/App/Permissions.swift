@@ -14,9 +14,14 @@ enum Permission: String, CaseIterable, Identifiable {
         case .microphone: "Microphone"
         case .speechRecognition: "Speech Recognition"
         case .screenRecording: "Screen Recording"
-        case .accessibility: "Accessibility"
+        case .accessibility: Self.accessibilityName
         case .inputMonitoring: "Input Monitoring"
         }
+    }
+
+    /// macOS 27 renamed Privacy & Security → Accessibility to "Device Control and Data Access".
+    static var accessibilityName: String {
+        ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 ? "Device Control and Data Access" : "Accessibility"
     }
 
     var why: String {

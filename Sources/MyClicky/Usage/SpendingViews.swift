@@ -9,7 +9,7 @@ struct SpendRing: View {
 
     var body: some View {
         ZStack {
-            Circle().stroke(Color(hex: 0x3A3A3C), lineWidth: 2.5)
+            Circle().stroke(Theme.track, lineWidth: 2.5)
             Circle().trim(from: 0, to: max(0.001, fraction))
                 .stroke(color, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
                 .rotationEffect(.degrees(-90))
@@ -18,7 +18,7 @@ struct SpendRing: View {
     }
 
     private var color: Color {
-        fraction >= 1 ? Theme.red : fraction >= BudgetPolicy.warnFraction ? Theme.orange : Theme.lavender
+        fraction >= 1 ? Theme.red : fraction >= BudgetPolicy.warnFraction ? Theme.orange : Theme.accent
     }
 }
 
@@ -63,10 +63,10 @@ struct SpendingSheet: View {
             SectionLabel("Last 6 months")
             Chart(history, id: \.key) { item in
                 BarMark(x: .value("Month", Self.monthLabel(item.key)), y: .value("USD", item.month.costUSD))
-                    .foregroundStyle(Theme.lavenderGradient)
+                    .foregroundStyle(Theme.accentGradient)
                     .cornerRadius(4)
             }
-            .chartYAxis { AxisMarks { AxisValueLabel().foregroundStyle(Theme.textSecondary); AxisGridLine().foregroundStyle(Color(hex: 0x333333)) } }
+            .chartYAxis { AxisMarks { AxisValueLabel().foregroundStyle(Theme.textSecondary); AxisGridLine().foregroundStyle(Theme.hairline) } }
             .chartXAxis { AxisMarks { AxisValueLabel().foregroundStyle(Theme.textSecondary) } }
             .frame(height: 120)
             creditCard

@@ -83,6 +83,8 @@ Code would, sends an MCP `tools/call`, and gets the answer back through the sock
   NWListener, so it can be checked (research R3b). Announcements are `Assistant.announce` + the supervisor's
   `finishAnnouncement` (no separate `Announcer.swift`); the Allow chip beside the cursor is `ApprovalChip`
   (in `AgentSupervisor.swift`). Agent cards live in `Home/Conversation/AgentCards.swift`.
+- `AgentRun` and `ApprovalRequest` (T007) aren't separate model files: a run is `AgentSupervisor.Run` (in memory),
+  and an approval is a chat `Message` with `kind: .approval`, so it's saved and visible in the chat.
 - **Deviation**: the morning ideas appear in a panel just under the notch for 15 s (and in the notch's right-click
   menu → "Today's ideas") instead of the collapsed notch itself widening.
 - Computer use: the companion flies to each spot before a click; your own mouse/keyboard input during a run makes

@@ -43,7 +43,7 @@ enum DictationChecks {
             s.version = 3
             s.speechLocale = "es-ES"
             SettingsMigrations.upgrade(&s)
-            Check.equal(s.version, 4)
+            Check.equal(s.version, Settings.currentVersion)
             Check.equal(s.dictationLanguage, "es")
             Check.equal(s.spanishLocale, "es-ES")
             var english = Settings()
@@ -52,6 +52,19 @@ enum DictationChecks {
             SettingsMigrations.upgrade(&english)
             Check.equal(english.dictationLanguage, "en")
             Check.expect(Settings.defaultSpanishLocale.hasPrefix("es-"))
+        }
+
+        Check.group("Settings migration v4 → v5 (push to talk: fn → ⌃⌥)") {
+            var old = Settings()
+            old.version = 4
+            old.shortcuts[0] = ShortcutBinding(.pushToTalk, KeyChord([.fn]), .hold)
+            SettingsMigrations.upgrade(&old)
+            Check.equal(old.shortcuts[0], ShortcutBinding(.pushToTalk, KeyChord([.control, .option]), .hold), "old fn default moves to ⌃⌥")
+            var custom = Settings()
+            custom.version = 4
+            custom.shortcuts[0] = ShortcutBinding(.pushToTalk, KeyChord([.option]), .hold)
+            SettingsMigrations.upgrade(&custom)
+            Check.equal(custom.shortcuts[0].chord, KeyChord([.option]), "a key you picked yourself is kept")
         }
     }
 }

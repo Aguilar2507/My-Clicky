@@ -57,7 +57,7 @@ enum ChatChecks {
             Check.equal(Greeting.title(name: "Jose", hour: 15), "Afternoon, Jose.")
             Check.equal(Greeting.title(name: "Jose", hour: 20), "Evening, Jose.")
             Check.equal(Greeting.title(name: "Jose", hour: 2), "Evening, Jose.")
-            Check.equal(Greeting.hint(for: ShortcutBinding.defaults[0]), "Hold Fn and tell me what to take off your plate.")
+            Check.equal(Greeting.hint(for: ShortcutBinding.defaults[0]), "Hold ⌃ Control + ⌥ Option and tell me what to take off your plate.")
             Check.equal(Greeting.hint(for: ShortcutBinding(.pushToTalk, KeyChord([.option]), .hold)),
                         "Hold ⌥ Option and tell me what to take off your plate.")
         }

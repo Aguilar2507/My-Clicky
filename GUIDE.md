@@ -52,7 +52,7 @@ my-clicky/
 │   │   ├── Integrations/       GitHub, Notion, Linear… connectors
 │   │   ├── Usage/              spending and the monthly budget
 │   │   ├── Onboarding/         the welcome tour
-│   │   ├── Input/              the fn / control shortcuts
+│   │   ├── Input/              the keyboard shortcuts (control + option, control + fn…)
 │   │   └── DesignSystem/       colors, buttons, cards, toggles (the HeyClicky look)
 │   ├── MyClickyCore/        ← the "brains" that don't draw anything (checked automatically)
 │   ├── MyClickyChecks/      ← the automatic checks (`swift run MyClickyChecks`)
@@ -124,12 +124,14 @@ To run a command, **type it (or paste it) and press Enter.**
 1. **Edit** a file in VS Code, then press **⌘ S** to save.
 2. **Build and relaunch.** In VS Code press **⌘ ⇧ B** (this runs `./build.sh` and opens the app for you).
    Or type in the terminal: `./build.sh && open ~/Applications/MyClicky.app`
-3. **Try it:** hold **fn** and talk.
+3. **Try it:** hold **⌃ control + ⌥ option** and talk.
 
 If the build shows red **error** lines, the code has a mistake. The message gives the file and line number.
 
-> Each rebuild makes macOS ask again for the **Screen Recording** and **Accessibility** permissions (see Part 6, step 3).
-> That's normal for this kind of homemade app.
+> Rebuilding keeps your permissions: `build.sh` signs MyClicky with your **MyClicky Dev** certificate (in Keychain
+> Access → login). If that certificate is ever deleted, each rebuild quietly takes back **Device Control and Data
+> Access** and **Input Monitoring** again. Then remove MyClicky from those two lists with **−**, add it back with **+**,
+> and reopen it (Part 6, step 3).
 
 ---
 
@@ -148,9 +150,10 @@ replay it anytime from Settings → General → **Replay the welcome tour**. The
    - Open the notch → ⚙ Settings → General → API key → **Change**, paste the key, and click **Save**.
 3. **Allow the permissions.** macOS asks for Microphone and Speech Recognition (click **Allow**).
    The others need manual steps in System Settings:
-   - Open **System Settings → Privacy & Security → Screen & System Audio Recording** and turn on **MyClicky**.
-   - Open **System Settings → Privacy & Security → Accessibility** and turn on **MyClicky**.
-   - Open **System Settings → Privacy & Security → Input Monitoring** and turn on **MyClicky** (for the fn shortcut).
+   - Open **System Settings → Privacy & Security → Screen Recording** and turn on **MyClicky**.
+   - Open **System Settings → Privacy & Security → Device Control and Data Access** (called **Accessibility** before
+     macOS 27) and turn on **MyClicky**.
+   - Open **System Settings → Privacy & Security → Input Monitoring** and turn on **MyClicky** (for the keyboard shortcuts).
    - Open **System Settings → Keyboard**, set **Press 🌐 key to** → **Do Nothing**.
    - Then quit MyClicky (right-click the notch → Quit) and open it again.
    - Shortcut: Settings → General → **Permissions** shows ✓ or an **Open** button for each.
@@ -172,7 +175,7 @@ replay it anytime from Settings → General → **Replay the welcome tour**. The
 | You want to… | Do this |
 |---|---|
 | Open the app | Rest your pointer on the **notch**. |
-| Ask about your screen | Hold **fn**, speak, then let go. |
+| Ask about your screen | Hold **⌃ control + ⌥ option**, speak, then let go. |
 | Have it point at something | Ask "where is…" or "how do I…": the companion flies there (it uses the smarter model). |
 | Have it draw on screen | Ask "circle the…" or "underline the…". |
 | See your chats | Open the notch: **Talk** (screen questions) is pinned on top, your **Clickys** below. |
@@ -186,7 +189,7 @@ replay it anytime from Settings → General → **Replay the welcome tour**. The
 | Answer a Clicky's question | Open its chat and reply, or within 15 minutes say "agent, yes go ahead". |
 | Type instead of talk | Double-tap **control**: a small box opens next to your cursor. |
 | Change the companion's color, or hide it | Settings → **Cursor** (Dock cursor keeps it in the notch). |
-| Make it stop talking | Press **fn** again. |
+| Make it stop talking | Press **⌃ control + ⌥ option** again. |
 | Type by voice in any app | Hold **⌃ control + fn**, speak, let go. Double-tap **⌃ fn** for hands-free (double-tap again to finish, Esc to cancel). |
 | Choose English / Spanish, or teach it names | Settings → **Dictation** (Auto-detect, and the Words list). |
 | Change the voice, speed or microphone | Settings → **Voice** / **Microphone** (tap a voice to hear it). |
@@ -200,7 +203,7 @@ replay it anytime from Settings → General → **Replay the welcome tour**. The
 | Problem | Fix |
 |---|---|
 | I can't find MyClicky | It lives in the notch (a black shape around it). Check that it's running: `pgrep -l MyClicky`. |
-| fn does nothing / opens emoji | Turn on Accessibility and Input Monitoring, and set "Press 🌐 key to" → Do Nothing (Part 6, step 3). Restart the app. |
+| Talking or dictation does nothing / fn opens emoji | Turn on Device Control and Data Access and Input Monitoring, and set "Press 🌐 key to" → Do Nothing (Part 6, step 3). Restart the app. |
 | It answers without seeing my screen | The Screen Recording permission is off (Part 6, step 3). |
 | It says "set your API key" | Part 6, step 2. |
 | "Claude Code isn't installed" | Part 6, step 4. |

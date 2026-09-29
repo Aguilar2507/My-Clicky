@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         if CommandLine.arguments.contains("--gallery") { showDesignGallery() }
+        EditShortcuts.install()
 
         notch = NotchController(model: model)
         notch.onOpenSettings = { [weak self] in self?.model.openSettings() }
@@ -85,13 +86,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// The key tap needs Accessibility + Input Monitoring; retry every few seconds until they're granted.
-    private func startShortcuts() {
-        if shortcuts.start() { return }
+    private func startShortcuts(attempt: Int = 0) {
+        if shortcuts.start() {
+            Log.shortcuts.notice("Shortcut listener started (attempt \(attempt))")
+            return
+        }
+        if attempt == 0 {
+            Log.shortcuts.notice("Shortcut listener waiting for permission: accessibility=\(AXIsProcessTrusted()) inputMonitoring=\(CGPreflightListenEventAccess())")
+        }
         if !CGPreflightListenEventAccess() { CGRequestListenEventAccess() }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in self?.startShortcuts() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in self?.startShortcuts(attempt: attempt + 1) }
     }
 
     private func handle(_ event: ShortcutMatcher.Event) {
+        Log.shortcuts.notice("Shortcut: \(String(describing: event))")
         switch event {
         case .began(.pushToTalk): assistant.beginListening()
         case .ended(.pushToTalk): assistant.endListening()

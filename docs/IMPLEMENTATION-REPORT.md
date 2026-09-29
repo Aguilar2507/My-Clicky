@@ -18,7 +18,14 @@
   Several layout bugs were found and fixed this way.
 - **Not yet done:** nobody has launched the finished app on your Mac and clicked through it. Until you run the
   quickstarts, anything that needs real hardware, permissions or the network is **built but unverified**: the notch
-  hover, fn push-to-talk, the voice, dictation into other apps, agents and integrations.
+  hover, ⌃⌥ push-to-talk, the voice, dictation into other apps, agents and integrations.
+
+## Since 0.3.0 (2026-09-26)
+
+- **Push to talk is ⌃ control + ⌥ option** (was fn). Old settings move over; 386 checks pass.
+- **013 Visual identity:** 14/15 tasks. There's a new app icon and glass bot drawn from your LOGO.png/BOT.png, and
+  the whole app uses your visual system's palette. Open task: T015, look at it installed (icon, live glow and blink).
+  See `specs/013-visual-identity/tasks.md`.
 
 ## Per feature
 
@@ -46,7 +53,7 @@
 2. **The app looks like HeyClicky's** (002/004/005): the dark sidebar of chats, glossy lavender buttons and toggles,
    cards, the greeting with the mascot over the "Hi, how can I help ^_^?" pill, and Settings with the same 8 pages.
    MyClicky uses its own logo and mascot art.
-3. **You talk with fn** (004/007). Hold fn, ask, release. Your screens are captured (MyClicky itself is left out)
+3. **You talk with control + option** (004/007). Hold ⌃⌥, ask, release. Your screens are captured (MyClicky itself is left out)
    and the answer streams in. It's spoken sentence by sentence with an Apple voice in your language, and the bubble
    beside your cursor grows with it. Double-tap control to type instead, in a box next to your cursor. Every key can
    be changed in Settings → Shortcuts.
@@ -101,10 +108,12 @@
 ## Real findings about your Mac
 
 - **The 🌐/fn key opens "Show Emoji & Symbols".** Set System Settings → Keyboard → "Press 🌐 key to" → **Do Nothing**,
-  or fn push-to-talk will also open the emoji picker.
+  or ⌃ fn dictation will also open the emoji picker.
 - **Only basic voices are installed.** Download a Premium or Enhanced voice for English and Spanish (Settings →
   Voice → Get more voices).
-- **Claude Code isn't installed,** so agents, integrations and daily ideas can't run yet.
+- **Claude Code 2.1.283 is installed** (2026-09-26) at `~/.local/bin/claude`, and `~/.local/bin` was added to your
+  PATH in `~/.zshrc`. It still needs you to **sign in once**: run `claude` in a terminal and log in with your Claude
+  account. Until then agents, integrations and daily ideas can't run.
 - **Your microphones** (System Default, MacBook Pro Microphone, Microsoft Teams Audio) show up correctly on the
   Microphone page.
 

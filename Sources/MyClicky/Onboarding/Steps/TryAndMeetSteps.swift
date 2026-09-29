@@ -67,7 +67,7 @@ struct InterviewStep: View {
                         dictation.toggle { answers.value[index.value] += (answers.value[index.value].isEmpty ? "" : " ") + $0 }
                     } label: {
                         Image(systemName: dictation.isListening ? "waveform.circle.fill" : "mic.circle.fill").font(.system(size: 30))
-                            .foregroundStyle(dictation.isListening ? Theme.red : Theme.lavender)
+                            .foregroundStyle(dictation.isListening ? Theme.red : Theme.accent)
                     }
                     .buttonStyle(.plain)
                 }
@@ -132,7 +132,7 @@ struct DoneStep: View {
             StepTitle(title: "You're all set, \(model.settings.profileName).", subtitle: "Three things to remember:")
             VStack(alignment: .leading, spacing: 12) {
                 tip("rectangle.topthird.inset.filled", "Rest your pointer on the notch to open your chats and settings.")
-                tip("mic.fill", "Hold fn and ask about anything on your screen.")
+                tip("mic.fill", "Hold control + option and ask about anything on your screen.")
                 tip("person.3.fill", "Start with “agent…” (or click +) to give a Clicky a task.")
             }
             .padding(20)
@@ -142,7 +142,7 @@ struct DoneStep: View {
 
     private func tip(_ symbol: String, _ text: String) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: symbol).foregroundStyle(Theme.lavender).frame(width: 22)
+            Image(systemName: symbol).foregroundStyle(Theme.accent).frame(width: 22)
             Text(text).font(.system(size: 15)).foregroundStyle(Theme.textPrimary)
         }
     }

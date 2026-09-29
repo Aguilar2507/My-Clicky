@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed:** copy and paste (⌘C ⌘V ⌘X ⌘A ⌘Z) didn't work in any MyClicky text box. The API key box also has an eye
+  button to show or hide the key, and a Paste button.
+- **Fixed:** MyClicky crashed right after opening (a missing macOS permission text for Focus/Do Not Disturb).
+- **Push to talk is now control + option** (hold both, speak, let go). fn alone no longer talks. Your old fn
+  setting moves over automatically; a key you picked yourself is kept.
+- **A new look:** MyClicky's own app icon (a glass cursor with a smile) and a glass bot that stands on the greeting
+  pill and blinks. The whole app is now midnight navy with blue-violet glass buttons and toggles.
+
 ## 0.3.0 (3)
 
 - **Chats like any AI app:** a pinned Talk chat for screen questions and named **Clickys** for tasks. Search, rename,

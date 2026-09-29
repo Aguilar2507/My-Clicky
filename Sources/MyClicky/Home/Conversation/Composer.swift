@@ -28,7 +28,7 @@ struct Composer: View {
             .help(dictation.isListening ? "Stop dictating" : "Dictate into the message")
             Button(action: send) {
                 Image(systemName: "arrow.up.circle.fill").font(.system(size: 26))
-                    .foregroundStyle(canSend ? Theme.lavender : Theme.textTertiary)
+                    .foregroundStyle(canSend ? Theme.accent : Theme.textTertiary)
             }
             .buttonStyle(.plain)
             .disabled(!canSend)

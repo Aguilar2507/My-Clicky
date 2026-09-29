@@ -1,0 +1,64 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:my-clicky}",
+            "name": "Debug MyClicky",
+            "target": "MyClicky",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug MyClicky"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:my-clicky}",
+            "name": "Release MyClicky",
+            "target": "MyClicky",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release MyClicky"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:my-clicky}",
+            "name": "Debug MyClickyComputer",
+            "target": "MyClickyComputer",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug MyClickyComputer"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:my-clicky}",
+            "name": "Release MyClickyComputer",
+            "target": "MyClickyComputer",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release MyClickyComputer"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:my-clicky}",
+            "name": "Debug MyClickyChecks",
+            "target": "MyClickyChecks",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug MyClickyChecks"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:my-clicky}",
+            "name": "Release MyClickyChecks",
+            "target": "MyClickyChecks",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release MyClickyChecks"
+        }
+    ]
+}

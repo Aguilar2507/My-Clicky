@@ -7,7 +7,7 @@ enum AppEvent: String, CaseIterable, Hashable {
     var title: String {
         switch self {
         case .notchExpanded: "Hover the notch to open MyClicky"
-        case .talkAnswered: "Hold fn and ask “what's on my screen?”"
+        case .talkAnswered: "Hold control + option and ask “what's on my screen?”"
         case .pointed: "Ask “where is the Apple menu?” and watch it point"
         case .textModeSent: "Double-tap control and type a question"
         case .dictationInserted: "Hold control + fn and dictate into the box below"

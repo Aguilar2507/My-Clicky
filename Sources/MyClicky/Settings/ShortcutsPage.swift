@@ -15,14 +15,14 @@ struct ShortcutsPage: View {
                 VStack(alignment: .leading, spacing: 14) {
                     if !Permission.accessibility.isGranted || !Permission.inputMonitoring.isGranted {
                         WarningCard(title: "Shortcuts need two permissions",
-                                    text: "Turn on Accessibility and Input Monitoring for MyClicky, then reopen it.",
+                                    text: "Turn on \(Permission.accessibilityName) and Input Monitoring for MyClicky, then reopen it.",
                                     button: "Open Settings") {
                             (Permission.accessibility.isGranted ? Permission.inputMonitoring : Permission.accessibility).request()
                         }
                     }
                     if FnKeyAdvisor.needsWarning(bindings: bindings) {
                         WarningCard(title: "Your 🌐 fn key opens “\(FnKeyAdvisor.currentActionName)”",
-                                    text: "Set “Press 🌐 key to” to “Do Nothing” in Keyboard settings so fn only talks to MyClicky.",
+                                    text: "Set “Press 🌐 key to” to “Do Nothing” in Keyboard settings so fn only works with MyClicky.",
                                     button: "Keyboard Settings", action: FnKeyAdvisor.openKeyboardSettings)
                     }
                 }

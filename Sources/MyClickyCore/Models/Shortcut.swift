@@ -38,9 +38,9 @@ public struct ShortcutBinding: Codable, Equatable, Sendable {
         self.gesture = gesture
     }
 
-    /// HeyClicky's defaults (ref 07): fn · ⌃⌃ · ⌃fn · ⌃fn ⌃fn.
+    /// HeyClicky's defaults (ref 07), except push to talk: ⌃⌥ (your choice, not fn) · ⌃⌃ · ⌃fn · ⌃fn ⌃fn.
     public static let defaults: [ShortcutBinding] = [
-        ShortcutBinding(.pushToTalk, KeyChord([.fn]), .hold),
+        ShortcutBinding(.pushToTalk, KeyChord([.control, .option]), .hold),
         ShortcutBinding(.textMode, KeyChord([.control]), .doubleTap),
         ShortcutBinding(.dictate, KeyChord([.control, .fn]), .hold),
         ShortcutBinding(.handsFreeDictation, KeyChord([.control, .fn]), .doubleTap),

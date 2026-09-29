@@ -67,7 +67,7 @@ struct LevelMeter: View {
         HStack(spacing: 4) {
             ForEach(0..<16, id: \.self) { i in
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .fill(Float(i) / 16 < level ? AnyShapeStyle(Theme.lavenderGradient) : AnyShapeStyle(Color(hex: 0x3A3A3C)))
+                    .fill(Float(i) / 16 < level ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.track))
                     .frame(width: 8, height: 26)
             }
         }

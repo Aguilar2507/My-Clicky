@@ -10,6 +10,8 @@
     <string>MyClicky</string>
     <key>CFBundleDisplayName</key>
     <string>MyClicky</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -24,6 +26,8 @@
     <string>MyClicky listens while you hold Control + Option so you can talk to it.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>MyClicky turns your voice into text on this Mac.</string>
+    <key>NSFocusStatusUsageDescription</key>
+    <string>MyClicky stays quiet while a Focus like Do Not Disturb is on.</string>
     <key>NSAppleEventsUsageDescription</key>
     <string>MyClicky's agent controls apps like Calendar, Notes and Reminders when you ask it to.</string>
 </dict>

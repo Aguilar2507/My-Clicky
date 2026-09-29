@@ -64,7 +64,7 @@ struct StepGroupView: View {
             }
             Button { expanded.value.toggle() } label: {
                 Text(expanded.value ? "Hide steps ▾" : "\(steps.count) steps ▸").font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Theme.lavender)
+                    .foregroundStyle(Theme.accent)
             }
             .buttonStyle(.plain)
             .padding(.leading, 36)

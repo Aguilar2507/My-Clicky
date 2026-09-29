@@ -44,9 +44,9 @@ struct DesignGallery: View {
                 }
                 SectionLabel("Mascot")
                 HStack(spacing: 20) {
-                    MascotAvatar(blob: Color(hex: 0xF2B8A8), ring: Color(hex: 0xF7D9CC))
-                    MascotAvatar(blob: Color(hex: 0x9CC7E8), ring: Color(hex: 0xCFE6F7))
-                    MascotBlob(color: Color(hex: 0xE8A090), glow: true).frame(width: 160, height: 110)
+                    BotAvatar(ring: Color(hex: 0xF2B8A8))
+                    BotAvatar(ring: Color(hex: 0x9CC7E8))
+                    GlassBot(sparkles: true).frame(width: 120, height: 120)
                 }
             }
             .padding(40)

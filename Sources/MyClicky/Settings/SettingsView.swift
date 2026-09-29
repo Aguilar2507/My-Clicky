@@ -22,7 +22,7 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .scrollIndicators(.never)
-            .background(Theme.windowBackground)
+            .background(Theme.bloomBackground)
             .overlay(alignment: .top) { TopFade() }
         }
         .overlay {

@@ -10,6 +10,9 @@ live in `references/heyclicky/` (git-ignored):
 | `02-app-home.png` | Opened app: sidebar of Clickys, search, +, Apps chip, profile footer, greeting |
 | `03`–`10-settings-*.png` | Settings pages: General, Voice, Microphone, Dictation, Shortcuts, Cursor, Agents, Integrations |
 
+MyClicky's own design (spec 013) lives in `references/myclicky/` (git-ignored): `LOGO.png` (app icon), `BOT.png`
+(in-app bot) and `visual-system.png` (palette and rules). **Layout follows HeyClicky; colors and art follow these.**
+
 ## Build order
 
 Each feature has `spec.md` → `plan.md` (+ `research.md`, `data-model.md`, `contracts/`, `quickstart.md`) → `tasks.md`.
@@ -27,12 +30,13 @@ the Claude Code verifications.
 | 004 | [settings-shell](004-settings-shell/spec.md) | 003 | Settings with Back, profile card, sidebar; General and Shortcuts pages; rebindable keys |
 | 005 | [clickys-chats](005-clickys-chats/spec.md) | 004 | Chat list (pinned Talk + Clickys), search, new chat, conversation view, memory, greeting |
 | 006 | [cursor-companion](006-cursor-companion/spec.md) | 005 | Glowing triangle companion, colors, dock, bubble, flying pointer, drawing, text mode |
-| 007 | [voice-talk](007-voice-talk/spec.md) | 006 | Fn push-to-talk, streaming spoken answers, voice picker, speed, microphone page |
+| 007 | [voice-talk](007-voice-talk/spec.md) | 006 | ⌃⌥ push-to-talk (was fn), streaming spoken answers, voice picker, speed, microphone page |
 | 008 | [dictation](008-dictation/spec.md) | 007 | Hold ⌃+Fn to type by voice anywhere, hands-free mode, English/Spanish, custom words |
 | 009 | [agents](009-agents/spec.md) | 005, 007 | Clickys run tasks with Claude Code, live progress, Allow cards, computer use, suggestions |
 | 010 | [integrations](010-integrations/spec.md) | 009 | Connector catalog (GitHub, Notion, Linear…) and custom connectors for agents |
 | 011 | [usage-limits](011-usage-limits/spec.md) | 005 | Monthly spend ring, monthly cap, warnings |
 | 012 | [welcome-tour](012-welcome-tour/spec.md) | all | First-run setup, hands-on tour, interview that creates three Clickys |
+| 013 | [visual-identity](013-visual-identity/spec.md) | 012 | Glass-cursor app icon, glass bot, midnight-navy palette |
 
 ## Shared architecture (all plans follow this)
 
@@ -61,21 +65,23 @@ Sources/
 - **Speech:** Apple on-device recognition in, Apple voices out.
 - **Global keys:** a CGEvent tap. Needs the Accessibility and Input Monitoring permissions.
 
-## Visual language (taken from the screenshots)
+## Visual language (HeyClicky's layout, MyClicky's palette: spec 013)
 
 | Token | Value |
 |---|---|
-| Window background | `#1E1E1E`; sidebar `#1B1B1B`; a black-to-clear fade at the top where the panel meets the notch |
-| Card | fill `#2A2A2A`, 1 pt border `#3A3A3A`, corner radius 16, rows split by 1 pt `#3A3A3A` lines |
-| Text | primary `#FFFFFF` (titles 28 pt bold, rows 17 pt semibold); secondary `#9A9A9F` 15 pt |
-| Section label | 12 pt semibold, uppercase, letter-spaced, `#8E8E93` (e.g. `BEHAVIOR`) |
-| Primary button | glossy lavender-blue pill (gradient `#C9D6FF`→`#7D97F2`, top highlight, dark text) |
-| Secondary button | white glossy pill with dark text ("Change", "Check for updates") |
-| Toggle | on: lavender-blue gradient track with a black knob; off: gray track with a light knob |
-| Selected card | white/lavender 2 pt outline plus a round check badge in the top-right corner |
-| Sidebar item | 17 pt with SF Symbol; selected = `#333333` rounded fill |
+| Palette | Midnight `#080C1C`, Deep Navy `#11192F`, Electric Blue `#3B82F6`, Cyan Glow `#47D7FF`, Violet `#7C5CFF`, Magenta `#E35BFF`, Warm Glass `#FFD2B8`, Ice White `#F7FAFF` |
+| Window background | Midnight with a subtle violet/blue bloom; sidebar `#0A0F22`; a black-to-clear fade at the top where the panel meets the notch |
+| Card | fill Deep Navy, 1 pt border `#232D4D`, corner radius 16, rows split by 1 pt lines |
+| Text | primary Ice White (titles 28 pt bold, rows 17 pt semibold); secondary `#98A2C0` 15 pt |
+| Section label | 12 pt semibold, uppercase, letter-spaced, `#8A94B4` (e.g. `BEHAVIOR`) |
+| Primary button | blue-violet glass pill (gradient `#5AB0FF`→Electric Blue→`#6A4DFF`, thin light border, blue glow, white text) |
+| Secondary button | ice-white glass pill with navy text ("Change") |
+| Toggle | on: blue-violet glass track with a white knob; off: navy track with a light knob |
+| Selected card | white/blue 2 pt outline plus a round blue-violet check badge in the top-right corner |
+| Sidebar item | 17 pt with SF Symbol; selected = `#1A2342` rounded fill |
 | Window chrome | top-right "pop out" and "close" icons, no traffic lights |
-| Mascot | original MyClicky blob (pastel, happy `^ ^` eyes). Not HeyClicky's artwork |
+| App icon | side-facing liquid-glass cursor with `^ ^` eyes and 3 neon dashes on a glass tile (`AppLogo`, LOGO.png) |
+| Bot | front-facing liquid-glass cursor with `^ ^` eyes and two glass feet (`GlassBot`, BOT.png); Clicky avatars = small bot + color ring |
 
 ## Deviations from HeyClicky (Principle VIII)
 
@@ -87,5 +93,7 @@ Sources/
 | 60+ dictation languages | English + Spanish + auto-detect between them | Your choice |
 | Intro video in the welcome tour | Animated intro cards | No hosted media |
 | Agent message quotas | Step limit + "Keep going?" card; Claude subscription limits apply | III/I |
-| Their logo and blob mascot | Original MyClicky logo and blob | Original branding |
+| Their logo and cloud mascot | Glass-cursor icon and glass bot (spec 013) | Your designs, original branding |
+| Gray surfaces, lavender accents | Midnight navy, blue-violet glass accents | Your visual system (spec 013) |
 | No API key setting | API key row in General | Needed for your own key |
+| Push to talk: hold fn | Push to talk: hold ⌃ control + ⌥ option | Your choice (2026-09-26); dictation stays ⌃ fn |

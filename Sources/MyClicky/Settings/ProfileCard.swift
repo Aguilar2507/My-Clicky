@@ -17,7 +17,7 @@ struct ProfileCard: View {
                         .font(.system(size: 10, weight: .bold)).tracking(1.2)
                         .foregroundStyle(Theme.textSecondary)
                         .padding(.horizontal, 7).padding(.vertical, 3)
-                        .background(Color(hex: 0x3A3A3C), in: Capsule(style: .continuous))
+                        .background(Theme.track, in: Capsule(style: .continuous))
                 }
                 Spacer(minLength: 0)
             }
@@ -43,7 +43,7 @@ struct InitialAvatar: View {
             .font(.system(size: size * 0.42, weight: .semibold))
             .foregroundStyle(Theme.textPrimary)
             .frame(width: size, height: size)
-            .background(Color(hex: 0x3A3A3C), in: Circle())
+            .background(Theme.track, in: Circle())
     }
 }
 

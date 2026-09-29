@@ -25,15 +25,15 @@ struct ChatRow: View {
                                 .lineLimit(1).fixedSize()
                         }
                     }
-                    Text(snippet ?? previewText).font(.system(size: 14)).foregroundStyle(Color(hex: 0xB0B0B5)).lineLimit(1)
+                    Text(snippet ?? previewText).font(.system(size: 14)).foregroundStyle(Theme.previewText).lineLimit(1)
                 }
                 .padding(.leading, 11)
                 .padding(.trailing, 10)
                 .frame(height: 58)
-                .overlay(alignment: .bottom) { Rectangle().fill(Color(hex: 0x333333)).frame(height: 1) }
+                .overlay(alignment: .bottom) { Rectangle().fill(Theme.hairline).frame(height: 1) }
             }
             .padding(.vertical, 1)
-            .background(isSelected ? Color(hex: 0x262628) : .clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(isSelected ? Theme.rowSelected : .clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

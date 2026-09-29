@@ -6,7 +6,7 @@ struct IntroStep: View {
     @StateObject private var card = Box(0)
     private let cards: [(String, String, String)] = [
         ("rectangle.topthird.inset.filled", "MyClicky lives in your notch", "Rest your pointer on the notch and your chats open."),
-        ("cursorarrow.rays", "A companion beside your cursor", "Hold fn, ask about anything on screen. It answers out loud and points the way."),
+        ("cursorarrow.rays", "A companion beside your cursor", "Hold control + option, ask about anything on screen. It answers out loud and points the way."),
         ("person.3.fill", "Clickys do the work", "Named helpers run tasks for you in the background, and ask before anything important."),
     ]
 
@@ -15,7 +15,7 @@ struct IntroStep: View {
             StepTitle(title: "Welcome to MyClicky", subtitle: "Your own screen-aware Mac assistant. Setup takes a few minutes.")
             let item = cards[card.value]
             VStack(spacing: 12) {
-                Image(systemName: item.0).font(.system(size: 42)).foregroundStyle(Theme.lavender)
+                Image(systemName: item.0).font(.system(size: 42)).foregroundStyle(Theme.accent)
                 Text(item.1).font(.system(size: 19, weight: .semibold)).foregroundStyle(Theme.textPrimary)
                 Text(item.2).font(.system(size: 14)).foregroundStyle(Theme.textSecondary).multilineTextAlignment(.center)
             }
@@ -26,7 +26,7 @@ struct IntroStep: View {
             .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
             HStack(spacing: 8) {
                 ForEach(0..<cards.count, id: \.self) { i in
-                    Capsule().fill(i == card.value ? Theme.lavender : Color(hex: 0x3A3A3C)).frame(width: i == card.value ? 22 : 8, height: 8)
+                    Capsule().fill(i == card.value ? Theme.accent : Theme.track).frame(width: i == card.value ? 22 : 8, height: 8)
                         .onTapGesture { withAnimation { card.value = i } }
                 }
             }
@@ -75,7 +75,7 @@ struct PermissionsStep: View {
                     }
                     if FnKeyAdvisor.needsWarning(bindings: ShortcutBinding.normalized(model.settings.shortcuts)) {
                         WarningCard(title: "Set the 🌐 key to “Do Nothing”",
-                                    text: "Right now it opens “\(FnKeyAdvisor.currentActionName)”, which gets in the way of fn push-to-talk.",
+                                    text: "Right now it opens “\(FnKeyAdvisor.currentActionName)”, which gets in the way of control + fn dictation.",
                                     button: "Keyboard Settings", action: FnKeyAdvisor.openKeyboardSettings)
                     }
                     if !Permission.screenRecording.isGranted || !Permission.inputMonitoring.isGranted {
@@ -105,7 +105,7 @@ struct APIKeyStep: View {
             StepTitle(title: "Your Anthropic API key",
                       subtitle: "MyClicky answers with your own key. Create one at console.anthropic.com → API Keys, and set a spend limit there too.")
             HStack(spacing: 10) {
-                SecureField(Keychain.apiKey() == nil ? "sk-ant-…" : "Saved — paste a new one to replace it", text: $key.value).darkField()
+                SecretField(placeholder: Keychain.apiKey() == nil ? "sk-ant-…" : "Saved — paste a new one to replace it", text: $key.value)
                 Button(testing.value ? "Testing…" : "Test") { test() }.buttonStyle(.pill(.secondary)).disabled(testing.value)
             }
             .frame(maxWidth: 520)

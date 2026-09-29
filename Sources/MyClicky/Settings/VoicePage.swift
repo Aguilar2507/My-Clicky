@@ -24,13 +24,13 @@ struct VoicePage: View {
                     let selected = model.settings.speechSpeed == speed
                     Button { model.settings.speechSpeed = speed } label: {
                         Text(Self.label(speed)).font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(selected ? Color(hex: 0x1C2340) : Theme.textPrimary.opacity(0.85))
+                            .foregroundStyle(selected ? Color.white : Theme.textPrimary.opacity(0.85))
                             .frame(width: 70, height: 38)
                             .background {
                                 if selected {
-                                    BorderedCapsule(fill: AnyShapeStyle(Theme.lavenderGradient), border: .white, borderWidth: 2)
+                                    BorderedCapsule(fill: AnyShapeStyle(Theme.accentGradient), border: .white, borderWidth: 2)
                                 } else {
-                                    Capsule(style: .continuous).fill(Color(hex: 0x3A3A3C))
+                                    Capsule(style: .continuous).fill(Theme.track)
                                 }
                             }
                     }

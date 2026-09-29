@@ -3,7 +3,7 @@ import Foundation
 /// Every user preference, stored in `settings.json`. Each field has a default, so older files keep loading
 /// (TolerantDecoder fills gaps). Features add fields in their own extension-free block below, marked by spec.
 public struct Settings: Codable, Equatable, Sendable {
-    public static let currentVersion = 4
+    public static let currentVersion = 5
 
     public var version = Settings.currentVersion
 
@@ -131,6 +131,13 @@ public enum SettingsMigrations {
                 settings.spanishLocale = settings.speechLocale.replacingOccurrences(of: "_", with: "-")
             } else if legacy.hasPrefix("en") {
                 settings.dictationLanguage = "en"
+            }
+        }
+        if settings.version < 5 {
+            // Push to talk moved from fn to ⌃⌥. A custom key the user picked is kept.
+            if let i = settings.shortcuts.firstIndex(where: { $0.action == .pushToTalk }),
+               settings.shortcuts[i] == ShortcutBinding(.pushToTalk, KeyChord([.fn]), .hold) {
+                settings.shortcuts[i] = ShortcutBinding.defaults[0]
             }
         }
         settings.version = Settings.currentVersion

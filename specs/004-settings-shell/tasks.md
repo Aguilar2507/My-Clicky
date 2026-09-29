@@ -77,3 +77,23 @@ Implemented 2026-09-25. `swift build` ✓, checks: 7 shortcut/settings groups (3
   `Settings/SettingsView.swift`.
 - **T024 not done**: needs the running app (grant Input Monitoring, hold fn, rebind keys, 5-minute typing test,
   screen-recording exclusion test on macOS 27). → **Needs you.**
+
+**Bug found at first real use (2026-09-26):** ⌘C/⌘V/⌘X/⌘A/⌘Z did nothing in any text box. Mac apps get these from the
+Edit menu, and MyClicky has no menu bar; also the notch panel is non-activating, so a menu wouldn't receive them. Fixed
+with `App/EditShortcuts.swift` (a local key monitor that sends cut/copy/paste/selectAll/undo/redo to the focused text
+box). The API key boxes (General → API key, tour step) now use `SecretField`: eye button to show/hide, plus Paste.
+New snapshot: `welcome-apikey`.
+
+**"⌃⌥ does nothing" (2026-09-26):** the shortcut setting was right (⌃⌥ hold, settings v5). The cause was permissions: the
+new `App/Log.swift` diagnostic log showed `accessibility=false inputMonitoring=false` at launch. Every rebuild with the
+ad-hoc signature makes macOS stop trusting the app, even though System Settings still shows MyClicky switched on. Fix:
+remove MyClicky from Accessibility and Input Monitoring (−), add it back, reopen. Lasting fix: build with a self-signed
+certificate (`SIGN_IDENTITY="MyClicky Dev" ./build.sh`, README). The log also records every shortcut event:
+`/usr/bin/log show --last 10m --predicate 'subsystem == "com.myclicky.app"'` (in zsh, plain `log` is a shell builtin).
+macOS 27 renamed Privacy & Security → **Accessibility** to **Device Control and Data Access** (Spanish: "Control de
+dispositivos y acceso a datos"); Input Monitoring and Screen Recording keep their names. `Permission.accessibilityName`
+shows the right name per macOS version; README/GUIDE updated.
+**Stable signature (2026-09-26):** created a self-signed code-signing certificate "MyClicky Dev" (RSA 2048, 10 years,
+codeSigning only) in the login keychain, trusted for code signing, with codesign allowed to use its key. `build.sh`
+picks it automatically (falls back to ad-hoc) and prints which one it used. Designated requirement is now
+`identifier "com.myclicky.app" and certificate leaf = H"d406…e16f"`, the same on every build, so permissions persist.

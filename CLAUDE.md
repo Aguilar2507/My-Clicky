@@ -9,7 +9,8 @@ on the Claude subscription via Claude Code, API spend always visible.
 - Project principles: `.specify/memory/constitution.md` (v2.0.0). Read it before designing anything. **Cost first**,
   and **HeyClicky parity** (Principle VIII).
 - Roadmap, shared architecture, visual language and HeyClicky deviations: `specs/README.md`.
-- Reference screenshots: `references/heyclicky/` (git-ignored). Match them.
+- Reference screenshots: `references/heyclicky/` (git-ignored). Match their **layout**. MyClicky's own design
+  (icon, bot, palette, rules) is in `references/myclicky/` (spec 013). Match its **colors and art**.
 - Features are specified in `specs/002`–`012` (spec, plan, research, data model, contracts, quickstart, tasks).
   **All are implemented** (0.3.0); open tasks are manual quickstarts + Claude Code verifications. Status and to-do list:
   `docs/IMPLEMENTATION-REPORT.md`. Each `tasks.md` ends with implementation notes (deviations, files, findings).
@@ -31,5 +32,12 @@ on the Claude subscription via Claude Code, API spend always visible.
   `@StateObject private var x = Box(value)` (see `DesignSystem/Theme.swift`). `@Observable`, `@Bindable`,
   `@Environment`, `@FocusState` and `@StateObject` work.
 - Stroked capsules render notches on macOS 27: use `BorderedCapsule` (layered fills) for capsule borders.
+- Colors come from `Theme`/`Brand` tokens only. The icon and bot are drawn in `DesignSystem/Brand.swift`. After
+  changing the logo, run `./scripts/make-icon.sh` (regenerates `Resources/AppIcon.icns`). Screen snapshots can't draw
+  blur; `--snapshot app-icon` and `--snapshot bot` use ImageRenderer and do.
 - Build, install and launch: `./build.sh && open ~/Applications/MyClicky.app` (VS Code: ⌘⇧B)
-- Each rebuild with the default ad-hoc signature asks for Screen Recording and Accessibility again (see README).
+- `build.sh` signs with the self-signed `MyClicky Dev` certificate (login keychain), so permissions survive rebuilds.
+  If it prints "Signed with: ad-hoc", the certificate is missing and each rebuild silently revokes Device Control and
+  Data Access (macOS 27's name for Accessibility) and Input Monitoring.
+- Diagnostic log: `/usr/bin/log show --last 10m --predicate 'subsystem == "com.myclicky.app"'` (plain `log` is a zsh
+  builtin).

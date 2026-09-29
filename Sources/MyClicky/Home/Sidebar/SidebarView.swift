@@ -9,7 +9,7 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            MyClickyLogo().frame(width: 30, height: 30).padding(.leading, 20).padding(.top, 26).padding(.bottom, 26)
+            AppLogo().frame(width: 38, height: 38).padding(.leading, 16).padding(.top, 22).padding(.bottom, 22)
             HStack(spacing: 8) {
                 SearchField(text: $query.value, placeholder: "Search")
                 Button { model.select(model.createClicky()) } label: {
@@ -42,7 +42,7 @@ struct SidebarView: View {
             .scrollIndicators(.never)
 
             AppsChip(integrations: model.integrations).padding(.horizontal, 12).padding(.vertical, 12)
-            Rectangle().fill(Color(hex: 0x333333)).frame(height: 1).padding(.horizontal, 12)
+            Rectangle().fill(Theme.hairline).frame(height: 1).padding(.horizontal, 12)
             ProfileFooter(onAbout: { showingAbout.value = true })
         }
         .overlay {
@@ -120,7 +120,7 @@ struct AboutSheet: View {
     var body: some View {
         ModalCard(width: 380, onDismiss: onDone) {
             HStack(spacing: 14) {
-                MyClickyLogo().frame(width: 40, height: 40)
+                AppLogo().frame(width: 52, height: 52)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("MyClicky").font(.system(size: 22, weight: .bold)).foregroundStyle(Theme.textPrimary)
                     Text("Version \(AppInfo.versionString)").font(.system(size: 14)).foregroundStyle(Theme.textSecondary)

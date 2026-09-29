@@ -30,20 +30,20 @@ struct NotchCollapsedView: View {
     }
 }
 
-/// Glossy lavender badge with a white outline and a dark number ("9+" above 9).
+/// Glossy blue-violet badge with a white outline and a white number ("9+" above 9).
 struct UnreadBadge: View {
     let count: Int
     var body: some View {
         ZStack {
             Circle().fill(.white)
-            Circle().fill(Theme.lavenderGradient).padding(2)
-            Circle().fill(LinearGradient(colors: [.white.opacity(0.6), .clear], startPoint: .top, endPoint: .center)).padding(3)
+            Circle().fill(Theme.accentGradient).padding(2)
+            Circle().fill(LinearGradient(colors: [.white.opacity(0.35), .clear], startPoint: .top, endPoint: .center)).padding(3)
             Text(count > 9 ? "9+" : "\(count)")
                 .font(.system(size: count > 9 ? 9 : 12, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(hex: 0x1C2A5E))
+                .foregroundStyle(.white)
         }
         .frame(width: 22, height: 22)
-        .shadow(color: Theme.lavender.opacity(0.6), radius: 3)
+        .shadow(color: Theme.accent.opacity(0.6), radius: 3)
     }
 }
 
@@ -54,7 +54,7 @@ struct ActivityDots: View {
             let t = context.date.timeIntervalSinceReferenceDate
             HStack(spacing: 4) {
                 ForEach(0..<3) { i in
-                    Circle().fill(Theme.lavender)
+                    Circle().fill(Theme.accent)
                         .frame(width: 5, height: 5)
                         .opacity(0.35 + 0.65 * max(0, sin(t * 4 - Double(i) * 0.7)))
                 }

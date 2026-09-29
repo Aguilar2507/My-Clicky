@@ -75,3 +75,8 @@ Implemented 2026-09-25. `swift build` ✓, checks: 5 voice groups (40 checks) pa
 - `Speaker.swift` was removed (replaced by `SpeechQueue`). `LevelMeter` and `MicTester` live in `Settings/MicrophonePage.swift`.
 - **T018 not done**: needs the running app with your API key (latency stopwatch vs v0.1, interrupting, Spanish voice,
   calls/Focus/sharing detection). → **Needs you.**
+
+**Bug found at first real launch (2026-09-26):** the app crashed on start (SIGABRT from TCC) because quiet mode reads
+the Focus status (`INFocusStatusCenter`) and `Info.plist` had no `NSFocusStatusUsageDescription`. macOS kills an app
+that asks for a privacy permission without its usage text. Added the key; the app now launches and stays running. The
+other privacy APIs (microphone, speech, Apple Events) already had their texts.

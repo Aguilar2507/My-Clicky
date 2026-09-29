@@ -12,7 +12,7 @@ struct WelcomeView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 18) {
-                    MascotBlob(color: Color(hex: 0xE8A090), glow: true).frame(width: 96, height: 70).padding(.top, 34)
+                    LivelyBot().frame(width: 92, height: 92).padding(.top, 30)
                     step(tour.step)
                 }
                 .padding(.horizontal, 48)
@@ -23,7 +23,7 @@ struct WelcomeView: View {
             footer(tour)
         }
         .frame(width: 720, height: 600)
-        .background(Theme.windowBackground)
+        .background(Theme.bloomBackground)
         .preferredColorScheme(.dark)
     }
 
@@ -50,7 +50,7 @@ struct WelcomeView: View {
             Spacer()
             HStack(spacing: 7) {
                 ForEach(0..<progress.total, id: \.self) { i in
-                    Circle().fill(i == progress.index ? Theme.lavender : Color(hex: 0x3A3A3C)).frame(width: 7, height: 7)
+                    Circle().fill(i == progress.index ? Theme.accent : Theme.track).frame(width: 7, height: 7)
                 }
             }
             Spacer()

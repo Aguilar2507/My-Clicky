@@ -1,7 +1,8 @@
 #!/bin/bash
 # Builds MyClicky.app and installs it to ~/Applications.
-# Optional: SIGN_IDENTITY="MyClicky Dev" ./build.sh  (a self-signed certificate keeps
-# macOS permissions across rebuilds; the default ad-hoc signature asks again after each rebuild).
+# Signing: uses the self-signed "MyClicky Dev" certificate from your keychain when it exists, so macOS keeps
+# MyClicky's permissions across rebuilds. Without it, it falls back to an ad-hoc signature, and each rebuild silently
+# revokes Device Control and Data Access and Input Monitoring. Override with SIGN_IDENTITY="…" ./build.sh.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -15,7 +16,14 @@ cp .build/release/MyClickyComputer "$APP/Contents/MacOS/MyClickyComputer" # agen
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp Resources/CHANGELOG.md "$APP/Contents/Resources/"
 cp Resources/integrations.json "$APP/Contents/Resources/" # connector catalog (spec 010)
+cp Resources/AppIcon.icns "$APP/Contents/Resources/" # app icon (spec 013; ./scripts/make-icon.sh)
+if [[ -z "${SIGN_IDENTITY:-}" ]] && security find-identity -v -p codesigning | grep -q '"MyClicky Dev"'; then
+    SIGN_IDENTITY="MyClicky Dev"
+fi
+# Sign the helper first, then the app (the helper is launched by agents and asks for its own approvals).
+codesign --force --sign "${SIGN_IDENTITY:--}" "$APP/Contents/MacOS/MyClickyComputer"
 codesign --force --sign "${SIGN_IDENTITY:--}" "$APP"
+echo "Signed with: ${SIGN_IDENTITY:-ad-hoc}"
 
 if [[ "${1:-}" != "--no-install" ]]; then
     mkdir -p "$HOME/Applications"

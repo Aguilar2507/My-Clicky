@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A card that shows a white/lavender outline and a round check badge when selected (voice, cursor color, language).
+/// A card that shows a white/blue glass outline and a round check badge when selected (voice, cursor color, language).
 struct SelectableCard<Content: View>: View {
     let isSelected: Bool
     var dimmed = false
@@ -11,10 +11,10 @@ struct SelectableCard<Content: View>: View {
         Button(action: action) {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(isSelected ? Color(hex: 0x333336) : Theme.card,
+                .background(isSelected ? Theme.selectedItem : Theme.card,
                             in: RoundedRectangle(cornerRadius: 22, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .strokeBorder(isSelected ? AnyShapeStyle(LinearGradient(colors: [.white, Theme.lavender],
+                    .strokeBorder(isSelected ? AnyShapeStyle(LinearGradient(colors: [.white, Theme.accent],
                                                                              startPoint: .top, endPoint: .bottom))
                                              : AnyShapeStyle(Theme.cardBorder),
                                   lineWidth: isSelected ? 2.5 : 1))
@@ -28,14 +28,14 @@ struct SelectableCard<Content: View>: View {
     }
 }
 
-/// Round lavender check mark used on selected cards and radio rows.
+/// Round blue-violet check mark used on selected cards and radio rows.
 struct CheckBadge: View {
     var size: CGFloat = 30
     var body: some View {
         ZStack {
-            Circle().fill(Theme.lavenderGradient)
+            Circle().fill(Theme.accentGradient)
             Circle().strokeBorder(.white, lineWidth: 2)
-            Image(systemName: "checkmark").font(.system(size: size * 0.45, weight: .bold)).foregroundStyle(.black.opacity(0.85))
+            Image(systemName: "checkmark").font(.system(size: size * 0.45, weight: .bold)).foregroundStyle(.white)
         }
         .frame(width: size, height: size)
     }
@@ -48,7 +48,7 @@ struct RadioMark: View {
         if isOn {
             CheckBadge(size: 32)
         } else {
-            Circle().strokeBorder(Color(hex: 0x6E6E73), lineWidth: 2).frame(width: 32, height: 32)
+            Circle().strokeBorder(Theme.textTertiary, lineWidth: 2).frame(width: 32, height: 32)
         }
     }
 }

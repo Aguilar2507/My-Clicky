@@ -18,7 +18,7 @@ struct HomeView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Theme.windowBackground)
+            .background(Theme.bloomBackground)
             .overlay(alignment: .top) { TopFade().frame(height: 60) }
         }
     }

@@ -7,7 +7,7 @@ Your own screen-aware Mac assistant, inspired by [heyclicky](https://www.heyclic
 - **A companion beside your cursor.** A small glowing triangle follows your pointer. It pulses while listening,
   shimmers while thinking, shows answers in a bubble, **flies to things** to point at them and can **draw** circles,
   arrows and boxes on your screen. Pick its color or dock it in the notch in Settings → Cursor.
-- **Hold fn and talk.** It screenshots your screens, asks Claude and starts answering out loud within a couple of
+- **Hold control + option and talk.** It screenshots your screens, asks Claude and starts answering out loud within a couple of
   seconds, sentence by sentence as the answer arrives. Pick the voice (English and Spanish), speed and microphone in
   Settings → Voice / Microphone. It stays quiet during calls, screen sharing and Focus (answers show in the bubble
   with a ▶ Play chip); right-click the notch → Quiet mode to force it for an hour.
@@ -63,10 +63,10 @@ Settings → General. By hand:
    ```bash
    open ~/Applications/MyClicky.app
    ```
-3. **Grant permissions** when asked: Microphone, Speech Recognition, Screen Recording, Accessibility and
+3. **Grant permissions** when asked: Microphone, Speech Recognition, Screen Recording, Device Control and Data Access (Accessibility before macOS 27) and
    **Input Monitoring** (needed so your shortcut keys work in every app). Some need you to flip the switch in System
    Settings, then quit and reopen MyClicky. Settings → General → Permissions shows what's missing.
-   Also set System Settings → Keyboard → "Press 🌐 key to" → **Do Nothing**, so fn only talks to MyClicky.
+   Also set System Settings → Keyboard → "Press 🌐 key to" → **Do Nothing**, so control + fn dictation doesn't also open the emoji picker.
 4. **Paste your Anthropic API key** in Settings → General → API key (create it at console.anthropic.com). It's stored in the Keychain.
    **Set a monthly spend limit** in the Console under Billing → Limits.
 5. **Better voice (recommended):** System Settings → Accessibility → Spoken Content → System Voice → Manage Voices,
@@ -96,9 +96,9 @@ renders a screen to an image (run with an unknown name to list screens).
 
 ## Notes
 
-- Rebuilding with the default ad-hoc signature makes macOS ask for Screen Recording and Accessibility again. To avoid that,
-  create a self-signed "Code Signing" certificate named `MyClicky Dev` in Keychain Access and build with
-  `SIGN_IDENTITY="MyClicky Dev" ./build.sh`.
+- `build.sh` signs with the self-signed `MyClicky Dev` certificate in your login keychain (set up 2026-09-26), so
+  macOS keeps MyClicky's permissions across rebuilds. Without that certificate it falls back to an ad-hoc signature,
+  and each rebuild quietly revokes Device Control and Data Access and Input Monitoring.
 - The Settings profile card shows this month's API spend, estimated from each response's token counts at list prices
   (`~/Library/Application Support/MyClicky/usage.json`). Agent tasks aren't included; they run on your Claude plan.
 - Prompt caching is enabled, but Haiku 4.5 only caches prompts over ~4,000 tokens, so it mostly helps with longer conversations and Sonnet.
