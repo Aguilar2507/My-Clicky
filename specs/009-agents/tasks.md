@@ -8,7 +8,7 @@ description: "Tasks for 009-agents"
 
 ## Phase 1: Setup
 
-- [ ] T001 Install Claude Code, sign in, run `claude --help` and one `-p … --output-format stream-json --verbose`
+- [X] T001 Install Claude Code, sign in, run `claude --help` and one `-p … --output-format stream-json --verbose`
       dry run. Save a sample stream to `specs/009-agents/samples/stream.jsonl` (no secrets). Update research.md if flags differ
 - [X] T002 Add the `MyClickyComputer` executable target (depends on MyClickyCore) to `Package.swift`. `build.sh` copies it into `Contents/MacOS`
 - [X] T003 Add the data-model.md settings and Chat/Message fields (tolerant decode)
@@ -90,3 +90,11 @@ Code would, sends an MCP `tools/call`, and gets the answer back through the sock
 - Computer use: the companion flies to each spot before a click; your own mouse/keyboard input during a run makes
   the next action ask "keep using your Mac?". Screenshots for agents are captured fresh and never stored in chats.
 - **T026 not done**: the quickstart needs Claude Code + your Claude plan. → **Needs you.**
+
+### Verification 2026-10-20
+
+- **T001 done** with Claude Code 2.1.283 (signed in with the Claude plan). A real `claude -p … --output-format stream-json
+  --verbose` run is saved as `samples/stream.real.jsonl` (init line trimmed to the fields we use, paths scrubbed,
+  thinking text removed) and checked in `AgentChecks`. The shape matches research R1. New line types we don't use are
+  ignored safely: `rate_limit_event`, `system`/`thinking_tokens` and assistant `thinking` blocks. The app's own history
+  confirms it in practice: 7 agent chats, one with 652 steps and 52 Allow cards.

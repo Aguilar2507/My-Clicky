@@ -6,7 +6,8 @@
 
 - **Decision**: Register as Claude Code MCP servers at user scope: `claude mcp add --transport http -s user <id> <url>`
   (remote) or `claude mcp add -s user <id> -- <command> <args…>` (local). Remove with `claude mcp remove <id> -s user`.
-  Status from `claude mcp list` (✓ Connected / needs authentication / ✗ Failed).
+  Status from `claude mcp list`. The real format (2.1.283) is `name: target [(HTTP)] - ✔ Connected` /
+  `! Needs authentication` / `✘ Failed…`. Names can contain spaces (`claude.ai Canva`). See `samples/*.real.txt`.
 - **Rationale**: All Clickys see them automatically. Claude Code stores the OAuth tokens securely, so MyClicky never
   touches secrets (IV). No server needed (III).
 - **Alternative (future)**: MyClicky runs its own MCP OAuth (discovery + dynamic client registration + PKCE via
@@ -19,8 +20,9 @@
   one-line script that starts `claude` and runs its `/mcp` authentication for that server. The browser opens for the
   service's sign-in. A sheet in MyClicky says "Finish signing in to GitHub in your browser, then come back". It polls
   `claude mcp list` every 3 s (up to 5 min) and closes on "Connected".
-- **Must verify**: whether `claude "/mcp"` (or a newer `claude mcp` subcommand) can trigger the OAuth for one server
-  non-interactively. If a direct command exists, use it and skip Terminal.
+- **Verified (2026-10-20, Claude Code 2.1.283):** `claude mcp login <server>` starts one server's OAuth directly. It
+  needs a terminal (without one it stops: "stdin isn't a terminal"), so MyClicky opens Terminal running
+  `claude mcp login myclicky-<id>` instead of asking for `/mcp`.
 - **Fallback**: Clear numbered instructions in the sheet (open Terminal, type `claude`, type `/mcp`, choose the server, sign in).
 
 ## R3 Catalog (candidates; each verified before shipping)

@@ -16,6 +16,18 @@ enum AgentChecks {
             Check.equal(events[5], .toolResult(id: "toolu_02", isError: false, summary: "File created"), "array content")
             Check.equal(events.last, .result(subtype: "success", text: "Done. The summary is in ai-news.md.", turns: 4,
                                              sessionID: "4f1c2a9e-0000-4000-8000-000000000001", isError: false))
+            let real = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+                .appendingPathComponent("specs/009-agents/samples/stream.real.jsonl")
+            let realEvents = (try String(contentsOf: real, encoding: .utf8)).split(separator: "\n").map(String.init)
+                .flatMap(AgentEventParser.parse(line:))
+            let session = "fde0873e-dc36-425f-b509-f1d6a4b812b8"
+            Check.equal(realEvents.count, 5, "real run (2.1.283): rate_limit_event, thinking_tokens and thinking blocks ignored")
+            Check.equal(realEvents.first, .initialized(sessionID: session))
+            Check.equal(realEvents[1], .toolUse(id: "toolu_01JAUaPeAyqgPJ8Yv3ZkSZAg", name: "Bash",
+                                                input: ["command": "echo hello", "description": "Print hello"]))
+            Check.equal(realEvents[2], .toolResult(id: "toolu_01JAUaPeAyqgPJ8Yv3ZkSZAg", isError: false, summary: "hello"))
+            Check.equal(realEvents[3], .text("done"))
+            Check.equal(realEvents.last, .result(subtype: "success", text: "done", turns: 2, sessionID: session, isError: false))
             Check.equal(AgentEventParser.parse(line: #"{"type":"stream_event","event":{}}"#), [], "unknown types ignored")
             Check.equal(AgentEventParser.parse(line: #"{"type":"assist"#), [], "partial line ignored")
             Check.equal(AgentEventParser.parse(line: #"{"type":"result","subtype":"error_max_turns","is_error":true,"num_turns":40}"#),

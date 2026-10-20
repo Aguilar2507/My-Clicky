@@ -33,6 +33,22 @@ enum IntegrationChecks {
             Check.equal(split.others.map(\.name), ["filesystem"], "servers added outside MyClicky shown read-only")
         }
 
+        Check.group("claude mcp list parsing (real output, Claude Code 2.1.283)") {
+            let text = try String(contentsOf: repo.appendingPathComponent("specs/010-integrations/samples/mcp-list.real.txt"),
+                                  encoding: .utf8)
+            let entries = MCPListParser.parse(text)
+            Check.equal(entries.map(\.name), ["claude.ai Claude Docs", "claude.ai Canva", "myclicky-sentry"], "names with spaces kept")
+            Check.equal(entries[0], .init(name: "claude.ai Claude Docs", target: "https://api.anthropic.com/v1/pages/mcp",
+                                          status: .connected))
+            Check.equal(entries[1].status, .needsAuth, "! Needs authentication")
+            Check.equal(entries[2], .init(name: "myclicky-sentry", target: "https://mcp.sentry.dev/mcp (HTTP)", status: .needsAuth))
+            let split = MCPListParser.split(entries)
+            Check.equal(split.ours["sentry"], .needsAuth)
+            Check.equal(split.others.map(\.name), ["claude.ai Claude Docs", "claude.ai Canva"], "claude.ai connectors shown read-only")
+            Check.equal(MCPListParser.parse("Checking MCP server health…\n\nNo MCP servers configured."), [], "no servers")
+            Check.equal(MCPListParser.parse("x: npx srv - ✘ Failed to connect").first?.status, .failed("Failed to connect"))
+        }
+
         Check.group("Integration search + custom connectors") {
             let catalog = Integration.loadCatalog(from: try Data(contentsOf: repo.appendingPathComponent("Resources/integrations.json")))
             Check.equal(IntegrationFilter.filter(catalog, query: "issues").map(\.id), ["github", "linear", "atlassian", "sentry"])

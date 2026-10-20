@@ -48,7 +48,7 @@ description: "Tasks for 003-notch-home"
 ## Phase 8: Polish
 
 - [X] T019 Keep the v0.1 status item until 004 lands (FR-009). It is removed by 004 T018
-- [ ] T020 Run quickstart.md and record the results
+- [X] T020 Run quickstart.md and record the results
 
 ## Dependencies
 
@@ -69,3 +69,8 @@ Implemented 2026-09-25. `swift build` ✓, checks: Notch geometry (8) + Notch op
 - `WindowSharing` (screen-recording exclusion) is wired to every panel now; the setting itself arrives in 004.
 - **T020 not done**: the quickstart needs the app running on your Mac (hover timing, 5-minute no-accidental-open test,
   full-screen Spaces, external display, CPU in Activity Monitor). → **Needs you.**
+
+### Closed 2026-10-20
+
+- **T020 closed as superseded**: spec 019 removed the notch home (the `Notch/` folder is gone), so this quickstart can't
+  run anymore. Its replacement (window, menu bar icon, ⌥Space) was tried in 019 T010.

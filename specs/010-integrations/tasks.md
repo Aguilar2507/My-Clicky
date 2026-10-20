@@ -8,9 +8,9 @@ description: "Tasks for 010-integrations"
 
 ## Phase 1: Setup
 
-- [ ] T001 With Claude Code installed: verify `claude mcp add/remove/list/get` syntax and outputs, save sample
+- [X] T001 With Claude Code installed: verify `claude mcp add/remove/list/get` syntax and outputs, save sample
       outputs to `specs/010-integrations/samples/`, verify the R2 sign-in trigger, and verify each catalog URL. Update research.md
-- [ ] T002 Create `Resources/integrations.json` with the verified entries. `build.sh` copies it (+ icons)
+- [X] T002 Create `Resources/integrations.json` with the verified entries. `build.sh` copies it (+ icons)
 - [X] T003 Add `customIntegrations` to `Settings.swift`
 
 ## Phase 2: Foundational
@@ -67,3 +67,20 @@ Implemented 2026-09-25. `swift build` ✓, checks: 3 integration groups (21 chec
   process runner with a timeout). `IntegrationRow`, `SignInCard` and `CustomConnectorSheet` live in `Settings/IntegrationsPage.swift`.
 - The Apps chip always shows (with "Apps +") and opens the Integrations page; connected icons appear on it.
 - **T015 not done**: needs Claude Code and your accounts (GitHub/Notion/Linear sign-ins). → **Needs you.**
+
+### Verification 2026-10-20
+
+- **T001 done** with Claude Code 2.1.283. `claude mcp add --transport http -s user`, `list`, `get` and `remove` work as
+  `Integration.addArguments` and `disconnect` use them (`samples/mcp-roundtrip.real.txt`). The real `claude mcp list`
+  output (`samples/mcp-list.real.txt`) differed from the documented sample:
+  - the status marks are `✔` and `!`
+  - claude.ai connectors have spaces in their names and no `(HTTP)` suffix
+  - the header ends with `…`
+  **Fixed:** `MCPListParser` dropped names with spaces, so claude.ai connectors never showed as "Managed in Claude
+  Code"; it also trims `✔ ✘ ! ⏸` now. Checked against the real sample.
+- **Sign-in (R2):** Claude Code now has `claude mcp login <server>`. Connect opens Terminal running that command, and the
+  browser sign-in starts straight away (no more typing `/mcp` and choosing the server). It still needs a terminal:
+  without one it stops with "stdin isn't a terminal".
+- **T002 done:** all six catalog addresses answer with 401 + an OAuth challenge (made-up paths on the same hosts
+  return 404). Atlassian and Asana moved from the old SSE endpoints to their current HTTP ones:
+  `https://mcp.atlassian.com/v1/mcp` and `https://mcp.asana.com/v2/mcp`. `build.sh` copies the file into the app.

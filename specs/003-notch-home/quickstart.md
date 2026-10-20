@@ -1,5 +1,8 @@
 # Quickstart: Notch Home
 
+> **Superseded by spec 019 (2026-10-01):** the notch home was removed. This quickstart can't run anymore and is kept as
+> history. See `specs/019-app-home/` for the window, menu bar icon and ⌥Space.
+
 1. `swift build` and `swift run MyClickyChecks` (NotchGeometry + NotchState groups pass).
 2. `./build.sh && open ~/Applications/MyClicky.app`.
 3. The built-in display shows a black notch extension. The external display shows a top-center pill.

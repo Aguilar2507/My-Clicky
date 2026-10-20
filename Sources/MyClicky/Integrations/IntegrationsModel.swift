@@ -64,20 +64,18 @@ final class IntegrationsModel {
         await refresh()
     }
 
-    /// Opens Terminal with Claude Code and plain instructions to finish the service's browser sign-in.
+    /// Opens Terminal running `claude mcp login <server>`, which opens the service's browser sign-in (spec 010 R2).
+    /// It needs a terminal: without one, Claude Code 2.1.283 refuses to finish the sign-in.
     func signIn(_ integration: Integration) {
         guard let claude else { return }
         let script = model.paths.base.appendingPathComponent("connect-\(integration.id).command")
         let text = """
         #!/bin/zsh
         clear
-        echo "MyClicky: finish connecting \(integration.name)"
+        echo "MyClicky: connecting \(integration.name). Your browser opens: sign in there."
+        echo "When it says you're done, close this window. MyClicky updates by itself."
         echo ""
-        echo "1. When Claude Code opens, type /mcp and press Return."
-        echo "2. Choose \(integration.serverName) and pick Authenticate. Your browser opens: sign in there."
-        echo "3. Come back here and type /exit. MyClicky updates by itself."
-        echo ""
-        exec "\(claude)"
+        exec "\(claude)" mcp login "\(integration.serverName)"
         """
         try? JSONFile.write(Data(text.utf8), to: script)
         chmod(script.path, 0o755)

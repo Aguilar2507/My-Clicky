@@ -175,7 +175,7 @@ struct SignInCard: View {
         .task {
             let status = await integrations.connect(integration)
             if status == .connected { onDone(); return }
-            state.value = "Finish signing in to \(integration.name): a Terminal window opened with Claude Code. Type /mcp, choose \(integration.serverName), pick Authenticate and sign in in your browser. Waiting for \(integration.name)…"
+            state.value = "Finish signing in to \(integration.name): your browser opened (from a small Terminal window). Sign in there. Waiting for \(integration.name)…"
             if await integrations.waitUntilConnected(integration) { onDone() } else { state.value = "Sign-in wasn't finished. Try again." }
         }
     }

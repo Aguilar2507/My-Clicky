@@ -16,6 +16,9 @@
 - **As built (2026-09-25), still unverified** (Claude Code isn't installed here, T001): the exact flag names, the
   `Edit(./**)`/`Write(./**)` rule syntax and the stream shape follow the documentation; the parser is tested against
   `samples/stream.documented.jsonl`. Replace it with a real capture when T001 is done.
+- **Verified (2026-10-20, Claude Code 2.1.283):** the real stream (`samples/stream.real.jsonl`) has the documented
+  system/init, assistant text/tool_use, user tool_result and result lines. It also has `rate_limit_event`,
+  `system`/`thinking_tokens` and assistant `thinking` blocks, which `AgentEventParser` ignores.
 
 ## R2 Permissions → Allow cards
 

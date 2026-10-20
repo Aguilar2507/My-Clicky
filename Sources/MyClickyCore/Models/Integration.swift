@@ -58,7 +58,8 @@ public enum ConnectionStatus: Equatable, Sendable {
     case notAdded, checking, connected, needsAuth, failed(String)
 }
 
-/// Parses `claude mcp list` (spec 010 research R1): "name: target (transport) - ✓ Connected".
+/// Parses `claude mcp list` (spec 010 research R1): "name: target (HTTP) - ✔ Connected". Names can have spaces
+/// ("claude.ai Canva: https://… - ! Needs authentication"); see `specs/010-integrations/samples/mcp-list.real.txt`.
 public enum MCPListParser {
     public struct Entry: Equatable, Sendable {
         public let name: String
@@ -75,10 +76,11 @@ public enum MCPListParser {
     public static func parse(_ output: String) -> [Entry] {
         output.split(whereSeparator: \.isNewline).compactMap { raw in
             let line = raw.trimmingCharacters(in: .whitespaces)
-            guard let colon = line.firstIndex(of: ":"), let dash = line.range(of: " - ", options: .backwards) else { return nil }
-            let name = String(line[..<colon]).trimmingCharacters(in: .whitespaces)
-            guard !name.contains(" "), !name.isEmpty else { return nil }
-            let target = String(line[line.index(after: colon)..<dash.lowerBound]).trimmingCharacters(in: .whitespaces)
+            guard let colon = line.range(of: ": "), let dash = line.range(of: " - ", options: .backwards),
+                  colon.upperBound <= dash.lowerBound else { return nil }
+            let name = String(line[..<colon.lowerBound]).trimmingCharacters(in: .whitespaces)
+            guard !name.isEmpty else { return nil }
+            let target = String(line[colon.upperBound..<dash.lowerBound]).trimmingCharacters(in: .whitespaces)
             let statusText = String(line[dash.upperBound...]).trimmingCharacters(in: .whitespaces)
             return Entry(name: name, target: target, status: status(statusText))
         }
@@ -88,7 +90,7 @@ public enum MCPListParser {
         let lower = text.lowercased()
         if lower.contains("connected") && !lower.contains("failed") && !lower.contains("not connected") { return .connected }
         if lower.contains("auth") { return .needsAuth }
-        return .failed(text.trimmingCharacters(in: CharacterSet(charactersIn: "✓✗⚠ ")))
+        return .failed(text.trimmingCharacters(in: CharacterSet(charactersIn: "✓✔✗✘⚠!⏸ ")))
     }
 
     /// MyClicky's own connectors (by id) and everything else ("managed in Claude Code").
