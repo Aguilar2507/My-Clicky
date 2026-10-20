@@ -24,7 +24,7 @@ struct ClaudeClient {
 
     /// Request body for a screen question: system prompt (+ memory), recent exchanges, screenshots, the question.
     func talkBody(question: String, screenshots: [Screenshot], history: [ChatTurn], memory: String,
-                  model: String) -> [String: Any] {
+                  model: String, language: String? = nil) -> [String: Any] {
         var messages: [[String: Any]] = []
         for turn in history {
             messages.append(["role": "user", "content": turn.user])
@@ -49,6 +49,8 @@ struct ClaudeClient {
             content.append(["type": "text", "text": "(No screenshot available — screen recording permission may be missing.)"])
         }
         content.append(["type": "text", "text": question])
+        // Spec 020: in the user turn, not the system prompt, so the cached prompt is the same for both languages.
+        if let language { content.append(["type": "text", "text": ReplyLanguage.instruction(language)]) }
         messages.append(["role": "user", "content": content])
 
         var system = Prompts.assistant

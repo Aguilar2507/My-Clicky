@@ -6,6 +6,8 @@ struct WelcomeView: View {
     @Environment(AppModel.self) private var model
     let onClose: () -> Void
     @StateObject private var canContinue = Box(true)
+    /// Which way the last step change went, set before the change so the leaving step slides the right way.
+    @StateObject private var forward = Box(true)
 
     var body: some View {
         let tour = model.settings.tour
@@ -13,18 +15,24 @@ struct WelcomeView: View {
             ScrollView {
                 VStack(spacing: 18) {
                     LivelyBot().frame(width: 92, height: 92).padding(.top, 30)
-                    step(tour.step)
+                    // Steps slide in the direction of travel; going back retraces the path (spec 014, skill §7).
+                    ZStack {
+                        step(tour.step)
+                            .id(tour.step)
+                            .transition(.slide(forward: forward.value))
+                    }
                 }
                 .padding(.horizontal, 48)
                 .padding(.bottom, 20)
                 .frame(maxWidth: .infinity)
             }
             .scrollIndicators(.never)
+            .scrollEdgeFade(top: 0, bottom: 16)
             footer(tour)
         }
         .frame(width: 720, height: 600)
-        .background(Theme.bloomBackground)
-        .preferredColorScheme(.dark)
+        .background(Theme.windowBackground) // grouped gray so the step cards stand out (spec 015)
+        .environment(\.controlActiveState, .key)
     }
 
     @ViewBuilder
@@ -45,17 +53,20 @@ struct WelcomeView: View {
         let progress = TourFlow.progress(tour)
         return HStack {
             if tour.step != .intro && tour.step != .done {
-                Button("Back") { model.settings.tour = TourFlow.back(tour) }.buttonStyle(.plain).foregroundStyle(Theme.textSecondary)
+                Button("Back") { go(forward: false) { TourFlow.back(tour) } }
+                    .buttonStyle(.pressable).foregroundStyle(Theme.textSecondary)
             }
             Spacer()
             HStack(spacing: 7) {
                 ForEach(0..<progress.total, id: \.self) { i in
-                    Circle().fill(i == progress.index ? Theme.accent : Theme.track).frame(width: 7, height: 7)
+                    Capsule().fill(i == progress.index ? Theme.accent : Theme.track)
+                        .frame(width: i == progress.index ? 18 : 7, height: 7)
                 }
             }
+            .animation(Motion.standard, value: progress.index)
             Spacer()
             if TourFlow.canSkip(tour.step) {
-                Button("Skip") { advance(completing: false) }.buttonStyle(.plain).foregroundStyle(Theme.textSecondary)
+                Button("Skip") { advance(completing: false) }.buttonStyle(.pressable).foregroundStyle(Theme.textSecondary)
                     .padding(.trailing, 12)
             }
             Button(tour.step == .done ? "Start using MyClicky" : "Continue") {
@@ -66,12 +77,20 @@ struct WelcomeView: View {
         }
         .padding(.horizontal, 32)
         .padding(.vertical, 18)
-        .background(Color.black.opacity(0.25))
+        .background(Theme.sidebarBackground)
     }
 
     private func advance(completing: Bool) {
         canContinue.value = true
-        model.settings.tour = TourFlow.next(model.settings.tour, completing: completing)
+        go(forward: true) { TourFlow.next(model.settings.tour, completing: completing) }
+    }
+
+    /// Point the transition first, then change the step on the next turn of the run loop.
+    private func go(forward isForward: Bool, to next: @escaping () -> TourState) {
+        forward.value = isForward
+        DispatchQueue.main.async {
+            Motion.withAnimation { model.settings.tour = next() }
+        }
     }
 }
 
@@ -81,8 +100,8 @@ struct StepTitle: View {
     let subtitle: String
     var body: some View {
         VStack(spacing: 8) {
-            Text(title).font(.system(size: 26, weight: .bold)).foregroundStyle(Theme.textPrimary).multilineTextAlignment(.center)
-            Text(subtitle).font(.system(size: 15)).foregroundStyle(Theme.textSecondary).multilineTextAlignment(.center)
+            Text(title).textStyle(.title1).foregroundStyle(Theme.textPrimary).multilineTextAlignment(.center)
+            Text(subtitle).textStyle(.callout).foregroundStyle(Theme.textSecondary).multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }

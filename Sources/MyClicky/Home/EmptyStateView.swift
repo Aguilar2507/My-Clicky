@@ -12,30 +12,29 @@ struct EmptyStateView: View {
             ZStack(alignment: .bottom) {
                 Button { AppServices.shared?.assistant.toggleListening() } label: {
                     HStack(spacing: 10) {
-                        Image(systemName: listening ? "waveform" : "mic.fill").font(.system(size: 17, weight: .semibold))
+                        Image(systemName: listening ? "waveform" : "mic.fill").font(.icon(17, .semibold))
                         Text(listening ? "Listening… click to send" : "Hi, how can I help ^_^?")
-                            .font(.system(size: 17, weight: .semibold))
+                            .textStyle(.headline)
                     }
                     .foregroundStyle(.white)
                     .frame(width: 236, height: 50)
-                    .background {
-                        BorderedCapsule(fill: AnyShapeStyle(Theme.accentGradient), border: Theme.accentBorder, borderWidth: 1.5,
-                                        highlight: .white.opacity(0.35))
-                    }
-                    .shadow(color: Brand.electricBlue.opacity(0.5), radius: 14, y: 4)
+                    .background(listening ? Theme.red : Theme.accent, in: Capsule(style: .continuous))
+                    .shadowToken(.medium)
+                    .animation(Motion.standard, value: listening)
                 }
-                .buttonStyle(.plain)
-                // The bot stands on the pill, feet on its top edge.
+                .buttonStyle(.pressable)
+                // The bot stands on the pill, feet on its top edge. It hops when you point at it (spec 016), and
+                // clicking it does what the pill does.
                 LivelyBot(sparkles: true)
                     .frame(width: 112, height: 112)
                     .offset(y: -42)
-                    .allowsHitTesting(false)
+                    .onTapGesture { AppServices.shared?.assistant.toggleListening() }
             }
             .frame(height: 170)
 
             Text(Greeting.title(name: model.settings.profileName, hour: Calendar.current.component(.hour, from: Date())))
-                .font(.system(size: 21, weight: .bold)).foregroundStyle(Theme.textPrimary).padding(.top, 20)
-            Text(Greeting.hint(for: pushToTalk)).font(.system(size: 14)).foregroundStyle(Theme.textSecondary).padding(.top, 6)
+                .textStyle(.title2.weight(.bold)).foregroundStyle(Theme.textPrimary).padding(.top, 20)
+            Text(Greeting.hint(for: pushToTalk)).textStyle(.subheadline).foregroundStyle(Theme.textSecondary).padding(.top, 6)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

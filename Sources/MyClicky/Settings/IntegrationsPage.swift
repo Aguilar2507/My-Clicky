@@ -22,7 +22,7 @@ struct IntegrationsPage: View {
             }
             if !integrations.claudeAvailable {
                 WarningCard(title: "Integrations need Claude Code",
-                            text: "Your Clickys use connected apps through Claude Code. Set it up in Settings → Agents.",
+                            text: "Your agents use connected apps through Claude Code. Set it up in Settings → Agents.",
                             button: "Open Agents") { model.route = .settings(.agents) }
             }
             if !connected.isEmpty || !integrations.others.isEmpty {
@@ -54,11 +54,11 @@ struct IntegrationsPage: View {
                 }
             }
             if items.isEmpty {
-                Text("No integrations match “\(query.value)”").font(.system(size: 14)).foregroundStyle(Theme.textSecondary)
+                Text("No integrations match “\(query.value)”").textStyle(.subheadline).foregroundStyle(Theme.textSecondary)
             }
         }
         .task { await integrations.refresh() }
-        .overlay {
+        .modalOverlay([signingIn.value?.id, addingCustom.value ? "custom" : nil]) {
             if let integration = signingIn.value {
                 SignInCard(integration: integration, integrations: integrations) { signingIn.value = nil }
             }
@@ -83,10 +83,10 @@ struct IntegrationRow: View {
             IntegrationIcon(integration: integration, size: 40)
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 10) {
-                    Text(integration.name).font(.system(size: 18, weight: .semibold)).foregroundStyle(Theme.textPrimary)
+                    Text(integration.name).textStyle(.title3).foregroundStyle(Theme.textPrimary)
                     statusLabel
                 }
-                Text(integration.description).font(.system(size: 14)).foregroundStyle(Theme.textSecondary).lineLimit(2)
+                Text(integration.description).textStyle(.subheadline).foregroundStyle(Theme.textSecondary).lineLimit(2)
             }
             Spacer(minLength: 12)
             actions.fixedSize()
@@ -109,7 +109,7 @@ struct IntegrationRow: View {
     private var actions: some View {
         switch status {
         case .connected:
-            Button("Disconnect", action: onDisconnect).buttonStyle(.pill(.dark))
+            Button("Disconnect", action: onDisconnect).buttonStyle(.pill(.destructive))
         case .needsAuth, .failed:
             HStack(spacing: 10) {
                 Button("Reconnect", action: onConnect).buttonStyle(.pill(.primary))
@@ -128,7 +128,7 @@ struct DotLabel: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 5) {
             Circle().fill(color).frame(width: 7, height: 7)
-            configuration.title.font(.system(size: 13, weight: .semibold)).foregroundStyle(color)
+            configuration.title.textStyle(.footnote.weight(.semibold)).foregroundStyle(color)
         }
     }
 }
@@ -162,9 +162,9 @@ struct SignInCard: View {
         ModalCard(width: 460, onDismiss: onDone) {
             HStack(spacing: 12) {
                 IntegrationIcon(integration: integration, size: 36)
-                Text("Connect \(integration.name)").font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.textPrimary)
+                Text("Connect \(integration.name)").textStyle(.title3.weight(.bold)).foregroundStyle(Theme.textPrimary)
             }
-            Text(state.value).font(Theme.rowSubtitle).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
+            Text(state.value).textStyle(.callout).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
             HStack {
                 ProgressView().controlSize(.small)
                 Spacer()
@@ -193,7 +193,7 @@ struct CustomConnectorSheet: View {
 
     var body: some View {
         ModalCard(width: 480, onDismiss: onDone) {
-            Text("Add custom connector").font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.textPrimary)
+            Text("Add custom connector").textStyle(.title3.weight(.bold)).foregroundStyle(Theme.textPrimary)
             TextField("Name", text: $name.value).darkField()
             Picker("", selection: $isURL.value) {
                 Text("Web address").tag(true)
@@ -203,7 +203,7 @@ struct CustomConnectorSheet: View {
             .labelsHidden()
             TextField(isURL.value ? "https://example.com/mcp" : "npx -y @some/mcp-server", text: $value.value).darkField()
             if let message = error.value {
-                Text(message).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.orange)
+                Text(message).textStyle(.footnote.weight(.medium)).foregroundStyle(Theme.orange)
             }
             HStack {
                 if busy.value { ProgressView().controlSize(.small) }

@@ -9,9 +9,9 @@ public enum Modifier: String, Codable, CaseIterable, Comparable, Sendable {
     }
 }
 
-/// The four actions on the Shortcuts page (ref 07).
+/// The actions on the Shortcuts page (ref 07; openApp from spec 019).
 public enum ShortcutAction: String, Codable, CaseIterable, Sendable {
-    case pushToTalk, textMode, dictate, handsFreeDictation
+    case pushToTalk, textMode, dictate, handsFreeDictation, openApp
 }
 
 /// hold = keep modifiers down (push to talk) · doubleTap = tap the modifiers twice · press = modifiers + a key.
@@ -39,11 +39,13 @@ public struct ShortcutBinding: Codable, Equatable, Sendable {
     }
 
     /// HeyClicky's defaults (ref 07), except push to talk: ⌃⌥ (your choice, not fn) · ⌃⌃ · ⌃fn · ⌃fn ⌃fn.
+    /// Spec 019 adds ⌥Space to show or hide the window.
     public static let defaults: [ShortcutBinding] = [
         ShortcutBinding(.pushToTalk, KeyChord([.control, .option]), .hold),
         ShortcutBinding(.textMode, KeyChord([.control]), .doubleTap),
         ShortcutBinding(.dictate, KeyChord([.control, .fn]), .hold),
         ShortcutBinding(.handsFreeDictation, KeyChord([.control, .fn]), .doubleTap),
+        ShortcutBinding(.openApp, KeyChord([.option], keyCode: 49), .press),
     ]
 
     public var isValid: Bool {
@@ -73,6 +75,7 @@ extension ShortcutAction {
         case .textMode: "Text mode"
         case .dictate: "Dictate"
         case .handsFreeDictation: "Hands-free dictation"
+        case .openApp: "Open MyClicky"
         }
     }
 
@@ -82,6 +85,7 @@ extension ShortcutAction {
         case .textMode: "Press to type to MyClicky instead of talking."
         case .dictate: "Hold and speak. Release to insert what you said at your cursor."
         case .handsFreeDictation: "Dictate without holding a key down. Press to start, press again to stop."
+        case .openApp: "Show or hide the MyClicky window from any app."
         }
     }
 }

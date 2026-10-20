@@ -1,28 +1,39 @@
 import SwiftUI
 
-/// HeyClicky-style switch: blue-violet glass track with a white knob when on; navy track with a light knob when off.
+/// A macOS-style switch in the system accent color (spec 015), with 014's haptic tap when it flips.
+/// Drawn in SwiftUI instead of the AppKit switch because MyClicky's window is often in the background, and AppKit
+/// draws switches gray in inactive windows. Kept as `.glossy` so every settings row keeps working unchanged.
 struct GlossyToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack {
             configuration.label
             Button {
-                withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) { configuration.isOn.toggle() }
+                Haptics.tap(.toggle)
+                Motion.withAnimation(.bouncy) { configuration.isOn.toggle() }
             } label: {
                 ZStack(alignment: configuration.isOn ? .trailing : .leading) {
-                    BorderedCapsule(fill: configuration.isOn ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.track),
-                                    border: configuration.isOn ? Theme.accentBorder : Theme.trackBorder,
-                                    highlight: .white.opacity(configuration.isOn ? 0.35 : 0.08))
+                    Capsule(style: .continuous)
+                        .fill(configuration.isOn ? Theme.accent : Theme.track)
                     Circle()
-                        .fill(configuration.isOn ? Color.white : Color(hex: 0xC9D0E6))
-                        .frame(width: 30, height: 30)
-                        .padding(4)
-                        .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.2), radius: 1.5, y: 1)
+                        .overlay(Circle().strokeBorder(Color.black.opacity(0.06), lineWidth: 0.5))
+                        .padding(2)
                 }
-                .frame(width: 76, height: 40)
+                .frame(width: 42, height: 24)
+                .contentShape(Capsule())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(SwitchPress())
             .accessibilityValue(configuration.isOn ? "On" : "Off")
+            .accessibilityAddTraits(.isToggle)
         }
+    }
+}
+
+/// Pressing a switch darkens it slightly, like the system one.
+private struct SwitchPress: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.brightness(configuration.isPressed ? -0.06 : 0)
     }
 }
 

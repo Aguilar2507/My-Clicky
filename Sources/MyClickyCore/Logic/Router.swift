@@ -2,8 +2,6 @@ import Foundation
 
 /// Decides which path a request takes.
 public enum Router {
-    private static let agentPrefixes = ["hey agent", "ok agent", "okay agent", "clicky agent", "agent", "agente"]
-
     /// Whole words/phrases only, so "appointment" doesn't match "point" and a plain Spanish "como" stays on the
     /// cheap model. Only these go to the pricier pointing model.
     private static let pointingPattern = try! NSRegularExpression(
@@ -14,17 +12,16 @@ public enum Router {
             + #"circle|draw|highlight|underline|encierra|dibuja|subraya|resalta)\b"#,
         options: [.caseInsensitive])
 
-    /// If the request starts with "agent", returns the task without that word.
+    /// If the request starts with "Jarvis agent" or "agent" (spec 018 `WakeWords`), returns the task without them.
     public static func agentTask(_ text: String) -> String? {
-        let lower = text.lowercased()
-        for prefix in agentPrefixes where lower.hasPrefix(prefix) {
-            let rest = text.dropFirst(prefix.count)
-            // Must be a whole word ("agent, ..." not "agenda ...").
-            if let next = rest.first, next.isLetter { continue }
-            let task = rest.trimmingCharacters(in: CharacterSet.punctuationCharacters.union(.whitespaces))
-            return task.isEmpty ? nil : task
-        }
-        return nil
+        guard let match = WakeWords.parse(text), match.target == .agent, !match.rest.isEmpty else { return nil }
+        return match.rest
+    }
+
+    /// A Talk question without a leading "Jarvis" ("Jarvis, what's this?" → "what's this?").
+    public static func talkQuestion(_ text: String) -> String {
+        guard let match = WakeWords.parse(text), match.target == .talk, !match.rest.isEmpty else { return text }
+        return match.rest
     }
 
     public static func wantsPointing(_ text: String) -> Bool {

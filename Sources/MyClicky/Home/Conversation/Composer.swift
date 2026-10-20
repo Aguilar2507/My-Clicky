@@ -13,7 +13,7 @@ struct Composer: View {
         HStack(alignment: .bottom, spacing: 10) {
             TextField(placeholder, text: $text.value, axis: .vertical)
                 .textFieldStyle(.plain)
-                .font(.system(size: 15))
+                .textStyle(.callout)
                 .foregroundStyle(Theme.textPrimary)
                 .lineLimit(1...6)
                 .focused($focused)
@@ -21,16 +21,16 @@ struct Composer: View {
                 .padding(.vertical, 4)
             Button { dictation.toggle { text.value += (text.value.isEmpty ? "" : " ") + $0 } } label: {
                 Image(systemName: dictation.isListening ? "waveform.circle.fill" : "mic.fill")
-                    .font(.system(size: 18))
+                    .font(.icon(18))
                     .foregroundStyle(dictation.isListening ? Theme.red : Theme.icon)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .help(dictation.isListening ? "Stop dictating" : "Dictate into the message")
             Button(action: send) {
-                Image(systemName: "arrow.up.circle.fill").font(.system(size: 26))
+                Image(systemName: "arrow.up.circle.fill").font(.icon(26))
                     .foregroundStyle(canSend ? Theme.accent : Theme.textTertiary)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .disabled(!canSend)
         }
         .padding(.horizontal, 16)
@@ -38,12 +38,14 @@ struct Composer: View {
         .background(Theme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.cardBorder))
         .padding(.horizontal, 28)
+        .frame(maxWidth: Theme.Layout.conversationColumn)
+        .frame(maxWidth: .infinity) // lines up with the messages' column (spec 017)
         .padding(.bottom, 22)
         .onAppear { focused = true }
     }
 
     private var placeholder: String {
-        if chat.kind == .clicky && chat.messages.isEmpty { return "What should this Clicky do?" }
+        if chat.kind == .clicky && chat.messages.isEmpty { return "What should this agent do?" }
         return "Message \(chat.title)…"
     }
 

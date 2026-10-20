@@ -18,15 +18,15 @@ MyClicky's own design (spec 013) lives in `references/myclicky/` (git-ignored): 
 Each feature has `spec.md` → `plan.md` (+ `research.md`, `data-model.md`, `contracts/`, `quickstart.md`) → `tasks.md`.
 Build them in this order; each one depends on those above it.
 
-**Implementation status (2026-09-25):** 207/221 tasks done, 377 checks passing; see
-[docs/IMPLEMENTATION-REPORT.md](../docs/IMPLEMENTATION-REPORT.md). The open tasks are the manual quickstart runs and
-the Claude Code verifications.
+**Implementation status (2026-10-20, 0.4.0):** 322/336 tasks done, 487 checks passing; see
+[docs/IMPLEMENTATION-REPORT.md](../docs/IMPLEMENTATION-REPORT.md). 013–020 are complete. The open tasks are the 002–012
+manual quickstart runs and the Claude Code verifications. New features each get their own branch (see `CLAUDE.md`).
 
 | # | Feature | Depends on | What you get |
 |---|---|---|---|
 | 001 | [baseline](001-baseline/spec.md) | — | What v0.1 does (history; partly replaced by the features below) |
 | 002 | [app-foundation](002-app-foundation/spec.md) | 001 | Code reorganized, settings and chats saved safely, shared look, checks runner |
-| 003 | [notch-home](003-notch-home/spec.md) | 002 | MyClicky lives in the notch; hover opens the app; pop out; Dock toggle |
+| 003 | [notch-home](003-notch-home/spec.md) | 002 | ~~MyClicky lives in the notch~~ — superseded by 019 |
 | 004 | [settings-shell](004-settings-shell/spec.md) | 003 | Settings with Back, profile card, sidebar; General and Shortcuts pages; rebindable keys |
 | 005 | [clickys-chats](005-clickys-chats/spec.md) | 004 | Chat list (pinned Talk + Clickys), search, new chat, conversation view, memory, greeting |
 | 006 | [cursor-companion](006-cursor-companion/spec.md) | 005 | Glowing triangle companion, colors, dock, bubble, flying pointer, drawing, text mode |
@@ -37,6 +37,13 @@ the Claude Code verifications.
 | 011 | [usage-limits](011-usage-limits/spec.md) | 005 | Monthly spend ring, monthly cap, warnings |
 | 012 | [welcome-tour](012-welcome-tour/spec.md) | all | First-run setup, hands-on tour, interview that creates three Clickys |
 | 013 | [visual-identity](013-visual-identity/spec.md) | 012 | Glass-cursor app icon, glass bot, midnight-navy palette |
+| 014 | [premium-feel](014-premium-feel/spec.md) | 013 | Apple-style motion, navy glass, type scale, press/hover feedback, accessibility, haptics |
+| 015 | [apple-look](015-apple-look/spec.md) | 014 | Light & dark following the Mac, system colors and accent, red/green hover on confirmations, traffic lights |
+| 016 | [brand-refresh](016-brand-refresh/spec.md) | 015 | 3D glass icon, bot and avatars in the Apple look; a bot that follows the pointer, hops and reacts |
+| 017 | [adaptive-layout](017-adaptive-layout/spec.md) | 016 | Centered columns at any window size and full screen; logo + name header that goes home |
+| 018 | [agent-presence](018-agent-presence/spec.md) | 017 | "Clicky" / "Clicky Agent" wake words; the bot flies in to take agent tasks; every task end is announced |
+| 019 | [app-home](019-app-home/spec.md) | 018 | No notch: a normal window (Dock, ⌘Tab), a menu bar bot icon with a news dot, ⌥Space to show/hide |
+| 020 | [jarvis-voice](020-jarvis-voice/spec.md) | 019 | The assistant is Jarvis: wake word matched by sound in English/Spanish; replies stay in the language you spoke |
 
 ## Shared architecture (all plans follow this)
 
@@ -50,7 +57,7 @@ Sources/
 ├── MyClicky/            # the app (AppKit + SwiftUI)
 │   ├── App/             # Main, AppDelegate, AppModel (@Observable root), Permissions
 │   ├── DesignSystem/    # Theme tokens and reusable controls (see below)
-│   ├── Notch/  Home/  Settings/  Input/  Companion/  Talk/  Voice/
+│   ├── Home/  Settings/  Input/  Companion/  Talk/  Voice/
 │   └── Dictation/  Agents/  Integrations/  Usage/  Onboarding/
 ├── MyClickyChecks/      # `swift run MyClickyChecks`: checks for MyClickyCore (no Xcode needed)
 └── MyClickyComputer/    # (009) small MCP server that clicks/types for agents and asks for approval
@@ -80,8 +87,17 @@ Sources/
 | Selected card | white/blue 2 pt outline plus a round blue-violet check badge in the top-right corner |
 | Sidebar item | 17 pt with SF Symbol; selected = `#1A2342` rounded fill |
 | Window chrome | top-right "pop out" and "close" icons, no traffic lights |
-| App icon | side-facing liquid-glass cursor with `^ ^` eyes and 3 neon dashes on a glass tile (`AppLogo`, LOGO.png) |
-| Bot | front-facing liquid-glass cursor with `^ ^` eyes and two glass feet (`GlassBot`, BOT.png); Clicky avatars = small bot + color ring |
+| App icon (016) | light macOS squircle; a 3D glass cursor (sky→blue→indigo, violet rim light) wearing the bot's dark glass visor with glowing ^ ^ eyes and a smile; three glossy "click" dashes; soft cast shadow (`AppLogo`, `CursorGlyph`) |
+| Bot (016) | front-facing 3D glass cursor (`GlassSolid`): dark glass visor, glowing eyes, small mouth, blush, glossy feet, contact shadow. `LivelyBot` breathes, floats, blinks (sometimes twice), follows the pointer, hops on hover, and reacts to listening/thinking/speaking; still with Reduce Motion |
+| Avatars (016) | Apple Contacts style: the Clicky's color as a gradient circle with a white glass bot (`BotAvatar`); Talk = white cursor on the blue→indigo gradient (`TalkAvatar`) |
+| Colors (015, replaces 013's palette for the app) | follow the Mac's Light/Dark: white content, light-gray sidebar and grouped background, white cards with hairlines; titles = label color (black), text = secondary label (gray); accent = system accent; logo, bot and avatars keep 013's art |
+| Buttons (015) | flat capsules with hover: primary accent, secondary light gray, destructive (red on hover), safe (green on hover); macOS-style switch in the accent |
+| Layout (017) | Settings = centered 720 pt column; conversations (header, messages, composer) = centered 820 pt column; voice grid reflows; sidebar header = window buttons + logo and name (goes home); in full screen the logo takes the buttons' place |
+| Window controls (015) | red/yellow/green at the sidebar's top-left: real ones in the window (close, minimize, full screen) |
+| Motion (014) | springs only, from `Motion`: standard (0.35 s, no bounce), quick (0.2 s), bouncy (toggle knob only); interruptible; enter and leave along the same path; cross-fades with Reduce Motion |
+| Feedback (014) | press = scale 0.97 + brightness on mouse-down (`.pressable`, pill buttons, toggles); hover = 5 % white on rows and cards; four feedback kinds (status, completion, warning, error) |
+| Surfaces (014) | navy glass (`.glass`): blur + Midnight tint + lit top edge; sidebar heavier than content; shadows small/medium/large; edge fades instead of dividers; solid navy with Reduce Transparency and in snapshots |
+| Type (014) | `.textStyle(...)` scale: largeTitle 28, title1 26, title2 22, title3 20, headline/body 17, callout 15, subheadline 14, footnote 13, caption 12, caption2 11, label 12 uppercase; tighter as it grows |
 
 ## Deviations from HeyClicky (Principle VIII)
 
@@ -97,3 +113,7 @@ Sources/
 | Gray surfaces, lavender accents | Midnight navy, blue-violet glass accents | Your visual system (spec 013) |
 | No API key setting | API key row in General | Needed for your own key |
 | Push to talk: hold fn | Push to talk: hold ⌃ control + ⌥ option | Your choice (2026-09-26); dictation stays ⌃ fn |
+| Dark UI only | Light and dark, following the Mac (spec 015) | Your choice: an Apple app |
+| Top-right pop-out and close icons, no traffic lights | Red/yellow/green window buttons at the top-left (spec 015) | Your choice |
+| Their motion, materials and type | Apple-style springs, navy glass, tracked type scale (spec 014) | Your choice: a more premium feel |
+| No haptics | Light trackpad taps at meaningful moments, can be turned off (spec 014) | Your choice |

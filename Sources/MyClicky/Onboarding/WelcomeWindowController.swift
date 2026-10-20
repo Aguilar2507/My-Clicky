@@ -24,7 +24,6 @@ final class WelcomeWindowController: NSObject, NSWindowDelegate {
         window.standardWindowButton(.zoomButton)?.isHidden = true
         window.isMovableByWindowBackground = true
         window.backgroundColor = NSColor(Theme.windowBackground)
-        window.appearance = NSAppearance(named: .darkAqua)
         window.isReleasedWhenClosed = false
         window.delegate = self
         window.contentView = NSHostingView(rootView: WelcomeView { [weak self] in self?.close() }.environment(model))
@@ -54,7 +53,7 @@ enum Relauncher {
     }
 }
 
-/// Where the tour can be reopened from (Settings → General → Replay, the notch's "Finish setup").
+/// Where the tour can be reopened from (Settings → General → Replay, the menu bar icon's "Finish setup").
 @MainActor
 enum WelcomeTour {
     static var controller: WelcomeWindowController?

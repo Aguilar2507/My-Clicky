@@ -1,7 +1,7 @@
 import AppKit
 
 /// ⌘C ⌘V ⌘X ⌘A ⌘Z ⇧⌘Z in every MyClicky text box. Mac apps normally get these from the Edit menu, but MyClicky has no
-/// menu bar and the notch panel doesn't make the app active, so the shortcuts are sent to the focused text box here.
+/// menu bar and floating panels don't make the app active, so the shortcuts are sent to the focused text box here.
 @MainActor
 enum EditShortcuts {
     private static var monitor: Any?

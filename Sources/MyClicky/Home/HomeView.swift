@@ -9,7 +9,7 @@ struct HomeView: View {
             SidebarView()
                 .frame(width: 270)
                 .frame(maxHeight: .infinity)
-                .background(Theme.sidebarBackground)
+                .background(Theme.sidebarSurface)
             ZStack {
                 if let id = model.selectedChatID, model.chat(id) != nil {
                     ConversationView(chatID: id).id(id)
@@ -18,8 +18,7 @@ struct HomeView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Theme.bloomBackground)
-            .overlay(alignment: .top) { TopFade().frame(height: 60) }
+            .background(Theme.contentSurface)
         }
     }
 }

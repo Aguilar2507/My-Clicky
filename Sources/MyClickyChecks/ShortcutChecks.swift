@@ -118,5 +118,30 @@ enum ShortcutChecks {
             Check.equal(s.showInScreenRecordings, true)
             Check.expect(!s.profileName.isEmpty)
         }
+
+        Check.group("Shortcuts: ⌥Space opens MyClicky (spec 019)") {
+            var m = ShortcutMatcher(bindings: defaults)
+            _ = m.flagsChanged([.option], at: 0)
+            let press = m.keyDown(49, at: 0.1)
+            Check.equal(press.events, [.triggered(.openApp)])
+            Check.expect(press.swallow, "⌥Space doesn't reach the app in front")
+            var plain = ShortcutMatcher(bindings: defaults)
+            Check.equal(plain.keyDown(49, at: 0).events, [], "space alone is just typing")
+            let saved = ShortcutBinding.defaults.filter { $0.action != .openApp }
+            Check.equal(ShortcutBinding.normalized(saved).last, ShortcutBinding(.openApp, KeyChord([.option], keyCode: 49), .press),
+                        "saved shortcuts from before 019 get Open MyClicky")
+        }
+
+        Check.group("Settings: 019 window home") {
+            var old = Settings()
+            old.version = 5
+            old.showInDock = false
+            SettingsMigrations.upgrade(&old)
+            Check.equal(old.showInDock, true, "the Dock icon turns on once")
+            var chosen = Settings()
+            chosen.showInDock = false
+            SettingsMigrations.upgrade(&chosen)
+            Check.equal(chosen.showInDock, false, "turning it off later sticks")
+        }
     }
 }

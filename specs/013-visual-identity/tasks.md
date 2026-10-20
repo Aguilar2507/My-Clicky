@@ -34,7 +34,7 @@ description: "Tasks for 013-visual-identity"
 ## Phase 5: Polish
 
 - [X] T014 Update specs/README (roadmap, visual language, deviations), CLAUDE.md, CHANGELOG, report
-- [ ] T015 Build, install and look at it for real (icon in Finder/Dock, the bot's glow and blink, every screen)
+- [X] T015 Build, install and look at it for real (icon in Finder/Dock, the bot's glow and blink, every screen)
 
 ## Implementation notes
 

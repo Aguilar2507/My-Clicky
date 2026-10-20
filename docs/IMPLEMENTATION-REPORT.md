@@ -1,38 +1,47 @@
-# MyClicky 0.3.0 — Implementation Report
+# MyClicky 0.4.0 — Implementation Report
 
-**Date:** 2026-09-25 · **Specs:** `specs/002`–`012` · **Screens:** [`docs/screens/`](screens/)
+**Date:** 2026-10-20 · **Specs:** `specs/002`–`020` · **Screens:** [`docs/screens/`](screens/)
 
 ## In one minute
 
-- **207 of 221 tasks are done** (93.7%). Each finished task is marked `[X]` in its feature's `tasks.md`, with
-  implementation notes at the bottom of that file.
-- **The 14 open tasks are ones only you can do:**
-  - **11 are "run the quickstart" tasks**, one per feature. They need the app running on your Mac, with your
-    permissions, microphone and API key.
-  - **3 need Claude Code installed and signed in** with your Claude plan: checking its commands and output format for
-    agents (009 T001) and integrations (010 T001–T002).
-- **Build:** `swift build` and the release build (`./build.sh --no-install`) both succeed from a clean cache, with
-  **0 compiler warnings**.
-- **Automatic checks:** `swift run MyClickyChecks` → **All 377 checks passed** (55 groups).
-- **Visual check:** every screen was rendered with `MyClicky --snapshot` and compared with your HeyClicky screenshots.
-  Several layout bugs were found and fixed this way.
-- **Not yet done:** nobody has launched the finished app on your Mac and clicked through it. Until you run the
-  quickstarts, anything that needs real hardware, permissions or the network is **built but unverified**: the notch
-  hover, ⌃⌥ push-to-talk, the voice, dictation into other apps, agents and integrations.
+- **322 of 336 tasks are done.** Each finished task is marked `[X]` in its feature's `tasks.md`, with implementation
+  notes at the bottom of that file. 013–020 are complete. You tried the installed app on 2026-10-20 and it mostly works.
+- **The 14 open tasks are from 002–012 and only you can do them:**
+  - **11 are "run the quickstart" tasks**, one per feature (003's is moot: the notch is gone).
+  - **3 need Claude Code signed in** with your Claude plan: checking its commands and output format for agents
+    (009 T001) and integrations (010 T001–T002).
+- **Build:** `swift build` and the release build (`./build.sh --no-install`, signed with `MyClicky Dev`) both succeed
+  with **0 compiler warnings**.
+- **Automatic checks:** `swift run MyClickyChecks` → **All 487 checks passed**.
+- **How we work from here:** one branch per feature, merged into main by pull request (see "Workflow" in `CLAUDE.md`).
 
-## Since 0.3.0 (2026-09-26)
+## 0.4.0 (013–020)
 
-- **Push to talk is ⌃ control + ⌥ option** (was fn). Old settings move over; 386 checks pass.
-- **013 Visual identity:** 14/15 tasks. There's a new app icon and glass bot drawn from your LOGO.png/BOT.png, and
-  the whole app uses your visual system's palette. Open task: T015, look at it installed (icon, live glow and blink).
-  See `specs/013-visual-identity/tasks.md`.
+- **020 Jarvis voice:** the assistant is Jarvis. "Jarvis…" asks the cursor, "Jarvis agent…" gives an agent a task.
+  The name is matched by sound in English and Spanish (`WakeWords`), and answers stay in the language you spoke
+  (`ReplyLanguage`). "Clickys" are called "agents" in all copy. 487 checks.
+- **019 App home:** no notch. MyClicky is a normal window (Dock, ⌘Tab), with a menu bar bot icon and a news dot
+  (`StatusItemController`), and ⌥Space shows or hides it. The `Notch/` folder is removed; the old pop-out window is now
+  `App/MainWindowController.swift`.
+- **018 Agent presence:** the agent bot flies in to take a task (`AgentBotPresenter`, `--demo-agent-bot`). Every
+  task end gets a notification, a haptic, the unread dot and a queued spoken line (`TaskAlerts`). Fixed: the
+  assistant stayed "listening" after agent requests.
+- **017 Adaptive layout:** centered columns (Settings 720 pt, conversations 820 pt), an adaptive voice grid, and a
+  sidebar header (logo and name → home). Works in full screen. New `-wide` snapshots.
+- **016 Brand refresh:** 3D glass icon, bot and avatars. A lively bot: its eyes follow the pointer, it hops on
+  hover and it has talk-state moods (`--bench-bot` measures its CPU).
+- **015 Apple look:** Light/Dark following the Mac, system colors and accent, red/green hover on confirmations, a
+  native-style switch and traffic lights. New `-dark` snapshots.
+- **014 Premium feel:** springs and press/hover feedback everywhere, glass surfaces, one type scale, live Reduce
+  Motion / Transparency / Increase Contrast, haptics.
+- **013 Visual identity:** app icon and glass bot drawn from your LOGO.png/BOT.png. Push to talk is ⌃⌥ (was fn).
 
 ## Per feature
 
 | # | Feature | Tasks | Checks | Screens | Open |
 |---|---|---|---|---|---|
 | 002 | App foundation | 26/27 | 70 | gallery | T027 quickstart |
-| 003 | Notch home | 19/20 | 22 | notch-collapsed, notch-expanded | T020 quickstart |
+| 003 | Notch home (superseded by 019) | 19/20 | — | — | — |
 | 004 | Settings, General, Shortcuts | 23/24 | 37 | settings-general, settings-shortcuts | T024 quickstart |
 | 005 | Clickys and chats | 25/26 | 37 | home, conversation | T026 quickstart |
 | 006 | Cursor companion | 18/19 | 26 | companion, settings-cursor | T019 quickstart |
@@ -46,10 +55,9 @@
 
 ## How it works now
 
-1. **It lives in your notch** (003). A black shape extends your notch, with an unread badge on the left and the
-   docked cursor or agent activity on the right. Rest the pointer on it for 0.15 s and it grows into the app; move
-   away for 0.5 s and it folds back. There's a pop-out window, a right-click menu (Open, Settings, Quit, quiet mode,
-   stop agents, today's ideas) and a pill on your external monitor.
+1. **It's a normal window** (019, replaces the 003 notch home). Open it from the Dock, ⌘Tab, the bot icon in the
+   menu bar or ⌥Space (again to hide). The menu bar icon shows a dot when a Clicky has news or an agent is working;
+   right-click it for Open, Settings, Quit, quiet mode, stop agents and today's ideas. Nothing opens on hover.
 2. **The app looks like HeyClicky's** (002/004/005): the dark sidebar of chats, glossy lavender buttons and toggles,
    cards, the greeting with the mascot over the "Hi, how can I help ^_^?" pill, and Settings with the same 8 pages.
    MyClicky uses its own logo and mascot art.
@@ -136,15 +144,12 @@
 
 ## Your to-do list, in order
 
-1. **Install and open:** `./build.sh && open ~/Applications/MyClicky.app`. The welcome tour starts.
-2. **In the tour:** grant the five permissions (relaunch when asked), set the 🌐 key to Do Nothing, and test your API key.
-3. **Optional but recommended:** download Premium voices; install Claude Code and sign in with your Claude plan
-   (`curl -fsSL https://claude.ai/install.sh | bash`, then `claude`).
-4. **Run each feature's `quickstart.md`** (002 → 012) and write the results into its tasks.md notes. Those are the
+1. **Optional but recommended:** download Premium voices, and sign in to Claude Code once (`claude` in a terminal).
+2. **Run each feature's `quickstart.md`** (002 → 012) and write the results into its tasks.md notes. Those are the
    11 open "quickstart" tasks.
-5. **With Claude Code ready:** do 009 T001 and 010 T001–T002. Save a real agent stream and real `claude mcp list`
+3. **With Claude Code ready:** do 009 T001 and 010 T001–T002. Save a real agent stream and real `claude mcp list`
    output into the `samples/` folders, and I'll update the parsers if anything differs.
-6. **After a week:** compare the Spending sheet with console.anthropic.com (011 T013).
+4. **After a week:** compare the Spending sheet with console.anthropic.com (011 T013).
 
 ## Where things are
 

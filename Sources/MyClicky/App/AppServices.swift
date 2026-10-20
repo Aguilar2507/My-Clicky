@@ -6,13 +6,13 @@ final class AppServices {
     static var shared: AppServices?
 
     let shortcuts: ShortcutCenter
-    let notch: NotchController
+    let window: MainWindowController
     let assistant: Assistant
     let agents: AgentSupervisor
 
-    init(shortcuts: ShortcutCenter, notch: NotchController, assistant: Assistant, agents: AgentSupervisor) {
+    init(shortcuts: ShortcutCenter, window: MainWindowController, assistant: Assistant, agents: AgentSupervisor) {
         self.shortcuts = shortcuts
-        self.notch = notch
+        self.window = window
         self.assistant = assistant
         self.agents = agents
     }

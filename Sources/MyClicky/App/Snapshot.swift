@@ -9,31 +9,29 @@ enum Snapshot {
     /// Screen name → view and size. Features register their screens here.
     static var screens: [String: (size: CGSize, view: () -> AnyView)] = [
         "gallery": (CGSize(width: 1000, height: 1000), { AnyView(DesignGallery()) }),
-        "notch-collapsed": (CGSize(width: 520, height: 60), { AnyView(notchPreview(expanded: false).frame(width: 520, height: 60, alignment: .top).background(Color(hex: 0x7A7A7A))) }),
-        "notch-expanded": (NotchGeometry.expandedSize, { AnyView(notchPreview(expanded: true)) }),
-        "settings-general": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.general))) }),
-        "settings-shortcuts": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.shortcuts))) }),
-        "settings-cursor": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.cursor))) }),
-        "settings-voice": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.voice))) }),
-        "settings-microphone": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.microphone))) }),
-        "settings-dictation": (NotchGeometry.expandedSize, {
+        "settings-general": (MainWindowController.defaultSize, { AnyView(routePreview(.settings(.general))) }),
+        "settings-shortcuts": (MainWindowController.defaultSize, { AnyView(routePreview(.settings(.shortcuts))) }),
+        "settings-cursor": (MainWindowController.defaultSize, { AnyView(routePreview(.settings(.cursor))) }),
+        "settings-voice": (MainWindowController.defaultSize, { AnyView(routePreview(.settings(.voice))) }),
+        "settings-microphone": (MainWindowController.defaultSize, { AnyView(routePreview(.settings(.microphone))) }),
+        "settings-dictation": (MainWindowController.defaultSize, {
             previewModel.settings.customWords = ["Anthropic", "MyClicky", "Jose"]
             return AnyView(routePreview(.settings(.dictation)))
         }),
-        "settings-agents": (NotchGeometry.expandedSize, { AnyView(routePreview(.settings(.agents))) }),
-        "agent-chat": (NotchGeometry.expandedSize, { AnyView(routePreview(.home, select: seedAgentChat())) }),
-        "morning": (CGSize(width: 420, height: 202), { AnyView(MorningNotchView(ideas: [
+        "settings-agents": (MainWindowController.defaultSize, { AnyView(routePreview(.settings(.agents))) }),
+        "agent-chat": (MainWindowController.defaultSize, { AnyView(routePreview(.home, select: seedAgentChat())) }),
+        "morning": (CGSize(width: 420, height: 202), { AnyView(MorningIdeasView(ideas: [
             Suggestion(text: "Draft the weekly update from Build Lab's notes", clickyTitle: "Build Lab", createdAt: Date()),
             Suggestion(text: "Check new remote AI architect roles", clickyTitle: "Role Scout", createdAt: Date()),
             Suggestion(text: "Summarize today's top 3 AI announcements", clickyTitle: nil, createdAt: Date()),
         ], onStart: { _ in }, onClose: {})) }),
-        "settings-integrations": (NotchGeometry.expandedSize, {
+        "settings-integrations": (MainWindowController.defaultSize, {
             let i = previewModel.integrations
             i.claudeAvailable = true
             i.statuses = ["github": .connected, "notion": .needsAuth]
             return AnyView(routePreview(.settings(.integrations)))
         }),
-        "spending": (NotchGeometry.expandedSize, {
+        "spending": (MainWindowController.defaultSize, {
             seedChats(select: nil)
             let m = previewModel
             let cal = Calendar.current
@@ -53,14 +51,15 @@ enum Snapshot {
         "welcome-intro": (CGSize(width: 720, height: 600), { tourPreview(.intro) }),
         "welcome-permissions": (CGSize(width: 720, height: 600), { tourPreview(.permissions) }),
         "welcome-handson": (CGSize(width: 720, height: 600), {
-            previewModel.seenEvents = [.notchExpanded, .talkAnswered]
+            previewModel.seenEvents = [.appOpened, .talkAnswered]
             return tourPreview(.handsOn)
         }),
         "welcome-interview": (CGSize(width: 720, height: 600), { tourPreview(.interview) }),
         "welcome-apikey": (CGSize(width: 720, height: 600), { tourPreview(.apiKey) }),
         "companion": (CGSize(width: 700, height: 420), { AnyView(CompanionDemo()) }),
-        "home": (NotchGeometry.expandedSize, { seedChats(select: nil); return AnyView(routePreview(.home)) }),
-        "conversation": (NotchGeometry.expandedSize, { AnyView(routePreview(.home, select: seedChats(select: "Research Buddy"))) }),
+        "companion-listening": (CGSize(width: 360, height: 380), { AnyView(CompanionDemo(listening: true)) }),
+        "home": (MainWindowController.defaultSize, { seedChats(select: nil); return AnyView(routePreview(.home)) }),
+        "conversation": (MainWindowController.defaultSize, { AnyView(routePreview(.home, select: seedChats(select: "Research Buddy"))) }),
     ]
 
     /// A model backed by a temporary folder, so snapshots never read or change your real data.
@@ -79,9 +78,11 @@ enum Snapshot {
         previewModel.route = route
         if let select { previewModel.selectedChatID = select }
         previewModel.settings.profileName = "Jose"
-        return HomeRoot(chrome: HomeChrome(showsPopOut: true, onPopOut: {}, onClose: {}))
+        previewModel.isWindowFullScreen = wide
+        let size = wide ? wideSize : MainWindowController.defaultSize
+        return HomeRoot(chrome: HomeChrome(controls: .window))
             .environment(previewModel)
-            .frame(width: NotchGeometry.expandedSize.width, height: NotchGeometry.expandedSize.height)
+            .frame(width: size.width, height: size.height)
     }
 
     /// A Clicky mid-task: steps (grouped), an Allow card and a Keep going card (spec 009 UI contract).
@@ -158,30 +159,48 @@ enum Snapshot {
         return m.clickys.first { $0.title == title }?.id
     }
 
-    static func notchPreview(expanded: Bool) -> some View {
-        // 16" MacBook Pro geometry (1728×1117 pt, 184 pt notch).
-        let geometry = NotchGeometry(screenFrame: CGRect(x: 0, y: 0, width: 1728, height: 1117),
-                                     auxLeftWidth: 772, auxRightWidth: 772, safeAreaTop: 38, menuBarHeight: 24)
-        let ui = NotchPanelUI(geometry: geometry)
-        ui.isExpanded = expanded
-        previewModel.previewUnreadCount = 1
-        let view = NotchContainerView(ui: ui).environment(previewModel)
-        return expanded ? AnyView(view) : AnyView(view.frame(width: 990, height: 60, alignment: .top).clipped()
-            .frame(width: 520, height: 60))
-    }
-
     /// Brand artwork (spec 013), drawn with SwiftUI's ImageRenderer because the layer render below drops blur and glow.
     /// Transparent background, 1 px per point.
     static var artwork: [String: (size: CGSize, view: () -> AnyView)] = [
         "app-icon": (CGSize(width: 1024, height: 1024), { AnyView(AppLogo()) }),
+        // Menu bar icon (spec 019), shown large on both menu bar tints.
+        "menubar-icon": (CGSize(width: 288, height: 144), {
+            AnyView(HStack(spacing: 0) {
+                ForEach([false, true], id: \.self) { dot in
+                    MenuBarBot(dot: dot).padding(24).frame(width: 144, height: 144)
+                        .background(dot ? Color(white: 0.92) : Color(white: 0.85))
+                }
+            })
+        }),
         "bot": (CGSize(width: 1024, height: 1024), {
-            AnyView(ZStack { Brand.midnight; GlassBot(sparkles: true).frame(width: 600, height: 600).offset(x: 60, y: 40) })
+            AnyView(ZStack {
+                Theme.contentBackground
+                GlassBot(sparkles: true, lift: 0.03).frame(width: 600, height: 600).offset(x: -40, y: 40)
+            })
+        }),
+        // Spec 016: every avatar color, plus Talk, at chat-list and bubble sizes.
+        "avatars": (CGSize(width: 1000, height: 300), {
+            AnyView(ZStack {
+                Theme.contentBackground
+                VStack(spacing: 28) {
+                    HStack(spacing: 22) {
+                        TalkAvatar(size: 84)
+                        ForEach(AvatarColor.allCases, id: \.self) { BotAvatar(ring: Color(hex: $0.blobHex), size: 84) }
+                    }
+                    HStack(spacing: 22) {
+                        TalkAvatar(size: 42)
+                        ForEach(AvatarColor.allCases, id: \.self) { BotAvatar(ring: Color(hex: $0.blobHex), size: 42) }
+                        TalkAvatar(size: 26)
+                        ForEach(AvatarColor.allCases, id: \.self) { BotAvatar(ring: Color(hex: $0.blobHex), size: 26) }
+                    }
+                }
+            })
         }),
     ]
 
     static func renderArtwork(_ entry: (size: CGSize, view: () -> AnyView), output: String) -> Bool {
         let renderer = ImageRenderer(content: entry.view().frame(width: entry.size.width, height: entry.size.height)
-            .environment(\.colorScheme, .dark))
+            .environment(\.colorScheme, snapshotScheme))
         renderer.scale = 1
         guard let cgImage = renderer.cgImage,
               let png = NSBitmapImageRep(cgImage: cgImage).representation(using: .png, properties: [:]),
@@ -193,9 +212,25 @@ enum Snapshot {
         return true
     }
 
+    /// Screens render in Light Mode; add "-dark" to a screen name for Dark Mode (spec 015), e.g. `home-dark`.
+    static var snapshotScheme: ColorScheme = .light
+    /// Add "-wide" to render the app full screen on a 16" display (spec 017), e.g. `settings-general-wide`.
+    static var wide = false
+    static let wideSize = CGSize(width: 1728, height: 1080)
+
     static func run(screen: String, output: String) -> Bool {
+        var screen = screen
+        if screen.hasSuffix("-dark") {
+            screen = String(screen.dropLast(5))
+            snapshotScheme = .dark
+        }
+        if screen.hasSuffix("-wide") {
+            screen = String(screen.dropLast(5))
+            wide = true
+        }
         _ = NSApplication.shared
         Keychain.snapshotMode = true
+        DisplayPrefs.shared.forceSolid = true // renders can't draw live blur (spec 014)
         if let art = artwork[screen] { return renderArtwork(art, output: output) }
         guard let entry = screens[screen] else {
             let names = (Array(screens.keys) + Array(artwork.keys)).sorted()
@@ -204,10 +239,11 @@ enum Snapshot {
         }
         let app = NSApplication.shared
         app.setActivationPolicy(.prohibited)
-        let hosting = NSHostingView(rootView: entry.view().environment(\.colorScheme, .dark))
-        let rect = NSRect(origin: .zero, size: entry.size)
+        let hosting = NSHostingView(rootView: entry.view().environment(\.colorScheme, snapshotScheme))
+        let entrySize = wide ? wideSize : entry.size
+        let rect = NSRect(origin: .zero, size: entrySize)
         let window = NSWindow(contentRect: rect, styleMask: [.borderless], backing: .buffered, defer: false)
-        window.appearance = NSAppearance(named: .darkAqua)
+        window.appearance = NSAppearance(named: snapshotScheme == .dark ? .darkAqua : .aqua)
         window.contentView = hosting
         window.setFrameOrigin(NSPoint(x: -20_000, y: -20_000)) // off-screen
         window.orderFrontRegardless()
@@ -216,14 +252,14 @@ enum Snapshot {
         hosting.layoutSubtreeIfNeeded()
         // Render the real layer tree (cacheDisplay redraws shapes and adds artifacts at stroke seams).
         let scale: CGFloat = 2
-        let width = Int(entry.size.width * scale), height = Int(entry.size.height * scale)
+        let width = Int(entrySize.width * scale), height = Int(entrySize.height * scale)
         guard let layer = hosting.layer,
               let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
                                       space: CGColorSpace(name: CGColorSpace.sRGB)!,
                                       bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
         context.scaleBy(x: scale, y: scale)
         if layer.isGeometryFlipped {
-            context.translateBy(x: 0, y: entry.size.height)
+            context.translateBy(x: 0, y: entrySize.height)
             context.scaleBy(x: 1, y: -1)
         }
         layer.render(in: context)

@@ -58,6 +58,6 @@ public enum NamingParser {
     }
 
     public static func fallbackName(existing: [String]) -> String {
-        unique("New Clicky", existing: existing)
+        unique("New agent", existing: existing)
     }
 }

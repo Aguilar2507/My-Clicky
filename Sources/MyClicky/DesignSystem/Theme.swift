@@ -1,68 +1,112 @@
 import SwiftUI
+import MyClickyCore
 
-/// Visual tokens: HeyClicky's layout (specs/README.md → Visual language) in MyClicky's own palette (spec 013,
-/// `references/myclicky/visual-system.png`): near-black navy, glass panels with thin borders, blue-violet accents.
+/// Visual tokens (spec 015): Apple's look. Every color follows the Mac's Light/Dark appearance and Increase Contrast,
+/// the accent is the system accent, text uses the system label colors. HeyClicky's layout stays (specs/README.md →
+/// Visual language); the logo, bot and avatars keep MyClicky's brand art (`Brand`, spec 013).
 enum Theme {
     // Surfaces
-    static let windowBackground = Brand.midnight
-    static let sidebarBackground = Color(hex: 0x0A0F22)
-    static let card = Brand.deepNavy
-    static let cardBorder = Color(hex: 0x232D4D)
-    static let selectedItem = Color(hex: 0x1A2342)
-    static let rowSelected = Color(hex: 0x151D38)
-    static let keycap = Color(hex: 0x1A2342)
-    static let userBubble = Color(hex: 0x1F2C66)
-    static let modal = Color(hex: 0x0F1630)
-    static let hairline = Color(hex: 0x1C2442)
-    /// Off toggles, empty meter bars, inactive dots.
-    static let track = Color(hex: 0x28325A)
-    static let trackBorder = Color(hex: 0x36416B)
-    static let controlDark = Color(hex: 0x1B2442)
-    static let controlDarkBorder = Color(hex: 0x2E3A63)
+    /// Grouped background behind cards (Settings pages, the tour footer).
+    static let windowBackground = dynamic(light: 0xF5F5F7, dark: 0x1C1C1E)
+    /// Main reading surface (home, conversations, welcome tour).
+    static let contentBackground = dynamic(light: 0xFFFFFF, dark: 0x1E1E20)
+    static let sidebarBackground = dynamic(light: 0xEFEFF2, dark: 0x252528)
+    static let card = dynamic(light: 0xFFFFFF, dark: 0x2C2C2E)
+    static let modal = dynamic(light: 0xFFFFFF, dark: 0x2C2C2E)
+    static var cardBorder: Color { overlay(light: 0.09, dark: 0.1, contrast: 0.3) }
+    static var hairline: Color { overlay(light: 0.08, dark: 0.09, contrast: 0.3) }
+    static let selectedItem = overlayColor(light: 0.07, dark: 0.1)
+    static let rowSelected = overlayColor(light: 0.06, dark: 0.09)
+    static let keycap = overlayColor(light: 0.05, dark: 0.1)
+    static var userBubble: Color { accent }
+    /// Off tracks, empty meter bars, inactive dots.
+    static let track = overlayColor(light: 0.12, dark: 0.18)
+    static var trackBorder: Color { cardBorder }
+    /// Secondary buttons and chips.
+    static let controlDark = overlayColor(light: 0.06, dark: 0.11)
+    static let controlHover = overlayColor(light: 0.11, dark: 0.17)
+    static var controlDarkBorder: Color { overlay(light: 0.0, dark: 0.0, contrast: 0.3) }
 
-    // Text
-    static let textPrimary = Brand.iceWhite
-    static let textSecondary = Color(hex: 0x98A2C0)
-    static let textTertiary = Color(hex: 0x646E8E)
-    static let previewText = Color(hex: 0xA9B2CC)
-    static let sectionLabel = Color(hex: 0x8A94B4)
-    static let icon = Color(hex: 0xC3CAE2)
+    // Text (system label colors: black / gray / light gray in Light Mode)
+    static let textPrimary = Color(nsColor: .labelColor)
+    static let textSecondary = Color(nsColor: .secondaryLabelColor)
+    static let textTertiary = Color(nsColor: .tertiaryLabelColor)
+    static let previewText = Color(nsColor: .secondaryLabelColor)
+    static let sectionLabel = Color(nsColor: .secondaryLabelColor)
+    static let icon = Color(nsColor: .secondaryLabelColor)
 
-    // Accents
-    static let accentTop = Color(hex: 0x5AB0FF)
-    static let accentBottom = Color(hex: 0x6A4DFF)
-    static let accent = Color(hex: 0x7F9CFF)
-    static let accentBorder = Color(hex: 0xA9C2FF)
-    static let unreadBlue = Brand.electricBlue
-    static let green = Color(hex: 0x34C759)
-    static let orange = Color(hex: 0xF5A623)
-    static let red = Color(hex: 0xFF5F57)
+    // Accents (the accent you chose in System Settings)
+    static var accent: Color { .accentColor }
+    static var accentFill: Color { .accentColor }
+    static var accentBorder: Color { .accentColor }
+    static var unreadBlue: Color { .accentColor }
+    static let green = Color(nsColor: .systemGreen)
+    static let orange = Color(nsColor: .systemOrange)
+    static let red = Color(nsColor: .systemRed)
 
-    static var accentGradient: LinearGradient {
-        LinearGradient(colors: [accentTop, Brand.electricBlue, accentBottom], startPoint: .topLeading, endPoint: .bottomTrailing)
+    /// Plain surfaces: Apple's apps don't use blooms. Kept as views so screens can layer them.
+    static var contentSurface: some View { contentBackground }
+    static var sidebarSurface: some View { sidebarBackground }
+
+    /// A color with a light and a dark value, resolved by the view's appearance.
+    static func dynamic(light: UInt32, dark: UInt32) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            return NSColor(Color(hex: isDark ? dark : light))
+        })
     }
 
-    /// Near-black navy with a soft violet/blue bloom (visual system: BACKGROUND).
-    static var bloomBackground: some View {
-        ZStack {
-            windowBackground
-            RadialGradient(colors: [Brand.violet.opacity(0.16), .clear], center: UnitPoint(x: 0.75, y: 0.1),
-                           startRadius: 0, endRadius: 520)
-            RadialGradient(colors: [Brand.electricBlue.opacity(0.1), .clear], center: UnitPoint(x: 0.2, y: 0.95),
-                           startRadius: 0, endRadius: 460)
-        }
+    /// Black (Light Mode) or white (Dark Mode) at a low opacity: fills and lines that sit on any surface.
+    static func overlayColor(light: Double, dark: Double) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            return isDark ? NSColor.white.withAlphaComponent(dark) : NSColor.black.withAlphaComponent(light)
+        })
     }
 
-    // Type
-    static let pageTitle = Font.system(size: 28, weight: .bold)
-    static let pageSubtitle = Font.system(size: 17)
-    static let rowTitle = Font.system(size: 17, weight: .semibold)
-    static let rowSubtitle = Font.system(size: 15)
-    static let sectionFont = Font.system(size: 12, weight: .semibold)
+    private static func overlay(light: Double, dark: Double, contrast: Double) -> Color {
+        DisplayPrefs.shared.increaseContrast ? overlayColor(light: contrast, dark: contrast) : overlayColor(light: light, dark: dark)
+    }
+
+    // Type: `DesignSystem/Typography.swift` (`.textStyle(_:)`, spec 014).
 
     // Shape
-    static let cardRadius: CGFloat = 16
+    static let cardRadius: CGFloat = Radius.lg
     static let rowPadding = EdgeInsets(top: 14, leading: 18, bottom: 14, trailing: 18)
+
+    /// Readable column widths for big windows and full screen (spec 017).
+    enum Layout {
+        static let settingsColumn: CGFloat = 720
+        static let conversationColumn: CGFloat = 820
+    }
+
+    /// Continuous-corner radii.
+    enum Radius {
+        static let sm: CGFloat = 8
+        static let md: CGFloat = 12
+        static let lg: CGFloat = 16
+        static let xl: CGFloat = 22
+    }
+
+    /// 4-pt spacing grid.
+    enum Space {
+        static let xs: CGFloat = 4
+        static let sm: CGFloat = 8
+        static let md: CGFloat = 12
+        static let lg: CGFloat = 16
+        static let xl: CGFloat = 24
+        static let xxl: CGFloat = 32
+    }
+
+    /// Bigger surfaces read as thicker: deeper, softer shadows (skill §12).
+    enum Shadow {
+        case small, medium, large
+
+        var radius: CGFloat { switch self { case .small: 3; case .medium: 12; case .large: 30 } }
+        var y: CGFloat { switch self { case .small: 1; case .medium: 5; case .large: 12 } }
+        var opacity: Double { switch self { case .small: 0.1; case .medium: 0.14; case .large: 0.22 } }
+    }
+
 }
 
 extension Color {
@@ -88,4 +132,10 @@ extension Color {
 final class Box<Value>: ObservableObject {
     @Published var value: Value
     init(_ value: Value) { self.value = value }
+}
+
+extension View {
+    func shadowToken(_ shadow: Theme.Shadow, color: Color = .black) -> some View {
+        self.shadow(color: color.opacity(shadow.opacity), radius: shadow.radius, y: shadow.y)
+    }
 }

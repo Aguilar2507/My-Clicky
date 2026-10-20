@@ -41,19 +41,19 @@ struct SpendingSheet: View {
         let history = model.usageStore.history(months: 6)
         return ModalCard(width: 620, onDismiss: onDone) {
             HStack {
-                Text("Spending").font(.system(size: 22, weight: .bold)).foregroundStyle(Theme.textPrimary)
+                Text("Spending").textStyle(.title2.weight(.bold)).foregroundStyle(Theme.textPrimary)
                 Spacer()
-                Button(action: onDone) { Image(systemName: "xmark") }.buttonStyle(.plain).foregroundStyle(Theme.icon)
+                Button(action: onDone) { Image(systemName: "xmark") }.buttonStyle(.pressable).foregroundStyle(Theme.icon)
             }
             HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text(month.formattedCost).font(.system(size: 34, weight: .bold)).foregroundStyle(Theme.textPrimary)
+                Text(month.formattedCost).textStyle(.display).foregroundStyle(Theme.textPrimary)
                 Text("\(month.questions) questions in \(Date().formatted(.dateTime.month(.wide)))")
-                    .font(.system(size: 15)).foregroundStyle(Theme.textSecondary)
+                    .textStyle(.callout).foregroundStyle(Theme.textSecondary)
                 Spacer()
                 if model.settings.monthlyBudgetUSD > 0 {
                     SpendRing(fraction: model.budgetFraction, size: 26)
                     Text("of \(UsageMonth.format(model.settings.monthlyBudgetUSD + (model.settings.budgetTopUps[UsageMonth.key(for: Date())] ?? 0)))")
-                        .font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
+                        .textStyle(.footnote).foregroundStyle(Theme.textSecondary)
                 }
             }
             HStack(alignment: .top, spacing: 12) {
@@ -63,7 +63,7 @@ struct SpendingSheet: View {
             SectionLabel("Last 6 months")
             Chart(history, id: \.key) { item in
                 BarMark(x: .value("Month", Self.monthLabel(item.key)), y: .value("USD", item.month.costUSD))
-                    .foregroundStyle(Theme.accentGradient)
+                    .foregroundStyle(Theme.accentFill)
                     .cornerRadius(4)
             }
             .chartYAxis { AxisMarks { AxisValueLabel().foregroundStyle(Theme.textSecondary); AxisGridLine().foregroundStyle(Theme.hairline) } }
@@ -71,22 +71,22 @@ struct SpendingSheet: View {
             .frame(height: 120)
             creditCard
             Text("Estimated at list prices. Your Anthropic Console bill is the final word.")
-                .font(.system(size: 12)).foregroundStyle(Theme.textTertiary)
+                .textStyle(.caption).foregroundStyle(Theme.textTertiary)
         }
         .onAppear { creditText.value = model.settings.creditUSD.map { String(format: "%.2f", $0) } ?? "" }
     }
 
     private func split(_ title: String, _ rows: [(String, Double)]) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.textSecondary)
+            Text(title).textStyle(.footnote.weight(.semibold)).foregroundStyle(Theme.textSecondary)
             if rows.isEmpty {
-                Text("No paid requests yet.").font(.system(size: 13)).foregroundStyle(Theme.textTertiary)
+                Text("No paid requests yet.").textStyle(.footnote).foregroundStyle(Theme.textTertiary)
             }
             ForEach(rows.sorted { $0.1 > $1.1 }, id: \.0) { row in
                 HStack {
-                    Text(row.0).font(.system(size: 13)).foregroundStyle(Theme.textPrimary)
+                    Text(row.0).textStyle(.footnote).foregroundStyle(Theme.textPrimary)
                     Spacer()
-                    Text(UsageMonth.format(row.1)).font(.system(size: 13, design: .monospaced)).foregroundStyle(Theme.textPrimary)
+                    Text(UsageMonth.format(row.1)).textStyle(.footnote, design: .monospaced).foregroundStyle(Theme.textPrimary)
                 }
             }
         }
@@ -99,12 +99,12 @@ struct SpendingSheet: View {
     private var creditCard: some View {
         @Bindable var model = model
         VStack(alignment: .leading, spacing: 8) {
-            Text("Credit").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.textSecondary)
+            Text("Credit").textStyle(.footnote.weight(.semibold)).foregroundStyle(Theme.textSecondary)
             HStack(spacing: 10) {
                 Text("$").foregroundStyle(Theme.textSecondary)
                 TextField("20.00", text: $creditText.value).darkField().frame(width: 100)
                     .onSubmit(saveCredit)
-                Text("bought on").foregroundStyle(Theme.textSecondary).font(.system(size: 13))
+                Text("bought on").foregroundStyle(Theme.textSecondary).textStyle(.footnote)
                 DatePicker("", selection: Binding(get: { model.settings.creditSince ?? Date() },
                                                   set: { model.settings.creditSince = $0 }), displayedComponents: .date)
                     .labelsHidden().frame(width: 120)
@@ -113,7 +113,7 @@ struct SpendingSheet: View {
             if let credit = model.settings.creditUSD {
                 let projection = CreditProjection(credit: credit, since: model.settings.creditSince ?? Date(),
                                                   daily: model.usageStore.dailySpend())
-                Text(projectionText(projection)).font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.textPrimary)
+                Text(projectionText(projection)).textStyle(.subheadline.weight(.medium)).foregroundStyle(Theme.textPrimary)
             }
         }
         .padding(12)
@@ -144,7 +144,7 @@ struct SpendingSheet: View {
         switch kind {
         case "answer": "Answers"
         case "memory": "Memory"
-        case "naming": "Naming Clickys"
+        case "naming": "Naming agents"
         case "interview": "Welcome interview"
         default: kind.capitalized
         }
@@ -173,7 +173,7 @@ struct SpendingSection: View {
                         if enabled.wrappedValue {
                             Stepper(value: $model.settings.monthlyBudgetUSD, in: 1...100, step: 1) {
                                 Text(String(format: "$%.0f", model.settings.monthlyBudgetUSD))
-                                    .font(.system(size: 16, weight: .semibold, design: .monospaced)).foregroundStyle(Theme.textPrimary)
+                                    .textStyle(.headline, design: .monospaced).foregroundStyle(Theme.textPrimary)
                             }
                         }
                         Toggle("", isOn: enabled).toggleStyle(.glossy).labelsHidden()
@@ -187,9 +187,10 @@ struct SpendingSection: View {
                             Image(systemName: "chevron.right").foregroundStyle(Theme.icon)
                         }
                     }
+                    .hoverHighlight(radius: Theme.cardRadius)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressableRow)
             }
         }
     }

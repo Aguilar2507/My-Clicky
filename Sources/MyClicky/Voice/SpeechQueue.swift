@@ -16,6 +16,8 @@ final class SpeechQueue: NSObject, AVSpeechSynthesizerDelegate {
     private var inputClosed = true
     private var generation = 0
     private var lastLanguage = "en"
+    /// The request's language (spec 020): every sentence of this answer uses its voice. nil = detect per sentence.
+    private var lockedLanguage: String?
 
     override init() {
         super.init()
@@ -24,16 +26,17 @@ final class SpeechQueue: NSObject, AVSpeechSynthesizerDelegate {
 
     var isSpeaking: Bool { synthesizer.isSpeaking || pending > 0 }
 
-    /// Starts a new answer (more sentences will follow).
-    func begin() {
+    /// Starts a new answer (more sentences will follow), spoken in `language` from start to end when given.
+    func begin(language: String? = nil) {
         stopNow()
         inputClosed = false
+        lockedLanguage = language
     }
 
     func enqueue(_ sentence: String, settings: Settings) {
         let text = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-        let language = Self.language(of: text, fallback: lastLanguage)
+        let language = lockedLanguage ?? Self.language(of: text, fallback: lastLanguage)
         lastLanguage = language
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = Self.voice(for: language, settings: settings)
@@ -49,8 +52,8 @@ final class SpeechQueue: NSObject, AVSpeechSynthesizerDelegate {
     }
 
     /// Speaks a complete text at once (announcements, errors).
-    func speakAll(_ text: String, settings: Settings) {
-        begin()
+    func speakAll(_ text: String, settings: Settings, language: String? = nil) {
+        begin(language: language)
         var splitter = SentenceSplitter()
         splitter.append(text + " ").forEach { enqueue($0, settings: settings) }
         if let rest = splitter.finish() { enqueue(rest, settings: settings) }

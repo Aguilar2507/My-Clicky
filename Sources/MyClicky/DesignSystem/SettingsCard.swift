@@ -6,9 +6,8 @@ struct SectionLabel: View {
     init(_ text: String) { self.text = text }
 
     var body: some View {
-        Text(text.uppercased())
-            .font(Theme.sectionFont)
-            .tracking(1.6)
+        Text(text)
+            .textStyle(.label)
             .foregroundStyle(Theme.sectionLabel)
             .padding(.leading, 8)
             .padding(.bottom, 2)
@@ -42,9 +41,9 @@ struct SettingsRow<Trailing: View>: View {
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(Theme.rowTitle).foregroundStyle(Theme.textPrimary)
+                Text(title).textStyle(.headline).foregroundStyle(Theme.textPrimary)
                 if let subtitle {
-                    Text(subtitle).font(Theme.rowSubtitle).foregroundStyle(Theme.textSecondary)
+                    Text(subtitle).textStyle(.callout).foregroundStyle(Theme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -68,8 +67,8 @@ struct PageHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title).font(Theme.pageTitle).foregroundStyle(Theme.textPrimary)
-            Text(subtitle).font(Theme.pageSubtitle).foregroundStyle(Theme.textSecondary)
+            Text(title).textStyle(.largeTitle).foregroundStyle(Theme.textPrimary)
+            Text(subtitle).textStyle(.body).foregroundStyle(Theme.textSecondary)
         }
         .padding(.bottom, 12)
     }

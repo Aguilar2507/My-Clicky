@@ -3,7 +3,7 @@ import Foundation
 /// Every user preference, stored in `settings.json`. Each field has a default, so older files keep loading
 /// (TolerantDecoder fills gaps). Features add fields in their own extension-free block below, marked by spec.
 public struct Settings: Codable, Equatable, Sendable {
-    public static let currentVersion = 5
+    public static let currentVersion = 6
 
     public var version = Settings.currentVersion
 
@@ -18,9 +18,8 @@ public struct Settings: Codable, Equatable, Sendable {
     public var agentWorkingDirectory = "~/MyClickyAgent"
     public var agentAllowedTools = ["Read", "Write", "Edit", "Glob", "Grep", "WebSearch", "WebFetch", "Bash"]
 
-    // 003 notch home
-    public var showInDock = false
-    public var notchOnAllDisplays = true
+    // 003 → 019: the window is home, so it's in the Dock by default.
+    public var showInDock = true
 
     // 004 settings shell
     public var profileName = Settings.defaultProfileName
@@ -74,6 +73,9 @@ public struct Settings: Codable, Equatable, Sendable {
 
     // 012 welcome tour
     public var tour = TourState()
+
+    // 014 premium feel
+    public var hapticFeedback = true
 
     public init() {}
 
@@ -139,6 +141,10 @@ public enum SettingsMigrations {
                settings.shortcuts[i] == ShortcutBinding(.pushToTalk, KeyChord([.fn]), .hold) {
                 settings.shortcuts[i] = ShortcutBinding.defaults[0]
             }
+        }
+        if settings.version < 6 {
+            // 019: the notch is gone; the window is home, so it gets a Dock icon (the menu bar icon stays either way).
+            settings.showInDock = true
         }
         settings.version = Settings.currentVersion
     }

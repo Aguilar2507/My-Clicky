@@ -8,6 +8,8 @@ final class AgentSupervisor {
     private final class Run {
         let chatID: UUID
         let instruction: String
+        /// "en" or "es": the request's language; the agent replies and is announced in it (spec 020).
+        let language: String
         let startedAt = Date()
         var lastEventAt = Date()
         var process: Process?
@@ -18,9 +20,10 @@ final class AgentSupervisor {
         var finished = false
         var stopReason: String?
 
-        init(chatID: UUID, instruction: String) {
+        init(chatID: UUID, instruction: String, language: String) {
             self.chatID = chatID
             self.instruction = instruction
+            self.language = language
         }
     }
 
@@ -31,11 +34,13 @@ final class AgentSupervisor {
     let model: AppModel
     let computer: ComputerActions
     /// Speaks + shows a line (Assistant.announce), respecting quiet mode.
-    var announce: (_ text: String, _ bubble: String?) -> Void = { _, _ in }
+    var announce: (_ text: String, _ bubble: String?, _ language: String?) -> Void = { _, _, _ in }
 
     private var runs: [UUID: Run] = [:]
     private var queue = RunQueue()
     private var waiting: [UUID: String] = [:]
+    /// Each chat's last request language, so "Please continue." keeps it.
+    private var languages: [UUID: String] = [:]
     private var approvals: [String: CheckedContinuation<String, Never>] = [:]
     private let approvalChip = ApprovalChip()
     private var server: BridgeSocketServer?
@@ -58,22 +63,25 @@ final class AgentSupervisor {
 
     // MARK: Start / stop
 
-    /// Gives a Clicky its next instruction (the caller already saved the user's message).
-    func start(chatID: UUID, instruction: String) {
+    /// Gives a Clicky its next instruction (the caller already saved the user's message). `language` is the request's
+    /// ("en"/"es"); without it, a guess from the text, else the chat's last language.
+    func start(chatID: UUID, instruction: String, language: String? = nil) {
+        languages[chatID] = ReplyLanguage.resolve(spoken: language, guessed: SpeechRecognizer.guessLanguage(instruction),
+                                                  previous: languages[chatID], fallback: model.settings.dictationLanguage)
         guard runs[chatID] == nil, waiting[chatID] == nil else {
             notice(chatID, "Still working on the last instruction. Stop it first or wait for it to finish.", status: "queued")
             return
         }
         guard ClaudeCodeLocator.find(model.settings) != nil else {
             notice(chatID, "Claude Code isn't installed yet. Settings → Agents shows how to set it up.", status: "failed")
-            announce("Clickys need Claude Code. Open Settings, Agents, to set it up.", nil)
+            announce("Agents need Claude Code. Open Settings, Agents, to set it up.", nil, nil)
             return
         }
         if queue.request(chatID) {
             launch(chatID: chatID, instruction: instruction)
         } else {
             waiting[chatID] = instruction
-            notice(chatID, "Waiting for another Clicky to finish…", status: "queued")
+            notice(chatID, "Waiting for another agent to finish…", status: "queued")
             refreshWorking()
         }
     }
@@ -105,11 +113,13 @@ final class AgentSupervisor {
         let folder = folder(for: chat)
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let mcpConfig = writeMCPConfig(chatID: chatID)
-        let run = Run(chatID: chatID, instruction: instruction)
+        let language = languages[chatID] ?? "en"
+        let run = Run(chatID: chatID, instruction: instruction, language: language)
         runs[chatID] = run
 
         var args = ["-p", instruction, "--output-format", "stream-json", "--verbose",
-                    "--append-system-prompt", Prompts.clicky(name: chat.title, purpose: chat.purpose, folder: folder.path),
+                    "--append-system-prompt", Prompts.clicky(name: chat.title, purpose: chat.purpose, folder: folder.path,
+                                                                    language: language),
                     "--max-turns", "\(RunQueue.stepLimit(autoApprove: model.settings.autoApproveExtraUsage))",
                     "--mcp-config", mcpConfig.path,
                     "--permission-prompt-tool", "mcp__myclicky__approve"]
@@ -144,7 +154,7 @@ final class AgentSupervisor {
             return
         }
         refreshWorking()
-        if model.settings.announceStartFinish { announce("\(chat.title) is on it.", nil) }
+        if model.settings.announceStartFinish { announce(ReplyLanguage.text(.onIt(chat.title), language), nil, language) }
     }
 
     /// Read, search and web tools run without asking; edits only inside the Clicky's folder.
@@ -216,19 +226,23 @@ final class AgentSupervisor {
                 if let session { $0.agentSessionID = session }
                 $0.lastAgentUseAt = Date()
             }
-            let name = model.chat(chatID)?.title ?? "Your Clicky"
+            let name = model.chat(chatID)?.title ?? "Your agent"
             if subtype == "error_max_turns" {
                 notice(chatID, "\(name) has used \(turns) steps on this. Keep going?", status: "keepGoing")
-                finishAnnouncement(chatID, "\(name) paused after \(turns) steps. Keep going from its chat.")
+                finishAnnouncement(chatID, ReplyLanguage.text(.paused(name, steps: turns), run.language),
+                                   title: "\(name) paused", body: "Used \(turns) steps. Open the chat to keep going.")
             } else if isError {
                 notice(chatID, text.isEmpty ? "\(name) ran into a problem." : text, status: "failed")
-                finishAnnouncement(chatID, "\(name) ran into a problem.")
+                finishAnnouncement(chatID, ReplyLanguage.text(.problem(name), run.language), title: "\(name) ran into a problem",
+                                   body: text.isEmpty ? "Open the chat to see what happened." : Self.firstSentence(text))
             } else {
                 if !text.isEmpty && text != run.lastText {
                     model.append(Message(role: .assistant, text: text, via: .agent), to: chatID)
                 }
                 let final = text.isEmpty ? (run.lastText ?? "Done.") : text
-                finishAnnouncement(chatID, "\(name) finished. " + Self.firstSentence(final), bubble: final)
+                finishAnnouncement(chatID, ReplyLanguage.text(.finished(name), run.language) + " " + Self.firstSentence(final),
+                                   bubble: final,
+                                   title: "\(name) finished", body: Self.firstSentence(final))
             }
         }
     }
@@ -237,13 +251,14 @@ final class AgentSupervisor {
         guard let run = runs[chatID] else { return }
         run.process?.standardOutput.flatMap { $0 as? Pipe }?.fileHandleForReading.readabilityHandler = nil
         if !run.finished {
-            let name = model.chat(chatID)?.title ?? "Your Clicky"
+            let name = model.chat(chatID)?.title ?? "Your agent"
             if let reason = run.stopReason {
                 notice(chatID, reason, status: "stopped")
             } else {
                 let detail = stderr.trimmingCharacters(in: .whitespacesAndNewlines)
                 notice(chatID, detail.isEmpty ? "\(name) stopped unexpectedly." : String(detail.prefix(300)), status: "failed")
-                finishAnnouncement(chatID, "\(name) stopped unexpectedly.")
+                finishAnnouncement(chatID, ReplyLanguage.text(.stopped(name), run.language), title: "\(name) stopped",
+                                   body: "It stopped unexpectedly. Open the chat for details.")
             }
         }
         runs[chatID] = nil
@@ -284,12 +299,17 @@ final class AgentSupervisor {
         model.append(message, to: chatID)
     }
 
-    /// Finished work: unread dot + notch badge, spoken summary and bubble (per settings, quiet-aware).
-    private func finishAnnouncement(_ chatID: UUID, _ spoken: String, bubble: String? = nil) {
+    /// Project rule (spec 018): every task end tells you. Always: a macOS notification (opens the chat), a haptic tap,
+    /// the unread dot and the menu bar dot. Per settings: the spoken line (queued until MyClicky is free, skipped only
+    /// while quiet) and the bubble beside the cursor.
+    private func finishAnnouncement(_ chatID: UUID, _ spoken: String, bubble: String? = nil, title: String, body: String) {
+        let language = languages[chatID]
         if model.visibleChatID != chatID { model.updateChat(chatID) { $0.isUnread = true } }
+        TaskAlerts.shared.post(chatID: chatID, title: title, body: body)
+        Haptics.tap(.done)
         let speak = model.settings.announceStartFinish
-        let show = model.settings.showUpdatesBesideCursor ? bubble : nil
-        if speak || show != nil { announce(speak ? spoken : "", show) }
+        let show = model.settings.showUpdatesBesideCursor ? (bubble ?? spoken) : nil
+        if speak || show != nil { announce(speak ? spoken : "", show, language) }
     }
 
     static func firstSentence(_ text: String) -> String {
@@ -301,7 +321,7 @@ final class AgentSupervisor {
 
     private func handle(_ request: BridgeRequest) async -> BridgeResponse {
         guard let chatID = UUID(uuidString: request.chatID), let run = runs[chatID], let chat = model.chat(chatID) else {
-            return BridgeResponse(id: request.id, ok: false, content: [.text(#"{"behavior":"deny","message":"This Clicky isn't running."}"#)])
+            return BridgeResponse(id: request.id, ok: false, content: [.text(#"{"behavior":"deny","message":"This agent isn't running."}"#)])
         }
         run.lastEventAt = Date()
         if request.tool == "approve" {
@@ -358,7 +378,7 @@ final class AgentSupervisor {
             approvalChip.show(title: "\(chat.title) wants to: \(text)", detail: detail, allowAlways: !sensitive) { [weak self] answer in
                 self?.decide(requestID, answer)
             }
-            announce("", "\(chat.title) needs your OK: \(text)")
+            announce("", "\(chat.title) needs your OK: \(text)", nil)
         }
         let timeout = DispatchWorkItem { [weak self] in self?.decide(requestID, "expired") }
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.approvalTimeout, execute: timeout)
@@ -396,14 +416,14 @@ final class ApprovalChip: NSObject {
         content.spacing = 8
         content.edgeInsets = NSEdgeInsets(top: 12, left: 14, bottom: 12, right: 14)
         let label = NSTextField(wrappingLabelWithString: title)
-        label.textColor = .white
+        label.textColor = .labelColor
         label.font = .systemFont(ofSize: 13, weight: .semibold)
         label.preferredMaxLayoutWidth = width - 28
         content.addArrangedSubview(label)
         if let detail, !detail.isEmpty {
             let detailLabel = NSTextField(wrappingLabelWithString: String(detail.prefix(160)))
             detailLabel.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
-            detailLabel.textColor = NSColor.white.withAlphaComponent(0.7)
+            detailLabel.textColor = .secondaryLabelColor
             detailLabel.preferredMaxLayoutWidth = width - 28
             content.addArrangedSubview(detailLabel)
         }
@@ -424,7 +444,7 @@ final class ApprovalChip: NSObject {
         panel.level = .popUpMenu
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         let background = NSVisualEffectView()
-        background.material = .hudWindow
+        background.material = .popover // Light/Dark like a macOS popover (spec 015)
         background.state = .active
         background.wantsLayer = true
         background.layer?.cornerRadius = 14

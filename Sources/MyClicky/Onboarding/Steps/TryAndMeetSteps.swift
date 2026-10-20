@@ -14,9 +14,9 @@ struct HandsOnStep: View {
                     if index > 0 { CardDivider() }
                     HStack(spacing: 14) {
                         Image(systemName: model.seenEvents.contains(event) ? "checkmark.circle.fill" : "circle")
-                            .font(.system(size: 20))
+                            .font(.icon(20))
                             .foregroundStyle(model.seenEvents.contains(event) ? Theme.green : Theme.textTertiary)
-                        Text(event.title).font(.system(size: 15)).foregroundStyle(Theme.textPrimary)
+                        Text(event.title).textStyle(.callout).foregroundStyle(Theme.textPrimary)
                         Spacer()
                     }
                     .padding(.horizontal, 18).padding(.vertical, 12)
@@ -44,20 +44,20 @@ struct InterviewStep: View {
     var body: some View {
         VStack(spacing: 18) {
             if !created.value.isEmpty {
-                StepTitle(title: "Meet your Clickys", subtitle: note.value ?? "They're in your sidebar, ready for tasks.")
+                StepTitle(title: "Meet your agents", subtitle: note.value ?? "They're in your sidebar, ready for tasks.")
                 HStack(spacing: 18) {
                     ForEach(model.clickys.filter { created.value.contains($0.title) }) { chat in
                         VStack(spacing: 8) {
                             ChatAvatar(chat: chat, size: 60)
-                            Text(chat.title).font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.textPrimary)
-                            Text(chat.purpose).font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
+                            Text(chat.title).textStyle(.callout.weight(.semibold)).foregroundStyle(Theme.textPrimary)
+                            Text(chat.purpose).textStyle(.caption).foregroundStyle(Theme.textSecondary)
                                 .multilineTextAlignment(.center).lineLimit(3)
                         }
                         .frame(width: 180)
                     }
                 }
             } else if creating.value {
-                StepTitle(title: "Creating your Clickys…", subtitle: "Picking names, colors and jobs from your answers.")
+                StepTitle(title: "Creating your agents…", subtitle: "Picking names, colors and jobs from your answers.")
                 ProgressView()
             } else {
                 StepTitle(title: Self.questions[index.value], subtitle: "Question \(index.value + 1) of 3 — type or tap the mic.")
@@ -66,16 +66,16 @@ struct InterviewStep: View {
                     Button {
                         dictation.toggle { answers.value[index.value] += (answers.value[index.value].isEmpty ? "" : " ") + $0 }
                     } label: {
-                        Image(systemName: dictation.isListening ? "waveform.circle.fill" : "mic.circle.fill").font(.system(size: 30))
+                        Image(systemName: dictation.isListening ? "waveform.circle.fill" : "mic.circle.fill").font(.icon(30))
                             .foregroundStyle(dictation.isListening ? Theme.red : Theme.accent)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                 }
                 .frame(maxWidth: 520)
                 HStack {
                     if index.value > 0 { Button("Previous") { index.value -= 1 }.buttonStyle(.pill(.dark, compact: true)) }
                     Spacer()
-                    Button(index.value < 2 ? "Next question" : "Create my Clickys") {
+                    Button(index.value < 2 ? "Next question" : "Create my agents") {
                         if index.value < 2 { index.value += 1 } else { Task { await create() } }
                     }
                     .buttonStyle(.pill(.primary, compact: true))
@@ -131,9 +131,9 @@ struct DoneStep: View {
         VStack(spacing: 18) {
             StepTitle(title: "You're all set, \(model.settings.profileName).", subtitle: "Three things to remember:")
             VStack(alignment: .leading, spacing: 12) {
-                tip("rectangle.topthird.inset.filled", "Rest your pointer on the notch to open your chats and settings.")
+                tip("menubar.rectangle", "Click the bot in the menu bar or press option + space to open your chats and settings.")
                 tip("mic.fill", "Hold control + option and ask about anything on your screen.")
-                tip("person.3.fill", "Start with “agent…” (or click +) to give a Clicky a task.")
+                tip("person.3.fill", "Say “Jarvis agent…” (or click +) to give an agent a task.")
             }
             .padding(20)
             .background(Theme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
@@ -143,7 +143,7 @@ struct DoneStep: View {
     private func tip(_ symbol: String, _ text: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: symbol).foregroundStyle(Theme.accent).frame(width: 22)
-            Text(text).font(.system(size: 15)).foregroundStyle(Theme.textPrimary)
+            Text(text).textStyle(.callout).foregroundStyle(Theme.textPrimary)
         }
     }
 }

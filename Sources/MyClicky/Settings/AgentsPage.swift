@@ -17,13 +17,14 @@ struct AgentsPage: View {
                 Button(action: chooseFolder) {
                     SettingsRow(title: "Agent folder", subtitle: "Where agents spawn and put the things they make.") {
                         HStack(spacing: 6) {
-                            Text(folderLabel).font(.system(size: 15)).foregroundStyle(Theme.textSecondary)
-                            Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.textSecondary)
+                            Text(folderLabel).textStyle(.callout).foregroundStyle(Theme.textSecondary)
+                            Image(systemName: "chevron.right").font(.icon(13, .semibold)).foregroundStyle(Theme.textSecondary)
                         }
                     }
+                    .hoverHighlight(radius: Theme.cardRadius)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressableRow)
             }
 
             SectionLabel("Autonomy").padding(.top, 10)
@@ -34,30 +35,30 @@ struct AgentsPage: View {
                 }
                 CardDivider()
                 SettingsRow(title: "Always allow computer use",
-                            subtitle: "Let Clickys click and type on your Mac without asking first. Off means each turn asks with an Allow card.") {
+                            subtitle: "Let agents click and type on your Mac without asking first. Off means each turn asks with an Allow card.") {
                     Toggle("", isOn: $model.settings.alwaysAllowComputerUse).toggleStyle(.glossy).labelsHidden()
                 }
                 CardDivider()
                 SettingsRow(title: "Suggest agent tasks",
-                            subtitle: "Fresh task suggestions every 24 hours, announced through the morning notch.") {
+                            subtitle: "Fresh task suggestions every 24 hours, shown under the menu bar icon each morning.") {
                     Toggle("", isOn: $model.settings.suggestAgentTasks).toggleStyle(.glossy).labelsHidden()
                 }
             }
 
             SectionLabel("Announcements").padding(.top, 10)
             SettingsCard {
-                SettingsRow(title: "Speak when a Clicky starts or finishes",
-                            subtitle: "MyClicky's voice tells you what a Clicky got done.") {
+                SettingsRow(title: "Speak when an agent starts or finishes",
+                            subtitle: "Jarvis tells you out loud what an agent got done.") {
                     Toggle("", isOn: $model.settings.announceStartFinish).toggleStyle(.glossy).labelsHidden()
                 }
                 CardDivider()
                 SettingsRow(title: "Show updates beside the cursor",
-                            subtitle: "A Clicky's reply streams in a bubble next to your cursor when it finishes.") {
+                            subtitle: "An agent's reply streams in a bubble next to your cursor when it finishes.") {
                     Toggle("", isOn: $model.settings.showUpdatesBesideCursor).toggleStyle(.glossy).labelsHidden()
                 }
             }
-            Text("MyClicky always stays quiet while you're on a call, sharing your screen, or in Do Not Disturb. Finished work waits in the chat and the notch shows how many Clickys have something new.")
-                .font(.system(size: 13)).foregroundStyle(Theme.textSecondary).padding(.horizontal, 8)
+            Text("MyClicky always stays quiet while you're on a call, sharing your screen, or in Do Not Disturb. Finished work waits in the chat, and a dot on the menu bar icon shows when there's something new.")
+                .textStyle(.footnote).foregroundStyle(Theme.textSecondary).padding(.horizontal, 8)
                 .fixedSize(horizontal: false, vertical: true)
 
             SectionLabel("Claude Code").padding(.top, 10)
@@ -75,18 +76,18 @@ struct AgentsPage: View {
     private var claudeCode: some View {
         if let s = status.value, s.isReady {
             SettingsRow(title: "Ready", subtitle: "\(s.version ?? "Claude Code") · signed in · runs on your Claude plan") {
-                Image(systemName: "checkmark.circle.fill").font(.system(size: 24)).foregroundStyle(Theme.green)
+                Image(systemName: "checkmark.circle.fill").font(.icon(24)).foregroundStyle(Theme.green)
             }
         } else {
             VStack(alignment: .leading, spacing: 10) {
                 Text(status.value?.path == nil ? "Not installed" : "Not signed in")
-                    .font(Theme.rowTitle).foregroundStyle(Theme.textPrimary)
-                Text("Clickys run on your Claude subscription through Claude Code. Open Terminal and run:")
-                    .font(Theme.rowSubtitle).foregroundStyle(Theme.textSecondary)
+                    .textStyle(.headline).foregroundStyle(Theme.textPrimary)
+                Text("Agents run on your Claude subscription through Claude Code. Open Terminal and run:")
+                    .textStyle(.callout).foregroundStyle(Theme.textSecondary)
                 if status.value?.path == nil { CommandCard(command: "curl -fsSL https://claude.ai/install.sh | bash") }
                 CommandCard(command: "claude")
                 Text("Choose to sign in with your Claude account (not an API key), finish in the browser, then type /exit.")
-                    .font(.system(size: 13)).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    .textStyle(.footnote).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
                 Button("Check again") { Task { status.value = await ClaudeCodeLocator.status(model.settings) } }
                     .buttonStyle(.pill(.secondary, compact: true))
             }
@@ -112,7 +113,7 @@ struct CommandCard: View {
     let command: String
     var body: some View {
         HStack {
-            Text(command).font(.system(size: 13, design: .monospaced)).foregroundStyle(Theme.textPrimary).textSelection(.enabled)
+            Text(command).textStyle(.footnote, design: .monospaced).foregroundStyle(Theme.textPrimary).textSelection(.enabled)
             Spacer()
             Button("Copy") {
                 NSPasteboard.general.clearContents()
@@ -121,6 +122,6 @@ struct CommandCard: View {
             .buttonStyle(.pill(.dark, compact: true))
         }
         .padding(10)
-        .background(Color.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(Theme.keycap, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }

@@ -11,10 +11,10 @@ struct ProfileCard: View {
             HStack(spacing: 12) {
                 InitialAvatar(name: model.settings.profileName, size: 34)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(model.settings.profileName).font(.system(size: 16, weight: .semibold))
+                    Text(model.settings.profileName).textStyle(.headline)
                         .foregroundStyle(Theme.textPrimary).lineLimit(1)
                     Text(spendBadge)
-                        .font(.system(size: 10, weight: .bold)).tracking(1.2)
+                        .textStyle(.label.weight(.bold))
                         .foregroundStyle(Theme.textSecondary)
                         .padding(.horizontal, 7).padding(.vertical, 3)
                         .background(Theme.track, in: Capsule(style: .continuous))
@@ -23,9 +23,10 @@ struct ProfileCard: View {
             }
             .padding(12)
             .background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .hoverHighlight(radius: 14)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .help("Edit your name")
     }
 
@@ -55,8 +56,8 @@ struct ProfileEditor: View {
 
     var body: some View {
         ModalCard(width: 420, onDismiss: onDone) {
-            Text("Your name").font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.textPrimary)
-            Text("MyClicky uses it to greet you.").font(Theme.rowSubtitle).foregroundStyle(Theme.textSecondary)
+            Text("Your name").textStyle(.title3.weight(.bold)).foregroundStyle(Theme.textPrimary)
+            Text("MyClicky uses it to greet you.").textStyle(.callout).foregroundStyle(Theme.textSecondary)
             TextField("Name", text: $name.value).darkField().onSubmit(save)
             HStack {
                 Spacer()

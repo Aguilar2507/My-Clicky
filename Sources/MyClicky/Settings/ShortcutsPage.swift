@@ -1,7 +1,7 @@
 import SwiftUI
 import MyClickyCore
 
-/// Settings → Shortcuts (ref 07): four rebindable shortcuts, key caps, Change, Reset to defaults.
+/// Settings → Shortcuts (ref 07): rebindable shortcuts (spec 019 adds Open MyClicky), key caps, Change, Reset to defaults.
 struct ShortcutsPage: View {
     @Environment(AppModel.self) private var model
     @StateObject private var recording = Box<ShortcutAction?>(nil)
@@ -40,15 +40,19 @@ struct ShortcutsPage: View {
                 CardDivider()
                 row(bindings, .handsFreeDictation)
             }
+            SectionLabel("Window").padding(.top, 10)
+            SettingsCard {
+                row(bindings, .openApp)
+            }
             SettingsCard {
                 Button { model.settings.shortcuts = ShortcutBinding.defaults } label: {
-                    SettingsRow(title: "Reset to defaults").contentShape(Rectangle())
+                    SettingsRow(title: "Reset to defaults").hoverHighlight(radius: Theme.cardRadius).contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressableRow)
             }
             .padding(.top, 10)
         }
-        .overlay {
+        .modalOverlay(recording.value) {
             if let action = recording.value {
                 ShortcutRecorderView(action: action) { recording.value = nil }
             }
@@ -78,22 +82,22 @@ struct ShortcutRecorderView: View {
 
     var body: some View {
         ModalCard(onDismiss: cancel) {
-            Text("New shortcut for \(action.title)").font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.textPrimary)
+            Text("New shortcut for \(action.title)").textStyle(.title3.weight(.bold)).foregroundStyle(Theme.textPrimary)
             Text("Hold keys, double-tap them, or press a key combination. Esc cancels.")
-                .font(Theme.rowSubtitle).foregroundStyle(Theme.textSecondary)
+                .textStyle(.callout).foregroundStyle(Theme.textSecondary)
             HStack(spacing: 8) {
                 if live.value.isEmpty {
-                    Text("Press the new shortcut…").font(.system(size: 16)).foregroundStyle(Theme.textTertiary)
+                    Text("Press the new shortcut…").textStyle(.body).foregroundStyle(Theme.textTertiary)
                 } else {
                     ForEach(live.value.sorted(), id: \.self) { KeyCap(text: KeyCapLabels.label($0)) }
                 }
             }
             .frame(height: 40)
             if let message = error.value {
-                Text(message).font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.orange)
+                Text(message).textStyle(.subheadline.weight(.medium)).foregroundStyle(Theme.orange)
             }
             if AppServices.shared == nil {
-                Text("Shortcut recording works in the running app.").font(.system(size: 13)).foregroundStyle(Theme.textTertiary)
+                Text("Shortcut recording works in the running app.").textStyle(.footnote).foregroundStyle(Theme.textTertiary)
             }
             HStack { Spacer(); Button("Cancel", action: cancel).buttonStyle(.pill(.dark)) }
         }
@@ -136,10 +140,10 @@ struct WarningCard: View {
     var body: some View {
         SettingsCard {
             HStack(spacing: 14) {
-                Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 20)).foregroundStyle(Theme.orange)
+                Image(systemName: "exclamationmark.triangle.fill").font(.icon(20)).foregroundStyle(Theme.orange)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title).font(Theme.rowTitle).foregroundStyle(Theme.textPrimary)
-                    Text(text).font(Theme.rowSubtitle).foregroundStyle(Theme.textSecondary)
+                    Text(title).textStyle(.headline).foregroundStyle(Theme.textPrimary)
+                    Text(text).textStyle(.callout).foregroundStyle(Theme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer()

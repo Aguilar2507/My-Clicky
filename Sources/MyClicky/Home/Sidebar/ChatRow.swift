@@ -16,16 +16,16 @@ struct ChatRow: View {
                 ChatAvatar(chat: chat, size: 42)
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text(chat.title).font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.textPrimary).lineLimit(1).layoutPriority(1)
+                        Text(chat.title).textStyle(.callout.weight(.bold)).foregroundStyle(Theme.textPrimary).lineLimit(1).layoutPriority(1)
                         Spacer(minLength: 6)
                         if isWorking {
                             ActivityDots()
                         } else if !chat.messages.isEmpty {
-                            Text(RelativeTime.format(chat.updatedAt)).font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
+                            Text(RelativeTime.format(chat.updatedAt)).textStyle(.footnote).foregroundStyle(Theme.textSecondary)
                                 .lineLimit(1).fixedSize()
                         }
                     }
-                    Text(snippet ?? previewText).font(.system(size: 14)).foregroundStyle(Theme.previewText).lineLimit(1)
+                    Text(snippet ?? previewText).textStyle(.subheadline).foregroundStyle(Theme.previewText).lineLimit(1)
                 }
                 .padding(.leading, 11)
                 .padding(.trailing, 10)
@@ -34,14 +34,16 @@ struct ChatRow: View {
             }
             .padding(.vertical, 1)
             .background(isSelected ? Theme.rowSelected : .clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .hoverHighlight(radius: 12, enabled: !isSelected)
             .contentShape(Rectangle())
+            .animation(Motion.quick, value: isSelected)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressableRow)
     }
 
     private var previewText: String {
         if chat.kind == .talk && chat.messages.isEmpty { return "Ask about anything on your screen" }
-        if chat.messages.isEmpty { return chat.purpose.isEmpty ? "What should this Clicky do?" : chat.purpose }
+        if chat.messages.isEmpty { return chat.purpose.isEmpty ? "What should this agent do?" : chat.purpose }
         return chat.preview.replacingOccurrences(of: "\n", with: " ")
     }
 }

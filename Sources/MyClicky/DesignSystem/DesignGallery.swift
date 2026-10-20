@@ -12,7 +12,7 @@ struct DesignGallery: View {
                 PageHeader(title: "General", subtitle: "How MyClicky behaves on your Mac.")
                 SectionLabel("Behavior")
                 SettingsCard {
-                    SettingsRow(title: "Show in Dock", subtitle: "Turn off to keep MyClicky notch only.") {
+                    SettingsRow(title: "Show in Dock", subtitle: "Turn off to keep MyClicky in the menu bar only.") {
                         Toggle("", isOn: $dock.value).toggleStyle(.glossy).labelsHidden()
                     }
                     CardDivider()
@@ -37,7 +37,7 @@ struct DesignGallery: View {
                 HStack(spacing: 16) {
                     ForEach(0..<4) { index in
                         SelectableCard(isSelected: selected.value == index, action: { selected.value = index }) {
-                            Image(systemName: "play.fill").font(.system(size: 40)).foregroundStyle(.red)
+                            Image(systemName: "play.fill").font(.icon(40)).foregroundStyle(.red)
                         }
                         .frame(width: 120, height: 120)
                     }
@@ -53,6 +53,6 @@ struct DesignGallery: View {
         }
         .frame(minWidth: 900, minHeight: 700)
         .background(Theme.windowBackground)
-        .preferredColorScheme(.dark)
+
     }
 }

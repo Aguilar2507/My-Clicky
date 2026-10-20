@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Settings inside the notch panel or window: sidebar on the left, the selected page on the right (refs 03–10).
+/// Settings inside MyClicky's window: sidebar on the left, the selected page on the right (refs 03–10).
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
     let page: SettingsPage
@@ -11,21 +11,20 @@ struct SettingsView: View {
             SettingsSidebar(selected: page) { editingProfile.value = true }
                 .frame(width: 209)
                 .frame(maxHeight: .infinity)
-                .background(Theme.sidebarBackground)
+                .background(Theme.sidebarSurface)
             ScrollView {
+                // A centered column that grows with the window up to a comfortable width (spec 017).
                 content
-                    .frame(maxWidth: 640, alignment: .leading)
-                    .padding(.leading, 28)
-                    .padding(.trailing, 36)
+                    .frame(maxWidth: Theme.Layout.settingsColumn, alignment: .leading)
+                    .padding(.horizontal, 32)
                     .padding(.top, 76)
                     .padding(.bottom, 40)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity)
             }
             .scrollIndicators(.never)
-            .background(Theme.bloomBackground)
-            .overlay(alignment: .top) { TopFade() }
+            .background(Theme.windowBackground)
         }
-        .overlay {
+        .modalOverlay(editingProfile.value) {
             if editingProfile.value { ProfileEditor { editingProfile.value = false } }
         }
     }

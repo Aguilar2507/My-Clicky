@@ -3,7 +3,7 @@ import SwiftUI
 import MyClickyCore
 
 /// Daily task ideas (spec 009 US6): the first time you use the Mac after 07:00 (at most every 20 h), Claude Code
-/// (your Claude plan, never the API key) suggests 3 tasks from your Clickys' memories. They appear under the notch.
+/// (your Claude plan, never the API key) suggests 3 tasks from your Clickys' memories. They appear under the menu bar icon (spec 019).
 @MainActor
 final class SuggestionScheduler {
     let model: AppModel
@@ -62,7 +62,7 @@ final class SuggestionScheduler {
     }
 }
 
-/// "☀️ 3 ideas for today" under the notch for 15 s, with Start buttons (spec 009 US6, see deviation note in tasks.md).
+/// "☀️ 3 ideas for today" under the menu bar icon for 15 s, with Start buttons (spec 009 US6, see deviation note in tasks.md).
 @MainActor
 final class MorningPanel {
     private var window: NSPanel?
@@ -70,17 +70,18 @@ final class MorningPanel {
 
     func show(ideas: [Suggestion], model: AppModel, start: @escaping (Suggestion) -> Void) {
         close()
-        let screen = NSScreen.screens.first { $0.auxiliaryTopLeftArea != nil } ?? NSScreen.main ?? NSScreen.screens[0]
-        let notch = NotchController.geometry(for: screen).collapsedRect
+        let icon = StatusItemController.anchorRect
+        let screen = NSScreen.screens.first { $0.frame.intersects(icon) } ?? NSScreen.main ?? NSScreen.screens[0]
         let size = CGSize(width: 420, height: 64 + CGFloat(ideas.count) * 46)
-        let panel = NSPanel(contentRect: CGRect(x: notch.midX - size.width / 2, y: notch.minY - size.height - 6,
-                                                width: size.width, height: size.height),
+        // Centered under the icon, kept on screen.
+        let x = min(max(icon.midX - size.width / 2, screen.frame.minX + 8), screen.frame.maxX - size.width - 8)
+        let panel = NSPanel(contentRect: CGRect(x: x, y: icon.minY - size.height - 6, width: size.width, height: size.height),
                             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 1)
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        let view = MorningNotchView(ideas: ideas) { [weak self] idea in
+        let view = MorningIdeasView(ideas: ideas) { [weak self] idea in
             self?.close()
             start(idea)
         } onClose: { [weak self] in self?.close() }
@@ -100,7 +101,7 @@ final class MorningPanel {
     }
 }
 
-struct MorningNotchView: View {
+struct MorningIdeasView: View {
     let ideas: [Suggestion]
     let onStart: (Suggestion) -> Void
     let onClose: () -> Void
@@ -108,16 +109,16 @@ struct MorningNotchView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("☀️  \(ideas.count) ideas for today").font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
+                Text("☀️  \(ideas.count) ideas for today").textStyle(.callout.weight(.bold)).foregroundStyle(.white)
                 Spacer()
-                Button(action: onClose) { Image(systemName: "xmark") }.buttonStyle(.plain).foregroundStyle(Theme.icon)
+                Button(action: onClose) { Image(systemName: "xmark") }.buttonStyle(.pressable).foregroundStyle(Theme.icon)
             }
             ForEach(Array(ideas.enumerated()), id: \.offset) { _, idea in
                 HStack(spacing: 10) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(idea.text).font(.system(size: 13, weight: .medium)).foregroundStyle(.white).lineLimit(2)
+                        Text(idea.text).textStyle(.footnote.weight(.medium)).foregroundStyle(.white).lineLimit(2)
                         if let clicky = idea.clickyTitle {
-                            Text(clicky).font(.system(size: 11)).foregroundStyle(Theme.textSecondary)
+                            Text(clicky).textStyle(.caption2).foregroundStyle(Theme.textSecondary)
                         }
                     }
                     Spacer()
@@ -127,6 +128,8 @@ struct MorningNotchView: View {
         }
         .padding(14)
         .background(Color.black, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .preferredColorScheme(.dark)
+        // Black in both appearances, like a menu bar extra (spec 015).
+        .environment(\.colorScheme, .dark)
+
     }
 }

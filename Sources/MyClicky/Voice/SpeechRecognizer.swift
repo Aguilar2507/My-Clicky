@@ -21,6 +21,8 @@ final class SpeechRecognizer {
         var locales: [String]
         var preferred: String
         var words: [String]
+        /// Phrases to expect that aren't custom words (not rewritten in the transcript).
+        var hints: [String] = []
 
         @MainActor
         static func from(_ settings: Settings) -> Languages {
@@ -67,20 +69,24 @@ final class SpeechRecognizer {
     }
 
     /// Starts listening with the language settings (auto-detect, language, custom words) and microphone.
-    func start(_ settings: Settings) throws {
-        try start(languages: .from(settings), deviceUID: settings.microphoneUID)
+    /// `expecting` adds phrases the recognizers should listen for (Talk passes the wake words, spec 020).
+    func start(_ settings: Settings, expecting: [String] = []) throws {
+        var languages = Languages.from(settings)
+        languages.hints = expecting
+        try start(languages: languages, deviceUID: settings.microphoneUID)
     }
 
     func start(languages: Languages, deviceUID: String) throws {
         cancel()
         self.languages = languages
+        lastLanguage = nil
         missingOnDeviceLanguages = []
         for identifier in languages.locales {
             guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: identifier)), recognizer.isAvailable else { continue }
             let request = SFSpeechAudioBufferRecognitionRequest()
             request.shouldReportPartialResults = true
             request.addsPunctuation = true
-            request.contextualStrings = languages.words
+            request.contextualStrings = languages.words + languages.hints
             if recognizer.supportsOnDeviceRecognition {
                 request.requiresOnDeviceRecognition = true // audio never leaves the Mac
             } else {
@@ -143,8 +149,15 @@ final class SpeechRecognizer {
         sessions.forEach { $0.task?.cancel() }
         sessions = []
         let best = LanguagePicker.pick(results, default: languages.preferred, tieBreak: Self.guessLanguage)
+        lastLanguage = best?.languageCode
         return CustomWords.apply(languages.words, to: best?.text.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
     }
+
+    /// "en" or "es": the language the last finished transcript was recognized in (spec 020).
+    private(set) var lastLanguage: String?
+
+    /// Every language's live transcript (the wake words may show up in either first).
+    var partials: [String] { sessions.map(\.text) }
 
     /// The live transcript: the preferred language's partial result (or the longest).
     private var livePartial: String {

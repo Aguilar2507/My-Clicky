@@ -21,7 +21,7 @@ struct MicrophonePage: View {
                 }
             }
             if missing {
-                Text("Your chosen microphone is disconnected — using System Default.").font(.system(size: 13))
+                Text("Your chosen microphone is disconnected — using System Default.").textStyle(.footnote)
                     .foregroundStyle(Theme.orange).padding(.leading, 8)
             }
             SectionLabel("Test").padding(.top, 10)
@@ -34,11 +34,11 @@ struct MicrophonePage: View {
                         .buttonStyle(.pill(.secondary))
                         LevelMeter(level: tester.level)
                     }
-                    Text("Tap to test selected input").font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
+                    Text("Tap to test selected input").textStyle(.footnote).foregroundStyle(Theme.textSecondary)
                 }
                 .padding(Theme.rowPadding)
             }
-            Text("Speak normally — the bars should move as MyClicky hears you.").font(.system(size: 13))
+            Text("Speak normally — the bars should move as MyClicky hears you.").textStyle(.footnote)
                 .foregroundStyle(Theme.textSecondary).padding(.leading, 8)
         }
         .onAppear { AudioDevices.onChange { devices.value = AudioDevices.inputs() } }
@@ -49,13 +49,14 @@ struct MicrophonePage: View {
         Button(action: action) {
             HStack(spacing: 16) {
                 RadioMark(isOn: selected)
-                Text(name).font(Theme.rowTitle).foregroundStyle(Theme.textPrimary)
+                Text(name).textStyle(.headline).foregroundStyle(Theme.textPrimary)
                 Spacer()
             }
             .padding(Theme.rowPadding)
+            .hoverHighlight(radius: Theme.cardRadius)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressableRow)
     }
 }
 
@@ -67,11 +68,11 @@ struct LevelMeter: View {
         HStack(spacing: 4) {
             ForEach(0..<16, id: \.self) { i in
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .fill(Float(i) / 16 < level ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.track))
+                    .fill(Float(i) / 16 < level ? AnyShapeStyle(Theme.accentFill) : AnyShapeStyle(Theme.track))
                     .frame(width: 8, height: 26)
             }
         }
-        .animation(.easeOut(duration: 0.08), value: level)
+        .animation(Motion.quick, value: level) // tracks the voice continuously (spec 014)
     }
 }
 

@@ -23,14 +23,14 @@ struct AgentStepRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: Self.symbol(for: message.toolName ?? "")).font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
+            Image(systemName: Self.symbol(for: message.toolName ?? "")).font(.icon(12)).foregroundStyle(Theme.textSecondary)
                 .frame(width: 16)
-            Text(message.text).font(.system(size: 13)).foregroundStyle(Theme.textSecondary).lineLimit(1)
+            Text(message.text).textStyle(.footnote).foregroundStyle(Theme.textSecondary).lineLimit(1)
             Spacer(minLength: 8)
             switch message.status {
             case "running": ProgressView().controlSize(.mini)
-            case "failed": Image(systemName: "xmark").font(.system(size: 11, weight: .bold)).foregroundStyle(Theme.red)
-            default: Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(Theme.green)
+            case "failed": Image(systemName: "xmark").font(.icon(11, .bold)).foregroundStyle(Theme.red)
+            default: Image(systemName: "checkmark").font(.icon(11, .bold)).foregroundStyle(Theme.green)
             }
         }
         .padding(.leading, 36)
@@ -63,10 +63,10 @@ struct StepGroupView: View {
                 AgentStepRow(message: last)
             }
             Button { expanded.value.toggle() } label: {
-                Text(expanded.value ? "Hide steps ▾" : "\(steps.count) steps ▸").font(.system(size: 12, weight: .medium))
+                Text(expanded.value ? "Hide steps ▾" : "\(steps.count) steps ▸").textStyle(.caption.weight(.medium))
                     .foregroundStyle(Theme.accent)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .padding(.leading, 36)
         }
     }
@@ -84,29 +84,29 @@ struct AllowCard: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 10) {
                     ChatAvatar(chat: chat, size: 26)
-                    Text("\(chat.title) wants to:").font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.textPrimary)
+                    Text("\(chat.title) wants to:").textStyle(.subheadline.weight(.semibold)).foregroundStyle(Theme.textPrimary)
                     if sensitive {
-                        Text("Sensitive").font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                        Text("Sensitive").textStyle(.caption2.weight(.bold)).foregroundStyle(.white)
                             .padding(.horizontal, 7).padding(.vertical, 2).background(Theme.red, in: Capsule())
                     }
                 }
-                Text(message.text).font(.system(size: 15, weight: .medium)).foregroundStyle(Theme.textPrimary)
+                Text(message.text).textStyle(.callout.weight(.medium)).foregroundStyle(Theme.textPrimary)
                 if let detail = message.detail, !detail.isEmpty {
-                    Text(detail).font(.system(size: 12, design: .monospaced)).foregroundStyle(Theme.textSecondary)
+                    Text(detail).textStyle(.caption, design: .monospaced).foregroundStyle(Theme.textSecondary)
                         .padding(8).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.black.opacity(0.3), in: RoundedRectangle(cornerRadius: 8))
+                        .background(Theme.keycap, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                         .textSelection(.enabled)
                 }
                 if pending {
                     HStack(spacing: 10) {
-                        Button("Allow") { decide("allowed") }.buttonStyle(.pill(.primary, compact: true))
+                        Button("Allow") { decide("allowed") }.buttonStyle(.pill(.safe, compact: true))
                         if !sensitive {
                             Button("Always allow for \(chat.title)") { decide("alwaysAllowed") }.buttonStyle(.pill(.secondary, compact: true))
                         }
-                        Button("Deny") { decide("denied") }.buttonStyle(.plain).foregroundStyle(Theme.textSecondary)
+                        Button("Deny") { decide("denied") }.buttonStyle(.pill(.destructive, compact: true))
                     }
                 } else {
-                    Text(Self.outcome(message.status)).font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
+                    Text(Self.outcome(message.status)).textStyle(.footnote).foregroundStyle(Theme.textSecondary)
                 }
             }
             .padding(14)
@@ -123,7 +123,7 @@ struct AllowCard: View {
     static func outcome(_ status: String?) -> String {
         switch status {
         case "allowed": "Allowed"
-        case "alwaysAllowed": "Always allowed for this Clicky"
+        case "alwaysAllowed": "Always allowed for this agent"
         case "denied": "Denied"
         case "expired": "No answer after 10 minutes — denied"
         default: "Waiting…"
@@ -140,12 +140,12 @@ struct KeepGoingCard: View {
     var body: some View {
         SettingsCard {
             VStack(alignment: .leading, spacing: 10) {
-                Text(message.text).font(.system(size: 15, weight: .medium)).foregroundStyle(Theme.textPrimary)
+                Text(message.text).textStyle(.callout.weight(.medium)).foregroundStyle(Theme.textPrimary)
                 if isLatest {
                     HStack(spacing: 10) {
                         Button("Keep going") { AppServices.shared?.agents.keepGoing(chatID: chat.id) }
-                            .buttonStyle(.pill(.primary, compact: true))
-                        Button("Stop here") { resolve() }.buttonStyle(.pill(.dark, compact: true))
+                            .buttonStyle(.pill(.safe, compact: true))
+                        Button("Stop here") { resolve() }.buttonStyle(.pill(.destructive, compact: true))
                     }
                 }
             }
@@ -174,7 +174,7 @@ struct NoticeRow: View {
             Image(systemName: message.status == "failed" ? "exclamationmark.triangle.fill"
                   : message.status == "queued" ? "hourglass" : "stop.circle")
                 .foregroundStyle(message.status == "failed" ? Theme.orange : Theme.textSecondary)
-            Text(message.text).font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
+            Text(message.text).textStyle(.footnote).foregroundStyle(Theme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.leading, 36)

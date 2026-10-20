@@ -3,6 +3,9 @@ import MyClickyCore
 
 /// Snapshot-only scene of the companion's layers (triangle, bubble, pointing label, a drawing) on a sample background.
 struct CompanionDemo: NSViewRepresentable {
+    /// Shows the listening look (sound waves) instead of the bubble scene.
+    var listening = false
+
     func makeNSView(context: Context) -> NSView {
         let size = CGSize(width: 700, height: 420)
         let root = NSView(frame: CGRect(origin: .zero, size: size))
@@ -22,10 +25,15 @@ struct CompanionDemo: NSViewRepresentable {
         overlay.companion.setColor(red)
         overlay.companion.isHidden = false
         overlay.companion.position = CGPoint(x: 180, y: 190)
+        if listening {
+            overlay.companion.setLook(.listening)
+            overlay.companion.setLevel(0.7)
+            overlay.companion.removeAllAnimations()
+            return root
+        }
         let bubbleSize = overlay.bubble.set("The Export button is at the top right. Click it, then choose PDF.", style: .info, accent: red)
         let origin = CompanionLayout.bubbleOrigin(companion: overlay.companion.position, bubble: bubbleSize, screen: root.bounds)
-        overlay.bubble.frame = CGRect(origin: origin, size: bubbleSize)
-        overlay.bubble.isHidden = false
+        overlay.showBubble(frame: CGRect(origin: origin, size: bubbleSize), from: overlay.companion.position)
         let pointed = CompanionLayer()
         pointed.setColor(red)
         pointed.position = CGPoint(x: 520, y: 268)

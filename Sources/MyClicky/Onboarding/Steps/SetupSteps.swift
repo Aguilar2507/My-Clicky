@@ -4,39 +4,51 @@ import MyClickyCore
 /// Three animated intro cards instead of HeyClicky's intro video (spec 012 deviation).
 struct IntroStep: View {
     @StateObject private var card = Box(0)
+    @StateObject private var forward = Box(true)
     private let cards: [(String, String, String)] = [
-        ("rectangle.topthird.inset.filled", "MyClicky lives in your notch", "Rest your pointer on the notch and your chats open."),
-        ("cursorarrow.rays", "A companion beside your cursor", "Hold control + option, ask about anything on screen. It answers out loud and points the way."),
-        ("person.3.fill", "Clickys do the work", "Named helpers run tasks for you in the background, and ask before anything important."),
+        ("menubar.rectangle", "MyClicky lives in your menu bar", "Click the bot in the menu bar or press option + space and your chats open."),
+        ("cursorarrow.rays", "A companion beside your cursor", "Hold control + option and say “Jarvis…” to ask about anything on screen. It answers out loud and points the way."),
+        ("person.3.fill", "Agents do the work", "Named helpers run tasks for you in the background, and ask before anything important."),
     ]
 
     var body: some View {
         VStack(spacing: 22) {
             StepTitle(title: "Welcome to MyClicky", subtitle: "Your own screen-aware Mac assistant. Setup takes a few minutes.")
             let item = cards[card.value]
-            VStack(spacing: 12) {
-                Image(systemName: item.0).font(.system(size: 42)).foregroundStyle(Theme.accent)
-                Text(item.1).font(.system(size: 19, weight: .semibold)).foregroundStyle(Theme.textPrimary)
-                Text(item.2).font(.system(size: 14)).foregroundStyle(Theme.textSecondary).multilineTextAlignment(.center)
+            ZStack { VStack(spacing: 12) {
+                Image(systemName: item.0).font(.icon(42)).foregroundStyle(Theme.accent)
+                Text(item.1).textStyle(.title3).foregroundStyle(Theme.textPrimary)
+                Text(item.2).textStyle(.subheadline).foregroundStyle(Theme.textSecondary).multilineTextAlignment(.center)
             }
             .frame(maxWidth: 440, minHeight: 170)
             .padding(20)
             .background(Theme.card, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
             .id(card.value)
-            .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
+            .transition(.slide(forward: forward.value))
+            }
+            .frame(maxWidth: .infinity)
+            .clipped()
             HStack(spacing: 8) {
                 ForEach(0..<cards.count, id: \.self) { i in
                     Capsule().fill(i == card.value ? Theme.accent : Theme.track).frame(width: i == card.value ? 22 : 8, height: 8)
-                        .onTapGesture { withAnimation { card.value = i } }
+                        .onTapGesture { show(i) }
                 }
             }
+            .animation(Motion.standard, value: card.value)
         }
         .task {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(3.5))
-                withAnimation(.easeInOut(duration: 0.4)) { card.value = (card.value + 1) % cards.count }
+                show((card.value + 1) % cards.count)
             }
         }
+    }
+
+    /// Point the slide, then move on the next turn so the leaving card goes the right way.
+    private func show(_ index: Int) {
+        guard index != card.value else { return }
+        forward.value = index > card.value || (card.value == cards.count - 1 && index == 0)
+        DispatchQueue.main.async { Motion.withAnimation { card.value = index } }
     }
 }
 
@@ -66,7 +78,7 @@ struct PermissionsStep: View {
                             if index > 0 { CardDivider() }
                             SettingsRow(title: permission.title, subtitle: permission.why) {
                                 if permission.isGranted {
-                                    Image(systemName: "checkmark.circle.fill").font(.system(size: 22)).foregroundStyle(Theme.green)
+                                    Image(systemName: "checkmark.circle.fill").font(.icon(22)).foregroundStyle(Theme.green)
                                 } else {
                                     Button("Grant") { permission.request() }.buttonStyle(.pill(.primary, compact: true))
                                 }
@@ -81,7 +93,7 @@ struct PermissionsStep: View {
                     if !Permission.screenRecording.isGranted || !Permission.inputMonitoring.isGranted {
                         HStack {
                             Text("Turned a switch on but still no ✓? macOS applies it after a restart.")
-                                .font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
+                                .textStyle(.footnote).foregroundStyle(Theme.textSecondary)
                             Spacer()
                             Button("Relaunch MyClicky") { Relauncher.relaunch() }.buttonStyle(.pill(.secondary, compact: true))
                         }
@@ -111,10 +123,10 @@ struct APIKeyStep: View {
             .frame(maxWidth: 520)
             if let result = result.value {
                 Label(result.text, systemImage: result.ok ? "checkmark.circle.fill" : "xmark.octagon.fill")
-                    .foregroundStyle(result.ok ? Theme.green : Theme.red).font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(result.ok ? Theme.green : Theme.red).textStyle(.subheadline.weight(.medium))
             }
             Text("Monthly budget: \(UsageMonth.format(model.settings.monthlyBudgetUSD)) (change it later in Settings → General → Spending).")
-                .font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
+                .textStyle(.footnote).foregroundStyle(Theme.textSecondary)
         }
         .onAppear { canContinue.value = model.settings.tour.completed.contains(.apiKey) }
     }
@@ -148,19 +160,19 @@ struct ClaudeCodeStep: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            StepTitle(title: "Clickys work on your Claude plan",
+            StepTitle(title: "Agents work on your Claude plan",
                       subtitle: "Background tasks run with Claude Code, signed in with your Claude subscription (not the API key).")
             if let s = status.value, s.isReady {
                 Label("Claude Code is ready\(s.version.map { " (\($0))" } ?? "")", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(Theme.green).font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Theme.green).textStyle(.callout.weight(.semibold))
             } else {
                 VStack(alignment: .leading, spacing: 10) {
                     Text(status.value?.path == nil ? "Open Terminal and run these, one at a time:" : "Claude Code is installed. Sign in once:")
-                        .font(.system(size: 14)).foregroundStyle(Theme.textSecondary)
+                        .textStyle(.subheadline).foregroundStyle(Theme.textSecondary)
                     if status.value?.path == nil { CommandCard(command: "curl -fsSL https://claude.ai/install.sh | bash") }
                     CommandCard(command: "claude")
                     Text("Choose to sign in with your Claude account, finish in the browser, then type /exit. You can also skip this and do it later from Settings → Agents.")
-                        .font(.system(size: 13)).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        .textStyle(.footnote).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
                     Button("Check again") { Task { status.value = await ClaudeCodeLocator.status(model.settings) } }
                         .buttonStyle(.pill(.secondary, compact: true))
                 }

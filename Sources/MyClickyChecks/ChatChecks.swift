@@ -81,7 +81,7 @@ enum ChatChecks {
             Check.equal(NamingParser.parse(#"{"name":"Shippy","color":"neon"}"#)?.color, nil, "unknown color ignored")
             Check.equal(NamingParser.unique("Role Scout", existing: ["role scout"]), "Role Scout 2")
             Check.equal(NamingParser.unique("Role Scout", existing: ["Role Scout", "Role Scout 2"]), "Role Scout 3")
-            Check.equal(NamingParser.fallbackName(existing: ["New Clicky"]), "New Clicky 2")
+            Check.equal(NamingParser.fallbackName(existing: ["New agent"]), "New agent 2")
             Check.equal(AvatarColor.next(avoiding: [.peach, .sky]), .butter)
         }
 

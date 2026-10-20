@@ -29,14 +29,14 @@ struct DictationPage: View {
                 Text(model.settings.dictationAutoDetect
                      ? "Both languages are listened for. The checked one wins when it's a close call."
                      : "Everything is transcribed in the checked language.")
-                    .font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
+                    .textStyle(.footnote).foregroundStyle(Theme.textSecondary)
                     .padding(.horizontal, 18).padding(.bottom, 14)
             }
 
             SectionLabel("Words").padding(.top, 10)
             SettingsCard {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Names and terms MyClicky should always spell your way.").font(Theme.rowSubtitle)
+                    Text("Names and terms MyClicky should always spell your way.").textStyle(.callout)
                         .foregroundStyle(Theme.textSecondary)
                     FlowChips(words: model.settings.customWords) { word in
                         model.settings.customWords.removeAll { $0 == word }
@@ -61,8 +61,8 @@ struct DictationPage: View {
         let included = model.settings.dictationAutoDetect || checked
         return SelectableCard(isSelected: checked, dimmed: !included, action: { model.settings.dictationLanguage = code }) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.textPrimary)
-                Text(native).font(.system(size: 15)).foregroundStyle(Theme.textSecondary)
+                Text(title).textStyle(.headline).foregroundStyle(Theme.textPrimary)
+                Text(native).textStyle(.callout).foregroundStyle(Theme.textSecondary)
                 if code == "es" {
                     Menu(Self.spanishRegions.first { $0.0 == model.settings.spanishLocale }?.1 ?? model.settings.spanishLocale) {
                         ForEach(Self.spanishRegions, id: \.0) { region in
@@ -71,7 +71,7 @@ struct DictationPage: View {
                     }
                     .menuStyle(.button)
                     .buttonStyle(.plain)
-                    .font(.system(size: 13))
+                    .textStyle(.footnote)
                     .foregroundStyle(Theme.accent)
                     .fixedSize()
                 }
@@ -90,14 +90,14 @@ struct FlowChips: View {
 
     var body: some View {
         if words.isEmpty {
-            Text("No words yet.").font(.system(size: 14)).foregroundStyle(Theme.textTertiary)
+            Text("No words yet.").textStyle(.subheadline).foregroundStyle(Theme.textTertiary)
         } else {
             WrapLayout(spacing: 8) {
                 ForEach(words, id: \.self) { word in
                     HStack(spacing: 6) {
-                        Text(word).font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.textPrimary)
-                        Button { onRemove(word) } label: { Image(systemName: "xmark").font(.system(size: 10, weight: .bold)) }
-                            .buttonStyle(.plain).foregroundStyle(Theme.textSecondary)
+                        Text(word).textStyle(.subheadline.weight(.medium)).foregroundStyle(Theme.textPrimary)
+                        Button { onRemove(word) } label: { Image(systemName: "xmark").font(.icon(10, .bold)) }
+                            .buttonStyle(.pressable).foregroundStyle(Theme.textSecondary)
                     }
                     .padding(.horizontal, 10).padding(.vertical, 6)
                     .background(Theme.keycap, in: Capsule(style: .continuous))

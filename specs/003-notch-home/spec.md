@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-24
 
-**Status**: Draft
+**Status**: Superseded by [019-app-home](../019-app-home/spec.md) (the notch home was removed)
 
 **Input**: User description: "HeyClicky lives in my Mac's notch, 24/7. When I put my cursor on top of the notch the app opens and I can use it like any AI app: chats, settings, new chat, everything."
 

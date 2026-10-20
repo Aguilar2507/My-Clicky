@@ -7,7 +7,7 @@ public enum PermissionDescriber {
         public let text: String          // "Run a command"
         public let detail: String?       // "ls ~/Desktop"
         public let sensitive: Bool       // always needs a fresh Allow
-        public let rule: String          // key for "Always allow for this Clicky"
+        public let rule: String          // key for "Always allow for this agent"
         public let isComputerUse: Bool
     }
 
@@ -71,7 +71,7 @@ public enum PermissionDescriber {
         return patterns.contains { command.range(of: $0, options: [.regularExpression, .caseInsensitive]) != nil }
     }
 
-    /// Whether a request is covered by "Always allow for this Clicky" (never for sensitive ones).
+    /// Whether a request is covered by "Always allow for this agent" (never for sensitive ones).
     public static func isPreApproved(_ description: Description, rules: [String]) -> Bool {
         !description.sensitive && rules.contains(description.rule)
     }

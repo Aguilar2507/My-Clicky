@@ -3,8 +3,8 @@ import SwiftUI
 import ApplicationServices
 import MyClickyCore
 
-/// App startup and wiring. MyClicky lives in the notch (003); the v0.1 menu bar icon is gone (004 FR-008):
-/// everything it offered is in the app (Settings → General) or the notch's right-click menu.
+/// App startup and wiring. MyClicky's home is a normal window (spec 019), opened from the Dock, ⌘Tab, the menu bar
+/// icon or the "Open MyClicky" shortcut. The menu bar icon's right-click menu has what the notch's used to.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let model = AppModel.shared
@@ -17,29 +17,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var suggestions: SuggestionScheduler?
     private let topUpChip = TopUpChip()
     private var galleryWindow: NSWindow?
-    private var notch: NotchController!
+    private var window: MainWindowController!
+    private var statusItem: StatusItemController!
     private var shortcuts: ShortcutCenter!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         if CommandLine.arguments.contains("--gallery") { showDesignGallery() }
         EditShortcuts.install()
 
-        notch = NotchController(model: model)
-        notch.onOpenSettings = { [weak self] in self?.model.openSettings() }
+        window = MainWindowController(model: model)
+        statusItem = StatusItemController(model: model)
+        statusItem.onToggle = { [weak self] in self?.window.toggle() }
+        statusItem.onOpen = { [weak self] in self?.window.show() }
+        statusItem.onOpenSettings = { [weak self] in self?.model.openSettings() }
         shortcuts = ShortcutCenter(model: model)
         shortcuts.onEvent = { [weak self] event in self?.handle(event) }
         shortcuts.onEscape = { [weak self] in self?.dictation.escape() ?? false }
-        AppServices.shared = AppServices(shortcuts: shortcuts, notch: notch, assistant: assistant, agents: agents)
+        AppServices.shared = AppServices(shortcuts: shortcuts, window: window, assistant: assistant, agents: agents)
         assistant.agents = agents
         MessageBubble.custom = { message, chat in AgentCards.render(message, chat: chat) }
         ChatHeader.trailing = { chat, model in
             AnyView(Group {
                 if model.workingChatIDs.contains(chat.id) {
-                    Button("Stop") { AppServices.shared?.agents.stop(chatID: chat.id) }.buttonStyle(.pill(.dark, compact: true))
+                    Button("Stop") { AppServices.shared?.agents.stop(chatID: chat.id) }.buttonStyle(.pill(.destructive, compact: true))
                 }
             })
         }
-        agents.announce = { [weak self] text, bubble in self?.assistant.announce(text, bubble: bubble) }
+        agents.announce = { [weak self] text, bubble, language in
+            self?.assistant.announce(text, bubble: bubble, language: language)
+        }
 
         observeChanges({ self.model.settings.showInDock }) { DockPolicy.apply(showInDock: $0) }
         observeChanges({ self.model.settings.showInScreenRecordings }) { _ in
@@ -61,7 +67,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         suggestions = SuggestionScheduler(model: model)
         suggestions?.onStart = { [weak self] idea in self?.startSuggestion(idea) }
-        notch.extraMenuItems = { [weak self] menu in
+        // Spec 018: clicking a "task finished" notification opens that Clicky's chat.
+        TaskAlerts.shared.openChat = { [weak self] id in
+            guard let self else { return }
+            self.model.goHome()
+            self.model.select(id)
+            self.window.show()
+        }
+        statusItem.extraMenuItems = { [weak self] menu in
             self?.addAgentsMenu(to: menu)
             self?.addQuietMenu(to: menu)
         }
@@ -72,7 +85,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                                allPermissionsGranted: Permission.allCases.allSatisfy(\.isGranted),
                                                existing: model.settings.tour)
         WelcomeTour.controller = WelcomeWindowController(model: model)
-        if !model.settings.tour.finished { WelcomeTour.controller?.show() }
+        if !model.settings.tour.finished {
+            WelcomeTour.controller?.show()
+        } else if !Self.launchedAtLogin {
+            window.show() // opened by you (Finder, Spotlight): show the window; at login it stays in the menu bar
+        }
+    }
+
+    /// True when macOS started MyClicky as a login item.
+    private static var launchedAtLogin: Bool {
+        let event = NSAppleEventManager.shared().currentAppleEvent
+        return event?.eventID == kAEOpenApplication
+            && event?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
     }
 
     // MARK: Permissions + shortcuts
@@ -109,6 +133,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .ended(.dictate): dictation.holdEnded()
         case .cancelled(.dictate): dictation.holdCancelled()
         case .triggered(.handsFreeDictation), .began(.handsFreeDictation): dictation.toggleHandsFree()
+        case .triggered(.openApp): window.toggle()
         default: break
         }
     }
@@ -198,7 +223,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: Lifecycle
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        notch.popOutNow() // Dock icon click opens the window (spec 003 US5)
+        window.show() // Dock icon click opens the window (spec 019)
         return false
     }
 

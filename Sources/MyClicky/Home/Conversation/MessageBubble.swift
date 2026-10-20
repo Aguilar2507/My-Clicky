@@ -18,7 +18,7 @@ struct MessageBubble: View {
                 HStack {
                     Spacer(minLength: 120)
                     VStack(alignment: .trailing, spacing: 4) {
-                        Text(message.text).font(.system(size: 15)).foregroundStyle(Theme.textPrimary).textSelection(.enabled)
+                        Text(message.text).textStyle(.callout).foregroundStyle(.white).textSelection(.enabled)
                             .padding(.horizontal, 14).padding(.vertical, 10)
                             .background(Theme.userBubble, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                         note
@@ -28,14 +28,14 @@ struct MessageBubble: View {
                 HStack(alignment: .top, spacing: 10) {
                     ChatAvatar(chat: chat, size: 26)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(message.text).font(.system(size: 15)).foregroundStyle(Theme.textPrimary).textSelection(.enabled)
+                        Text(message.text).textStyle(.callout).foregroundStyle(Theme.textPrimary).textSelection(.enabled)
                             .fixedSize(horizontal: false, vertical: true)
                         note
                     }
                     Spacer(minLength: 80)
                 }
             case .system:
-                Text(message.text).font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
+                Text(message.text).textStyle(.footnote).foregroundStyle(Theme.textSecondary)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -46,6 +46,6 @@ struct MessageBubble: View {
         let parts = [message.via == .voice ? "Voice" : nil,
                      message.screensSeen > 0 ? "Looked at \(message.screensSeen) screen\(message.screensSeen == 1 ? "" : "s")" : nil,
                      message.createdAt.formatted(date: .omitted, time: .shortened)].compactMap { $0 }
-        Text(parts.joined(separator: " · ")).font(.system(size: 12)).foregroundStyle(Theme.textTertiary)
+        Text(parts.joined(separator: " · ")).textStyle(.caption).foregroundStyle(Theme.textTertiary)
     }
 }

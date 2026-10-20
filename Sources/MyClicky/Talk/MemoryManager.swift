@@ -51,7 +51,7 @@ enum ClickyNamer {
     """
 
     static func name(_ chatID: UUID, from instruction: String, model: AppModel) async {
-        guard let apiKey = Keychain.apiKey(), PaidRequestGate.allowsBackground(model) else { return } // keeps "New Clicky N"
+        guard let apiKey = Keychain.apiKey(), PaidRequestGate.allowsBackground(model) else { return } // keeps "New agent N"
         do {
             let reply = try await ClaudeClient().complete(system: system, user: instruction, model: model.settings.fastModel,
                                                           maxTokens: 60, apiKey: apiKey)

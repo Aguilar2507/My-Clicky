@@ -1,4 +1,5 @@
 import AppKit
+import MyClickyCore
 
 /// Text mode (spec 006 US5): double-tap ⌃ opens "Ask MyClicky…" right next to the cursor. Return sends, Esc closes.
 @MainActor
@@ -26,29 +27,57 @@ final class TextModeField: NSObject, NSTextFieldDelegate {
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.onResign = { [weak self] in self?.close() }
 
+        // Navy glass (spec 014): the page behind shows through, blurred and tinted.
         let background = NSView(frame: CGRect(origin: .zero, size: size))
         background.wantsLayer = true
-        background.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.88).cgColor
-        background.layer?.cornerRadius = 14
-        background.layer?.borderColor = NSColor.white.withAlphaComponent(0.1).cgColor
-        background.layer?.borderWidth = 1
+        background.layer?.cornerRadius = 16
+        background.layer?.cornerCurve = .continuous
+        background.layer?.masksToBounds = true
+        let blur = GlassView.make()
+        blur.frame = background.bounds
+        blur.isHidden = DisplayPrefs.shared.solidSurfaces
+        background.addSubview(blur)
+        let glass = NSView(frame: background.bounds)
+        glass.wantsLayer = true
+        glass.layer?.backgroundColor = GlassView.cgColor(GlassView.tint)
+        glass.layer?.cornerRadius = 16
+        glass.layer?.cornerCurve = .continuous
+        glass.layer?.borderColor = GlassView.cgColor(DisplayPrefs.shared.increaseContrast ? .tertiaryLabelColor : .separatorColor)
+        glass.layer?.borderWidth = 1
+        let edge = CAGradientLayer()
+        edge.frame = glass.bounds
+        let isDark = NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+        edge.colors = [NSColor.white.withAlphaComponent(isDark ? 0.12 : 0).cgColor, NSColor.clear.cgColor]
+        edge.startPoint = CGPoint(x: 0.5, y: 1)
+        edge.endPoint = CGPoint(x: 0.5, y: 0.5)
+        glass.layer?.addSublayer(edge)
+        background.addSubview(glass)
 
         field.frame = CGRect(x: 16, y: 12, width: size.width - 32, height: 22)
         field.isBezeled = false
         field.drawsBackground = false
         field.focusRingType = .none
-        field.textColor = .white
-        field.font = .systemFont(ofSize: 15)
+        field.textColor = .labelColor
+        field.font = TypeStyle.callout.nsFont
         field.stringValue = ""
         field.placeholderAttributedString = NSAttributedString(
-            string: "Ask MyClicky…", attributes: [.foregroundColor: NSColor.white.withAlphaComponent(0.45),
-                                                  .font: NSFont.systemFont(ofSize: 15)])
+            string: "Ask MyClicky…", attributes: [.foregroundColor: NSColor.placeholderTextColor,
+                                                  .font: TypeStyle.callout.nsFont])
         field.delegate = self
         background.addSubview(field)
         panel.contentView = background
         if let model = AppServices.shared.map({ _ in AppModel.shared }) { WindowSharing.apply(to: panel, model: model) }
+        // Materializes next to the cursor: a quick fade and a small scale-up (a fade only with Reduce Motion).
+        panel.alphaValue = 0
         panel.makeKeyAndOrderFront(nil)
         panel.makeFirstResponder(field)
+        if let layer = background.layer {
+            layer.add(Motion.caSpring("transform.scale", from: DisplayPrefs.shared.reduceMotion ? 1 : 0.96, to: 1), forKey: "grow")
+        }
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = MotionSpec.fadeDuration
+            panel.animator().alphaValue = 1
+        }
         self.panel = panel
     }
 

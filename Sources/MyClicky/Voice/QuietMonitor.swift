@@ -4,7 +4,7 @@ import Intents
 import MyClickyCore
 
 /// Notices calls, screen sharing and Focus so MyClicky stays quiet (spec 007 US4, research R6). Best-effort:
-/// macOS has no single public API for these; the notch's right-click menu can force quiet on or off for an hour.
+/// macOS has no single public API for these; the menu bar icon's right-click menu can force quiet on or off for an hour.
 @MainActor
 final class QuietMonitor {
     let model: AppModel

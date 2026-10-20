@@ -74,3 +74,11 @@ Implemented 2026-09-25. `swift build` ✓, checks: 6 companion groups (26 checks
   `Companion/CompanionLayer.swift`. The listening pulse uses a new mic-level callback in `SpeechRecognizer`.
 - **T019 not done**: needs the running app (follow smoothness and CPU, pointing accuracy on real apps, drawings,
   text mode, docking). → **Needs you.**
+
+### Follow-up 2026-09-29: listening waves
+
+Small change (your request): while listening (push-to-talk and dictation), the companion morphs into sound waves in
+its color (`WaveformLayer` in `Companion/CompanionLayer.swift`, 9 rounded bars, pattern from your reference image).
+The bars follow the mic level and breathe on their own rhythm in silence; they morph back into the cursor when
+listening ends. Reduce Motion: a cross-fade and no breathing (bars still follow the level). Snapshot:
+`companion-listening`.

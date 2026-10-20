@@ -68,12 +68,14 @@ final class AppModel {
 
     /// The chat open on the right side (nil = greeting screen).
     var selectedChatID: UUID?
-    /// True while the pop-out window is open.
-    var isWindowOpen = false
+    /// True while MyClicky's window is on screen (not hidden or minimized).
+    var isWindowOpen = false {
+        didSet { if isWindowOpen, let id = visibleChatID { markRead(id) } }
+    }
 
     /// The chat the user can currently see, if any (for unread dots).
     var visibleChatID: UUID? {
-        guard isNotchOpen || isWindowOpen, route == .home else { return nil }
+        guard isWindowOpen, route == .home else { return nil }
         return selectedChatID
     }
 
@@ -148,7 +150,7 @@ final class AppModel {
 
     // MARK: Navigation
 
-    /// What the notch panel / window shows. Settings' Back returns to `previousRoute`.
+    /// What the window shows. Settings' Back returns to `previousRoute`.
     var route: HomeRoute = .home
     @ObservationIgnored var previousRoute: HomeRoute = .home
 
@@ -159,9 +161,22 @@ final class AppModel {
 
     func closeSettings() { route = previousRoute }
 
-    // MARK: Notch status
+    /// The home greeting, from anywhere (spec 017: the sidebar header).
+    func goHome() {
+        showingSpending = false
+        route = .home
+        previousRoute = .home
+        select(nil)
+    }
 
-    /// Clickys with something new (blue dot); drives the notch badge. Filled in by spec 005.
+    // Spec 017: the window's state, so the sidebar header lines up with (or replaces) the window buttons.
+    var isWindowFullScreen = false
+    /// Where macOS draws the red/yellow/green buttons, measured from the window's top-left corner.
+    var windowButtonsFrame: CGRect?
+
+    // MARK: Status
+
+    /// Clickys with something new (blue dot); drives the menu bar dot (spec 019). Filled in by spec 005.
     var unreadCount: Int { previewUnreadCount ?? chats.filter { $0.kind == .clicky && $0.isUnread }.count }
     /// Snapshot/preview override for the badge.
     var previewUnreadCount: Int?
@@ -172,14 +187,8 @@ final class AppModel {
     var isQuiet: Bool { QuietPolicy.isQuiet(reasons: quietReasons, override: settings.quietOverride) }
     /// True while dictation records (spec 008), so the mic isn't mistaken for a call.
     var isDictating = false
-    /// True while any agent task runs (notch activity indicator).
+    /// True while any agent task runs (menu bar dot).
     var isAgentRunning = false
-    /// True while the notch panel is open (the companion hides over it).
-    var isNotchOpen = false {
-        didSet { if isNotchOpen, let id = visibleChatID { markRead(id) } }
-    }
-    /// Color of the companion when docked in the notch (spec 006); nil = not docked.
-    var dockedCompanionColor: Color? { settings.cursorDocked ? Color(hex: settings.cursorColor.hex) : nil }
 
     // MARK: Usage
 

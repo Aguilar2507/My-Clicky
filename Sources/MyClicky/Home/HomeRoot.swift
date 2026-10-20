@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Everything inside the notch panel or the pop-out window. Later specs fill it (004 settings, 005 chats).
+/// Everything inside MyClicky's window (spec 019). Later specs fill it (004 settings, 005 chats).
 struct HomeRoot: View {
     @Environment(AppModel.self) private var model
     var chrome: HomeChrome
@@ -13,20 +13,12 @@ struct HomeRoot: View {
             case .settings(let page):
                 SettingsView(page: page)
             }
-            chrome
         }
-        .overlay {
+        .environment(\.windowControls, chrome.controls)
+        // Switches and controls keep their active (accent) colors even while the window is in the background.
+        .environment(\.controlActiveState, .key)
+        .modalOverlay(model.showingSpending) {
             if model.showingSpending { SpendingSheet { model.showingSpending = false } }
         }
-        .environment(\.colorScheme, .dark)
-    }
-}
-
-/// The black-to-clear fade where the panel meets the notch (ref 02).
-struct TopFade: View {
-    var body: some View {
-        LinearGradient(colors: [.black, .black.opacity(0)], startPoint: .top, endPoint: .bottom)
-            .frame(height: 90)
-            .allowsHitTesting(false)
     }
 }

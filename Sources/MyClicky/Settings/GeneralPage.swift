@@ -18,13 +18,18 @@ struct GeneralPage: View {
 
             SectionLabel("Behavior")
             SettingsCard {
-                SettingsRow(title: "Show in Dock", subtitle: "Turn off to keep MyClicky notch only.") {
+                SettingsRow(title: "Show in Dock", subtitle: "Turn off to keep MyClicky in the menu bar only.") {
                     Toggle("", isOn: $model.settings.showInDock).toggleStyle(.glossy).labelsHidden()
                 }
                 CardDivider()
                 SettingsRow(title: "Show in screen recordings",
                             subtitle: "Let screen sharing and recording tools capture MyClicky.") {
                     Toggle("", isOn: $model.settings.showInScreenRecordings).toggleStyle(.glossy).labelsHidden()
+                }
+                CardDivider()
+                SettingsRow(title: "Haptic feedback",
+                            subtitle: "A light tap on the trackpad when MyClicky starts or stops listening, a switch flips or an agent finishes.") {
+                    Toggle("", isOn: $model.settings.hapticFeedback).toggleStyle(.glossy).labelsHidden()
                 }
             }
 
@@ -43,7 +48,7 @@ struct GeneralPage: View {
                         if index > 0 { CardDivider() }
                         SettingsRow(title: permission.title, subtitle: permission.why) {
                             if permission.isGranted {
-                                Image(systemName: "checkmark.circle.fill").font(.system(size: 24))
+                                Image(systemName: "checkmark.circle.fill").font(.icon(24))
                                     .foregroundStyle(Theme.green)
                             } else {
                                 Button("Open") { permission.request() }.buttonStyle(.pill(.primary))
@@ -63,26 +68,28 @@ struct GeneralPage: View {
                     SettingsRow(title: "What's new", subtitle: "Everything that changed in MyClicky.") {
                         Image(systemName: "arrow.up.right").foregroundStyle(Theme.icon)
                     }
+                    .hoverHighlight(radius: Theme.cardRadius)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressableRow)
             }
 
             SectionLabel("Welcome tour").padding(.top, 10)
             SettingsCard {
                 Button { WelcomeTour.replay(model) } label: {
                     SettingsRow(title: "Replay the welcome tour",
-                                subtitle: "Watch the intro again, then redo the hands-on tour and the interview. MyClicky makes three new Clickys from your answers; the ones you have stay.") {
+                                subtitle: "Watch the intro again, then redo the hands-on tour and the interview. MyClicky makes three new agents from your answers; the ones you have stay.") {
                         Image(systemName: "play.fill").foregroundStyle(Theme.icon)
                     }
+                    .hoverHighlight(radius: Theme.cardRadius)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressableRow)
             }
 
             ForEach(Array(Self.extraSections.enumerated()), id: \.offset) { _, section in section(model) }
         }
-        .overlay {
+        .modalOverlay([editingKey.value, showingChangelog.value]) {
             if editingKey.value {
                 APIKeyEditor { editingKey.value = false; keyRevision.value += 1 }
             }
@@ -104,9 +111,9 @@ struct APIKeyEditor: View {
 
     var body: some View {
         ModalCard(onDismiss: onDone) {
-            Text("Anthropic API key").font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.textPrimary)
+            Text("Anthropic API key").textStyle(.title3.weight(.bold)).foregroundStyle(Theme.textPrimary)
             Text("Used for questions about your screen. Stored in your macOS Keychain. Create one at console.anthropic.com and set a monthly limit there.")
-                .font(Theme.rowSubtitle).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
+                .textStyle(.callout).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
             SecretField(placeholder: "sk-ant-…", text: $key.value, onSubmit: save)
             HStack {
                 Spacer()
@@ -130,9 +137,9 @@ struct WhatsNewSheet: View {
     var body: some View {
         ModalCard(width: 600, onDismiss: onDone) {
             HStack {
-                Text("What's new").font(.system(size: 22, weight: .bold)).foregroundStyle(Theme.textPrimary)
+                Text("What's new").textStyle(.title2.weight(.bold)).foregroundStyle(Theme.textPrimary)
                 Spacer()
-                Button(action: onDone) { Image(systemName: "xmark") }.buttonStyle(.plain).foregroundStyle(Theme.icon)
+                Button(action: onDone) { Image(systemName: "xmark") }.buttonStyle(.pressable).foregroundStyle(Theme.icon)
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 6) {
@@ -155,13 +162,13 @@ struct WhatsNewSheet: View {
     @ViewBuilder
     static func render(_ line: String) -> some View {
         if line.hasPrefix("## ") {
-            Text(line.dropFirst(3)).font(.system(size: 17, weight: .bold)).foregroundStyle(Theme.textPrimary).padding(.top, 10)
+            Text(line.dropFirst(3)).textStyle(.body.weight(.bold)).foregroundStyle(Theme.textPrimary).padding(.top, 10)
         } else if line.hasPrefix("# ") {
             EmptyView()
         } else {
             let body = line.hasPrefix("- ") ? "•  " + line.dropFirst(2) : Substring(line)
             Text((try? AttributedString(markdown: String(body))) ?? AttributedString(String(body)))
-                .font(.system(size: 14)).foregroundStyle(Theme.textSecondary)
+                .textStyle(.subheadline).foregroundStyle(Theme.textSecondary)
         }
     }
 }

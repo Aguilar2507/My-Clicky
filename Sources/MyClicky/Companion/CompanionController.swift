@@ -3,7 +3,7 @@ import QuartzCore
 import MyClickyCore
 
 /// The cursor companion (spec 006): a glowing triangle that trails the pointer on every display, shows answers in a
-/// bubble, flies to point at things, draws on screen, and can dock in the notch.
+/// bubble, flies to point at things, draws on screen, and can dock beside the menu bar icon (spec 019).
 @MainActor
 final class CompanionController: NSObject {
     private struct Flight {
@@ -28,6 +28,8 @@ final class CompanionController: NSObject {
     private var hideBubbleWork: DispatchWorkItem?
     private var fadeDrawingsWork: DispatchWorkItem?
     private var monitors: [Any] = []
+    /// The agent bot is out (spec 018): the cursor companion steps aside.
+    private var agentBotOut = false
 
     init(model: AppModel) {
         self.model = model
@@ -47,7 +49,6 @@ final class CompanionController: NSObject {
         }
         observeChanges({ model.settings.cursorColor }) { [weak self] _ in self?.applyColor() }
         observeChanges({ model.settings.cursorDocked }) { [weak self] _ in self?.wake() }
-        observeChanges({ model.isNotchOpen }) { [weak self] _ in self?.wake() }
     }
 
     // MARK: Public API
@@ -57,6 +58,12 @@ final class CompanionController: NSObject {
     func setLook(_ look: CompanionLayer.Look) {
         self.look = look
         windows.forEach { $0.overlay.companion.setLook(look) }
+        wake()
+    }
+
+    /// Hides the cursor companion while the agent bot listens beside the pointer, and brings it back after.
+    func setAgentBotOut(_ out: Bool) {
+        agentBotOut = out
         wake()
     }
 
@@ -87,7 +94,7 @@ final class CompanionController: NSObject {
 
     /// Flies the companion to a global point, shows the label, and comes back (6 s, or when the pointer gets close).
     func point(at target: CGPoint, label: String) {
-        let start = model.settings.cursorDocked && flight == nil && hold == nil ? notchAnchor : spring.position
+        let start = model.settings.cursorDocked && flight == nil && hold == nil ? dockAnchor : spring.position
         flight = Flight(start: start, control: CompanionLayout.arcControl(from: start, to: target), end: target,
                         startTime: CACurrentMediaTime(), duration: CompanionLayout.flightDuration(from: start, to: target),
                         label: label, returning: false)
@@ -108,13 +115,19 @@ final class CompanionController: NSObject {
         clearDrawings()
         for mark in marks where screenshots.indices.contains(mark.screen - 1) {
             let shot = screenshots[mark.screen - 1]
-            guard let window = windows.first(where: { $0.frame == shot.screenFrame }) ?? windows.first else { continue }
+            guard let window = windows.first(where: { $0.screenFrame == shot.screenFrame }) ?? windows.first else { continue }
+            // Drawings live in the display's coordinates (the drawings layer stays put while the window resizes).
+            let origin = window.screenFrame.origin
             if let layer = DrawingLayer.make(mark, color: color,
-                                             point: { x, y in window.local(shot.globalPoint(x: x, y: y)) },
+                                             point: { x, y in
+                                                 let p = shot.globalPoint(x: x, y: y)
+                                                 return CGPoint(x: p.x - origin.x, y: p.y - origin.y)
+                                             },
                                              length: { shot.points($0) }) {
                 window.overlay.drawings.addSublayer(layer)
             }
         }
+        wake()
         let work = DispatchWorkItem { [weak self] in self?.fadeDrawings() }
         fadeDrawingsWork = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 8, execute: work)
@@ -123,6 +136,7 @@ final class CompanionController: NSObject {
     func clearDrawings() {
         fadeDrawingsWork?.cancel()
         windows.forEach { $0.overlay.drawings.sublayers?.forEach { $0.removeFromSuperlayer() } }
+        wake()
     }
 
     /// Where the companion is now (global), for placing the text-mode field.
@@ -135,13 +149,14 @@ final class CompanionController: NSObject {
         windows = NSScreen.screens.map { CompanionWindow(screen: $0) }
         windows.forEach {
             WindowSharing.apply(to: $0, model: model)
-            $0.orderFrontRegardless()
             $0.overlay.companion.setLook(look)
             if let bubble { $0.overlay.bubble.set(bubble.text, style: bubble.style, accent: color) }
         }
         applyColor()
         displayLink?.invalidate()
-        displayLink = windows.first?.overlay.displayLink(target: self, selector: #selector(tick(_:)))
+        // From the display, not a window: the overlay windows hide when there's nothing to show, and a window's
+        // display link stops with it.
+        displayLink = (NSScreen.main ?? NSScreen.screens.first)?.displayLink(target: self, selector: #selector(tick(_:)))
         displayLink?.add(to: .main, forMode: .common)
         wake()
     }
@@ -156,18 +171,20 @@ final class CompanionController: NSObject {
             for layer in window.overlay.drawings.sublayers ?? [] {
                 CATransaction.begin()
                 CATransaction.setAnimationDuration(0.6)
-                CATransaction.setCompletionBlock { layer.removeFromSuperlayer() }
+                CATransaction.setCompletionBlock { [weak self] in
+                    layer.removeFromSuperlayer()
+                    self?.wake() // shrink the window back once the drawings are gone
+                }
                 layer.opacity = 0
                 CATransaction.commit()
             }
         }
     }
 
-    /// The docked companion's home: the right wing of the notch.
-    private var notchAnchor: CGPoint {
-        let screen = NSScreen.screens.first { $0.auxiliaryTopLeftArea != nil } ?? NSScreen.main ?? NSScreen.screens[0]
-        let rect = NotchController.geometry(for: screen).collapsedRect
-        return CGPoint(x: rect.maxX - NotchGeometry.wingWidth / 2, y: rect.midY)
+    /// The docked companion's home: just below the menu bar icon (spec 019; was the notch's right wing).
+    private var dockAnchor: CGPoint {
+        let rect = StatusItemController.anchorRect
+        return CGPoint(x: rect.midX, y: rect.minY - CompanionLayer.size / 2 - 4)
     }
 
     // MARK: Animation loop
@@ -200,9 +217,9 @@ final class CompanionController: NSObject {
                 windows.forEach { $0.overlay.label.isHidden = true }
                 if look == .pointing { setLook(.idle) }
                 if model.settings.cursorDocked {
-                    flight = Flight(start: h.point, control: CompanionLayout.arcControl(from: h.point, to: notchAnchor),
-                                    end: notchAnchor, startTime: CACurrentMediaTime(),
-                                    duration: CompanionLayout.flightDuration(from: h.point, to: notchAnchor), label: "",
+                    flight = Flight(start: h.point, control: CompanionLayout.arcControl(from: h.point, to: dockAnchor),
+                                    end: dockAnchor, startTime: CACurrentMediaTime(),
+                                    duration: CompanionLayout.flightDuration(from: h.point, to: dockAnchor), label: "",
                                     returning: true)
                 }
             }
@@ -221,12 +238,13 @@ final class CompanionController: NSObject {
 
         render()
         let animating = look == .thinking || look == .speaking || look == .listening
-        if !busy && !animating { link.isPaused = true }
+        let bubbleFading = windows.contains { ($0.fadingBubble?.until ?? 0) > CACurrentMediaTime() }
+        if !busy && !animating && !bubbleFading { link.isPaused = true }
     }
 
     private func arrived(at point: CGPoint, label: String) {
         hold = (point, Date().addingTimeInterval(6))
-        for window in windows where window.frame.contains(point) {
+        for window in windows where window.screenFrame.contains(point) {
             window.overlay.companion.bounce()
             window.overlay.label.set(label, color: color, near: window.local(point), within: window.overlay.bounds)
         }
@@ -235,26 +253,49 @@ final class CompanionController: NSObject {
     private func render() {
         let pos = spring.position
         let flying = flight != nil || hold != nil
-        let showCompanion = (flying || !model.settings.cursorDocked) && (flying || !model.isNotchOpen)
+        let showCompanion = (flying || !model.settings.cursorDocked) && !agentBotOut
         let bubbleAnchor = showCompanion ? pos : CompanionLayout.anchor(mouse: NSEvent.mouseLocation,
                                                                        screen: NSScreen.main?.frame ?? .zero,
                                                                        size: CGSize(width: 22, height: 22))
+        let now = CACurrentMediaTime()
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         for window in windows {
-            let here = window.frame.insetBy(dx: -1, dy: -1).contains(pos)
-            window.overlay.companion.isHidden = !(showCompanion && here)
-            if here { window.overlay.companion.position = window.local(pos) }
+            let screen = window.screenFrame
+            let here = screen.insetBy(dx: -1, dy: -1).contains(pos)
+            let companionShown = showCompanion && here
 
-            let bubbleHere = window.frame.contains(bubbleAnchor)
-            if let bubble, bubbleHere, !model.isNotchOpen {
-                _ = bubble
+            var bubbleRect: CGRect?
+            if bubble != nil, screen.contains(bubbleAnchor) {
                 let size = window.overlay.bubble.bounds.size
-                let origin = CompanionLayout.bubbleOrigin(companion: bubbleAnchor, bubble: size, screen: window.frame)
-                window.overlay.bubble.frame = CGRect(origin: window.local(origin), size: size)
-                window.overlay.bubble.isHidden = false
+                bubbleRect = CGRect(origin: CompanionLayout.bubbleOrigin(companion: bubbleAnchor, bubble: size, screen: screen),
+                                    size: size)
+                window.fadingBubble = nil
+            } else if window.overlay.bubbleShown, let last = window.fadingBubble?.rect {
+                window.fadingBubble = (last, now + 0.35) // animating away: keep its space a moment
+            }
+            let fading = window.fadingBubble.flatMap { $0.until > now ? $0.rect : nil }
+
+            // Size the window to what it shows: the whole display only while pointing or drawing.
+            if flying || window.hasDrawings {
+                window.fit(screen)
             } else {
-                window.overlay.bubble.isHidden = true
+                var rect: CGRect? = companionShown ? CGRect(x: pos.x - 48, y: pos.y - 48, width: 96, height: 96) : nil
+                if let b = bubbleRect ?? fading {
+                    let padded = b.insetBy(dx: -16, dy: -16)
+                    rect = rect.map { $0.union(padded) } ?? padded
+                }
+                window.fit(rect?.intersection(screen))
+            }
+
+            window.overlay.companion.isHidden = !companionShown
+            if here { window.overlay.companion.position = window.local(pos) }
+            if let bubbleRect {
+                window.overlay.showBubble(frame: window.local(bubbleRect), from: window.local(bubbleAnchor))
+                window.fadingBubble = (bubbleRect, 0)
+            } else {
+                if let fading { window.overlay.placeBubble(frame: window.local(fading)) }
+                window.overlay.hideBubble(toward: window.local(bubbleAnchor))
             }
         }
         CATransaction.commit()

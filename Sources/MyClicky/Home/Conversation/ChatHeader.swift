@@ -15,8 +15,8 @@ struct ChatHeader: View {
         HStack(spacing: 12) {
             ChatAvatar(chat: chat, size: 34)
             VStack(alignment: .leading, spacing: 2) {
-                Text(chat.title).font(.system(size: 18, weight: .bold)).foregroundStyle(Theme.textPrimary).lineLimit(1)
-                Text(status).font(.system(size: 13)).foregroundStyle(Theme.textSecondary).lineLimit(1)
+                Text(chat.title).textStyle(.title3.weight(.bold)).foregroundStyle(Theme.textPrimary).lineLimit(1)
+                Text(status).textStyle(.footnote).foregroundStyle(Theme.textSecondary).lineLimit(1)
             }
             Spacer()
             if let trailing = Self.trailing { trailing(chat, model) }
@@ -34,7 +34,7 @@ struct ChatHeader: View {
                     Button("Clear history…", action: onDelete)
                 }
             } label: {
-                Image(systemName: "ellipsis").font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.icon)
+                Image(systemName: "ellipsis").font(.icon(17, .semibold)).foregroundStyle(Theme.icon)
                     .frame(width: 34, height: 34)
                     .background(Theme.card, in: Circle())
             }
@@ -44,7 +44,9 @@ struct ChatHeader: View {
             .fixedSize()
         }
         .padding(.leading, 28)
-        .padding(.trailing, 150) // room for the pop-out and ✕ chrome
+        .padding(.trailing, 28)
+        .frame(maxWidth: Theme.Layout.conversationColumn)
+        .frame(maxWidth: .infinity) // same column as the messages (spec 017)
         .padding(.top, 22)
         .padding(.bottom, 12)
     }
@@ -52,6 +54,6 @@ struct ChatHeader: View {
     private var status: String {
         if model.workingChatIDs.contains(chat.id) { return "Working…" }
         if chat.kind == .talk { return "Questions about your screen" }
-        return chat.purpose.isEmpty ? "Clicky" : chat.purpose.replacingOccurrences(of: "\n", with: " ")
+        return chat.purpose.isEmpty ? "Agent" : chat.purpose.replacingOccurrences(of: "\n", with: " ")
     }
 }

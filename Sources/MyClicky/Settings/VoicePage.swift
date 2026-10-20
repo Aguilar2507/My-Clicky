@@ -23,30 +23,26 @@ struct VoicePage: View {
                 ForEach(VoiceRanking.speeds, id: \.self) { speed in
                     let selected = model.settings.speechSpeed == speed
                     Button { model.settings.speechSpeed = speed } label: {
-                        Text(Self.label(speed)).font(.system(size: 15, weight: .semibold))
+                        Text(Self.label(speed)).textStyle(.callout.weight(.semibold))
                             .foregroundStyle(selected ? Color.white : Theme.textPrimary.opacity(0.85))
                             .frame(width: 70, height: 38)
-                            .background {
-                                if selected {
-                                    BorderedCapsule(fill: AnyShapeStyle(Theme.accentGradient), border: .white, borderWidth: 2)
-                                } else {
-                                    Capsule(style: .continuous).fill(Theme.track)
-                                }
-                            }
+                            .background(selected ? Theme.accent : Theme.controlDark, in: Capsule(style: .continuous))
+                            .hoverHighlight(radius: 19, enabled: !selected)
+                            .animation(Motion.quick, value: selected)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                 }
             }
             .padding(10)
             .background(Theme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            Text("Takes effect on the next spoken reply.").font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
+            Text("Takes effect on the next spoken reply.").textStyle(.footnote).foregroundStyle(Theme.textSecondary)
                 .padding(.leading, 8)
 
             section("English", language: "en")
             section("Spanish", language: "es")
 
             Text("Tap a voice to hear it. The pick applies to future spoken replies.")
-                .font(.system(size: 13)).foregroundStyle(Theme.textSecondary).padding(.leading, 8)
+                .textStyle(.footnote).foregroundStyle(Theme.textSecondary).padding(.leading, 8)
             SettingsCard {
                 Button {
                     NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Accessibility-Settings.extension?SpokenContent")!)
@@ -55,9 +51,10 @@ struct VoicePage: View {
                                 subtitle: "Download Premium or Enhanced voices in System Settings → Accessibility → Spoken Content.") {
                         Image(systemName: "arrow.up.right").foregroundStyle(Theme.icon)
                     }
+                    .hoverHighlight(radius: Theme.cardRadius)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressableRow)
             }
         }
     }
@@ -70,25 +67,25 @@ struct VoicePage: View {
         SectionLabel("Voice — \(title)").padding(.top, 10)
         if !voices.isEmpty && !voices.contains(where: { $0.quality >= 2 || VoiceRanking.naturalness($0.identifier) >= 4 }) {
             Text("Only basic \(title) voices are installed. For a natural voice, use “Get more voices” and download a Premium or Enhanced one.")
-                .font(.system(size: 13)).foregroundStyle(Theme.orange).padding(.leading, 8)
+                .textStyle(.footnote).foregroundStyle(Theme.orange).padding(.leading, 8)
                 .fixedSize(horizontal: false, vertical: true)
         }
         if voices.isEmpty {
-            Text("No \(title) voices installed. Use “Get more voices” below.").font(.system(size: 14))
+            Text("No \(title) voices installed. Use “Get more voices” below.").textStyle(.subheadline)
                 .foregroundStyle(Theme.textSecondary).padding(.leading, 8)
         } else {
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(114), spacing: 12), count: 5), alignment: .leading, spacing: 12) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 114, maximum: 140), spacing: 12)], alignment: .leading, spacing: 12) {
                 ForEach(Array(voices.enumerated()), id: \.element.identifier) { index, voice in
                     SelectableCard(isSelected: voice.identifier == selected, action: {
                         model.settings.voiceByLanguage[language] = voice.identifier
                         preview.play(voice, name: model.settings.profileName, speed: model.settings.speechSpeed)
                     }) {
                         VStack(spacing: 6) {
-                            Image(systemName: Self.icons[index % Self.icons.count].0).font(.system(size: 26))
+                            Image(systemName: Self.icons[index % Self.icons.count].0).font(.icon(26))
                                 .foregroundStyle(Self.icons[index % Self.icons.count].1)
-                            Text(voice.name).font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.textPrimary)
+                            Text(voice.name).textStyle(.callout.weight(.bold)).foregroundStyle(Theme.textPrimary)
                                 .lineLimit(1).minimumScaleFactor(0.8)
-                            Text(VoiceRanking.descriptor(for: voice)).font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
+                            Text(VoiceRanking.descriptor(for: voice)).textStyle(.caption).foregroundStyle(Theme.textSecondary)
                                 .lineLimit(1)
                         }
                         .padding(8)

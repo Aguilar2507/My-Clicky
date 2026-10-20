@@ -22,7 +22,7 @@ public enum ChatRouter {
     public static let continuationWindow: TimeInterval = 15 * 60
 
     public static func route(_ text: String, clickys: [ClickyRef], now: Date = Date()) -> Route {
-        guard let task = Router.agentTask(text) else { return .talk(text) }
+        guard let task = Router.agentTask(text) else { return .talk(Router.talkQuestion(text)) }
         if let named = namedClicky(in: task, clickys: clickys) { return .clicky(named.id, named.task) }
         if let recent = clickys.filter({ ($0.lastAgentUseAt.map { now.timeIntervalSince($0) } ?? .infinity) < continuationWindow })
             .max(by: { $0.lastAgentUseAt! < $1.lastAgentUseAt! }) {

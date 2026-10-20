@@ -35,8 +35,12 @@ final class Assistant {
     /// While announcing with its own bubble, the speech doesn't overwrite it.
     private var bubbleFollowsSpeech = true
     private var listenStart = Date()
+    /// The last request's language, for requests too short to tell (spec 020).
+    private var lastLanguage: String?
     private var currentRequest: Task<Void, Never>?
     private var spokenSoFar = ""
+    /// Spec 018: the bot that shows up when you say "Jarvis agent".
+    private let agentBot = AgentBotPresenter()
 
     private(set) var state: State = .idle {
         didSet {
@@ -67,6 +71,23 @@ final class Assistant {
             if self.bubbleFollowsSpeech { self.companion.showBubble(self.spokenSoFar, style: .info) }
         }
         speech.onLevel = { [weak companion] level in companion?.setLevel(level) }
+        speech.onPartial = { [weak self] _ in self?.heard() }
+    }
+
+    // MARK: Agent bot (spec 018)
+
+    /// As soon as the live transcript (in either language) starts with "Jarvis agent", the cursor steps aside and the
+    /// bot comes to listen.
+    private func heard() {
+        guard state == .listening, !agentBot.isOut, speech.partials.contains(where: WakeWords.isAgentCall) else { return }
+        companion.setAgentBotOut(true)
+        agentBot.summon()
+    }
+
+    /// The bot nods if it got a task, flies back to its corner, and the cursor companion returns.
+    private func sendAgentBotAway(gotTask: Bool) {
+        guard agentBot.isOut else { return }
+        agentBot.dismiss(nod: gotTask) { [weak self] in self?.companion.setAgentBotOut(false) }
     }
 
     // MARK: Voice
@@ -80,10 +101,11 @@ final class Assistant {
         companion.clearDrawings()
         companion.hideBubble()
         do {
-            try speech.start(settings)
+            try speech.start(settings, expecting: WakeWords.hints)
             listenStart = Date()
             state = .listening
             companion.setLook(.listening)
+            Haptics.tap(.listen) // same moment the companion starts listening (spec 014 US6)
         } catch {
             state = .idle
             companion.setLook(.idle)
@@ -93,16 +115,19 @@ final class Assistant {
 
     func endListening() {
         guard state == .listening else { return }
+        Haptics.tap(.listen)
         let tooShort = Date().timeIntervalSince(listenStart) < 0.3
         currentRequest = Task {
-            let text = await speech.stop()
+            let text = WakeWords.canonical(await speech.stop())
+            let spoken = speech.lastLanguage
+            sendAgentBotAway(gotTask: !tooShort && Router.agentTask(text) != nil)
             if tooShort || text.isEmpty {
                 state = .idle
                 companion.setLook(.idle)
                 companion.showBubble(tooShort ? "Hold the key while you talk" : "I didn't catch that", style: .info, autoHide: 1.5)
                 return
             }
-            await handle(text, via: .voice)
+            await handle(text, via: .voice, spoken: spoken)
         }
     }
 
@@ -110,6 +135,7 @@ final class Assistant {
     func cancelListening() {
         guard state == .listening else { return }
         speech.cancel()
+        sendAgentBotAway(gotTask: false)
         state = .idle
         companion.setLook(.idle)
     }
@@ -135,13 +161,14 @@ final class Assistant {
     func send(_ text: String, toChat chatID: UUID) {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, let chat = model.chat(chatID) else { return }
+        let language = requestLanguage(for: text, spoken: nil)
         if chat.kind == .talk {
             currentRequest?.cancel()
             voice.stopNow()
-        quietChip.close()
-            currentRequest = Task { await talk(text, via: .typed) }
+            quietChip.close()
+            currentRequest = Task { await talk(text, via: .typed, language: language) }
         } else {
-            startAgent(text, in: chatID, via: .typed)
+            startAgent(text, in: chatID, via: .typed, language: language)
         }
     }
 
@@ -156,23 +183,43 @@ final class Assistant {
 
     // MARK: Routing
 
-    private func handle(_ text: String, via: Message.Via) async {
+    private func handle(_ text: String, via: Message.Via, spoken: String? = nil) async {
+        let language = requestLanguage(for: text, spoken: spoken)
         switch ChatRouter.route(text, clickys: model.clickyRefs) {
         case .talk(let question):
-            await talk(question, via: via)
+            await talk(question, via: via, language: language)
         case .clicky(let id, let task):
-            startAgent(task, in: id, via: via)
+            finishListening()
+            startAgent(task, in: id, via: via, language: language)
         case .newClicky(let task):
+            finishListening()
             let id = model.createClicky(purpose: task)
             Task { await ClickyNamer.name(id, from: task, model: model) }
-            startAgent(task, in: id, via: via)
+            startAgent(task, in: id, via: via, language: language)
         }
+    }
+
+    /// The language to answer in (spec 020): what the recognizer heard, else a guess from the text, else the last
+    /// request's language, else the dictation language. Remembered for the next short request.
+    private func requestLanguage(for text: String, spoken: String?) -> String {
+        let language = ReplyLanguage.resolve(spoken: spoken, guessed: SpeechRecognizer.guessLanguage(text),
+                                             previous: lastLanguage, fallback: settings.dictationLanguage)
+        lastLanguage = language
+        return language
+    }
+
+    /// Agent requests don't go through Talk, so nothing else ends the listening state. Without this MyClicky stayed
+    /// "listening": announcements waited forever and the next push-to-talk was ignored (spec 018 FR-005).
+    private func finishListening() {
+        guard state == .listening else { return }
+        state = .idle
+        companion.setLook(.idle)
     }
 
     // MARK: Talk (screen questions)
 
     /// Streams the answer and speaks it sentence by sentence as it arrives (spec 007 US1).
-    private func talk(_ text: String, via: Message.Via) async {
+    private func talk(_ text: String, via: Message.Via, language: String) async {
         guard let apiKey = Keychain.apiKey() else {
             say("Please set your Anthropic API key first, in Settings, General.")
             return
@@ -193,12 +240,13 @@ final class Assistant {
         let window = ContextWindow(chat: model.talkChat)
         let history = window.recent.map { ChatTurn(user: $0.user.text, assistant: $0.assistant.text) }
         model.append(Message(role: .user, text: text, via: via, screensSeen: screenshots.count), to: talkID)
-        let body = claude.talkBody(question: text, screenshots: screenshots, history: history, memory: window.summary, model: modelID)
+        let body = claude.talkBody(question: text, screenshots: screenshots, history: history, memory: window.summary, model: modelID,
+                                   language: language)
 
         let quiet = model.isQuiet
         let stream = StreamState()
         spokenSoFar = ""
-        if !quiet { voice.begin() }
+        if !quiet { voice.begin(language: language) }
         let settings = self.settings
         let feed: @MainActor (String) -> Void = { [weak self] sentence in
             guard let self else { return }
@@ -233,7 +281,7 @@ final class Assistant {
             if parsed.text.isEmpty && !quiet { voice.enqueue(answer, settings: settings) }
 
             if quiet {
-                finishQuietly(answer)
+                finishQuietly(answer, language: language)
             } else {
                 voice.close()
             }
@@ -253,14 +301,14 @@ final class Assistant {
     }
 
     /// Quiet mode (spec 007 US4): show the answer without sound, with a chip to play it.
-    private func finishQuietly(_ answer: String) {
+    private func finishQuietly(_ answer: String, language: String) {
         state = .idle
         companion.setLook(.idle)
         companion.showBubble("🔇 " + answer, style: .quiet, autoHide: 12)
         quietChip.show(near: NSEvent.mouseLocation) { [weak self] in
             guard let self else { return }
             self.spokenSoFar = ""
-            self.voice.speakAll(answer, settings: self.settings)
+            self.voice.speakAll(answer, settings: self.settings, language: language)
         }
     }
 
@@ -280,24 +328,26 @@ final class Assistant {
 
     // MARK: Clickys (agents run in AgentSupervisor, spec 009)
 
-    private func startAgent(_ task: String, in chatID: UUID, via: Message.Via) {
+    private func startAgent(_ task: String, in chatID: UUID, via: Message.Via, language: String) {
         model.append(Message(role: .user, text: task, via: via), to: chatID)
-        agents?.start(chatID: chatID, instruction: task)
+        agents?.start(chatID: chatID, instruction: task, language: language)
     }
 
     /// Agent start/finish announcements (spec 009 US5): an optional bubble beside the cursor, and a spoken line
     /// unless MyClicky is keeping quiet. Waits so it never talks over you.
-    func announce(_ text: String, bubble: String?) {
+    func announce(_ text: String, bubble: String?, language: String? = nil) {
         Task {
-            while state == .listening || state == .thinking {
+            // Wait for MyClicky to be free (listening, thinking or speaking), up to a minute, instead of dropping it.
+            let deadline = Date().addingTimeInterval(60)
+            while state != .idle, Date() < deadline {
                 try? await Task.sleep(for: .milliseconds(300))
             }
-            if let bubble { companion.showBubble(bubble, style: .agent, autoHide: 10) }
-            guard !text.isEmpty, !model.isQuiet, state != .speaking else { return }
+            if let bubble { companion.showBubble(bubble, style: .agent, autoHide: 12) }
+            guard !text.isEmpty, !model.isQuiet, state == .idle else { return }
             bubbleFollowsSpeech = bubble == nil
             spokenSoFar = ""
             state = .speaking
-            voice.speakAll(text, settings: settings)
+            voice.speakAll(text, settings: settings, language: language)
         }
     }
 }

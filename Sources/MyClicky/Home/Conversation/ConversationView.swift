@@ -31,15 +31,18 @@ struct ConversationView: View {
                         }
                         .padding(.horizontal, 28)
                         .padding(.vertical, 12)
+                        .frame(maxWidth: Theme.Layout.conversationColumn)
+                        .frame(maxWidth: .infinity) // a centered reading column at any width (spec 017)
                     }
                     .scrollIndicators(.never)
+                    .scrollEdgeFade(top: 14, bottom: 14)
                     .onAppear { scrollToEnd(proxy, chat) }
-                    .onChange(of: chat.messages.count) { scrollToEnd(proxy, chat) }
+                    .onChange(of: chat.messages.count) { Motion.withAnimation { scrollToEnd(proxy, chat) } }
                 }
                 Composer(chat: chat) { text in AppServices.shared?.assistant.send(text, toChat: chatID) }
             }
             .onAppear { model.markRead(chatID) }
-            .overlay {
+            .modalOverlay([renaming.value, confirmingDelete.value]) {
                 if renaming.value { RenameCard(chat: chat) { renaming.value = false } }
                 if confirmingDelete.value { deleteCard(chat) }
             }
@@ -80,8 +83,8 @@ struct ConversationView: View {
     private func emptyHint(_ chat: Chat) -> some View {
         VStack(spacing: 10) {
             ChatAvatar(chat: chat, size: 64)
-            Text(chat.kind == .talk ? "Ask anything about your screen." : "Tell this Clicky what to work on.")
-                .font(.system(size: 15)).foregroundStyle(Theme.textSecondary)
+            Text(chat.kind == .talk ? "Ask anything about your screen." : "Tell this agent what to work on.")
+                .textStyle(.callout).foregroundStyle(Theme.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 120)
@@ -90,18 +93,20 @@ struct ConversationView: View {
     private func deleteCard(_ chat: Chat) -> some View {
         ModalCard(width: 400, onDismiss: { confirmingDelete.value = false }) {
             Text(chat.kind == .talk ? "Clear Talk history?" : "Delete \(chat.title)?")
-                .font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.textPrimary)
+                .textStyle(.title3.weight(.bold)).foregroundStyle(Theme.textPrimary)
             Text(chat.kind == .talk ? "All questions and answers, and what MyClicky remembers from them, are removed."
-                                    : "This Clicky and its conversation are removed from this Mac.")
-                .font(Theme.rowSubtitle).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
+                                    : "This agent and its conversation are removed from this Mac.")
+                .textStyle(.callout).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
             HStack {
                 Spacer()
-                Button("Cancel") { confirmingDelete.value = false }.buttonStyle(.pill(.dark))
+                // Hover tells you what happens: red deletes, green keeps it (spec 015).
+                Button("Cancel") { confirmingDelete.value = false }.buttonStyle(.pill(.safe))
+                    .keyboardShortcut(.cancelAction)
                 Button(chat.kind == .talk ? "Clear" : "Delete") {
                     if chat.kind == .talk { model.clearTalk() } else { model.deleteChat(chat.id) }
                     confirmingDelete.value = false
                 }
-                .buttonStyle(.pill(.primary))
+                .buttonStyle(.pill(.destructive))
             }
         }
     }
@@ -116,7 +121,7 @@ struct RenameCard: View {
 
     var body: some View {
         ModalCard(width: 400, onDismiss: onDone) {
-            Text("Rename Clicky").font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.textPrimary)
+            Text("Rename agent").textStyle(.title3.weight(.bold)).foregroundStyle(Theme.textPrimary)
             TextField("Name", text: $name.value).darkField().onSubmit(save)
             HStack {
                 Spacer()
