@@ -134,6 +134,7 @@ enum Haptics {
     enum Moment { case listen, toggle, done }
 
     static func tap(_ moment: Moment) {
+        Log.events.notice("haptic \("\(moment)", privacy: .public) on=\(AppModel.shared.settings.hapticFeedback, privacy: .public)")
         guard AppModel.shared.settings.hapticFeedback else { return }
         let pattern: NSHapticFeedbackManager.FeedbackPattern = moment == .done ? .generic : .levelChange
         NSHapticFeedbackManager.defaultPerformer.perform(pattern, performanceTime: .now)

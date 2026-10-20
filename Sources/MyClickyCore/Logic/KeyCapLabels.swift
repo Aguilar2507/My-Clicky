@@ -12,10 +12,22 @@ public enum KeyCapLabels {
         }
     }
 
+    /// Key caps for a shortcut. More than four caps ("⌃ ⌥ ⇧ ⌘ 3") use symbols only, so the row's title keeps its room.
     public static func caps(for chord: KeyChord, gesture: Gesture) -> [String] {
-        var caps = chord.modifiers.sorted().map(label)
+        let count = (chord.modifiers.count + (chord.keyCode == nil ? 0 : 1)) * (gesture == .doubleTap ? 2 : 1)
+        var caps = chord.modifiers.sorted().map(count > 4 ? symbol : label)
         if let code = chord.keyCode { caps.append(keyName(code)) }
         return gesture == .doubleTap ? caps + caps : caps
+    }
+
+    public static func symbol(_ modifier: Modifier) -> String {
+        switch modifier {
+        case .control: "⌃"
+        case .option: "⌥"
+        case .shift: "⇧"
+        case .command: "⌘"
+        case .fn: "fn"
+        }
     }
 
     /// Short description for inline text ("Hold fn", "Hold ⌥ Option").

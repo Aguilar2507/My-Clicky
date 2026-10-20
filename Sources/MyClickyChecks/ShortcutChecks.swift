@@ -24,6 +24,17 @@ enum ShortcutChecks {
             var option = ShortcutMatcher(bindings: defaults)
             Check.equal(option.flagsChanged([.option], at: 0), [], "⌥ alone doesn't talk")
             Check.equal(option.flagsChanged([.option, .command], at: 0.05), [], "⌥⌘ doesn't talk")
+            // ⌃⌥⇧⌘3 opens the window: the ⌃⌥ on the way must not talk ("Hold the key while you talk" bubble).
+            let hyper: Set<Modifier> = [.control, .option, .shift, .command]
+            var withHyper = ShortcutMatcher(bindings: defaults.filter { $0.action != .openApp }
+                                            + [ShortcutBinding(.openApp, KeyChord(hyper, keyCode: 20), .press)])
+            Check.equal(withHyper.flagsChanged([.control, .option], at: 0), [.began(.pushToTalk)])
+            Check.equal(withHyper.flagsChanged([.control, .option, .shift], at: 0.01), [.cancelled(.pushToTalk)],
+                        "more modifiers on top cancel quietly")
+            Check.equal(withHyper.flagsChanged(hyper, at: 0.02), [])
+            Check.equal(withHyper.keyDown(20, at: 0.05).events, [.triggered(.openApp)], "⌃⌥⇧⌘3 still opens the window")
+            Check.equal(withHyper.flagsChanged([.control, .option], at: 0.1), [], "no re-begin while letting go")
+            Check.equal(withHyper.flagsChanged([], at: 0.12), [], "and no tap")
         }
 
         Check.group("Shortcuts: double-tap control (text mode)") {
@@ -108,6 +119,8 @@ enum ShortcutChecks {
             Check.equal(KeyCapLabels.caps(for: KeyChord([.fn, .control]), gesture: .doubleTap),
                         ["^ control", "fn", "^ control", "fn"], "ref 07 order")
             Check.equal(KeyCapLabels.caps(for: KeyChord([.command], keyCode: 49), gesture: .press), ["⌘ command", "space"])
+            Check.equal(KeyCapLabels.caps(for: KeyChord([.control, .option, .shift, .command], keyCode: 20), gesture: .press),
+                        ["⌃", "⌥", "⇧", "⌘", "3"], "five caps → symbols, so \"Open MyClicky\" doesn't wrap mid-word")
             Check.equal(KeyCapLabels.holdHint(for: KeyChord([.fn])), "Fn")
         }
 

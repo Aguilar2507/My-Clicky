@@ -19,6 +19,7 @@ enum AppEvent: String, CaseIterable, Hashable {
 
 extension AppModel {
     func emit(_ event: AppEvent) {
+        Log.events.notice("event \(event.rawValue, privacy: .public)")
         if !seenEvents.contains(event) { seenEvents.insert(event) }
     }
 }

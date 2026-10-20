@@ -24,9 +24,11 @@ enum PaidRequestGate {
             return true
         case .warn(let percent):
             model.settings.budgetWarnedMonth = UsageMonth.key(for: Date())
+            Log.events.notice("budget warn percent=\(percent, privacy: .public)")
             onWarn(percent, model.settings.monthlyBudgetUSD)
             return true
         case .block(let resetsOn):
+            Log.events.notice("budget blocked")
             onBlock(resetsOn)
             return false
         }
@@ -47,6 +49,7 @@ enum PaidRequestGate {
     static func topUp(_ model: AppModel) {
         let month = UsageMonth.key(for: Date())
         model.settings.budgetTopUps[month, default: 0] += BudgetPolicy.topUpStep
+        Log.events.notice("budget topped up")
     }
 }
 

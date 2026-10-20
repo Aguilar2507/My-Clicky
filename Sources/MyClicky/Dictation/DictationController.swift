@@ -99,7 +99,9 @@ final class DictationController {
         Task {
             let text = await speech.stop()
             guard !text.isEmpty else { companion.hideBubble(); return }
-            switch TextInserter.insert(text) {
+            let outcome = TextInserter.insert(text)
+            Log.events.notice("dictation \("\(outcome)", privacy: .public) chars=\(text.count, privacy: .public) app=\(NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "?", privacy: .public)")
+            switch outcome {
             case .inserted:
                 model.emit(.dictationInserted)
                 companion.hideBubble()

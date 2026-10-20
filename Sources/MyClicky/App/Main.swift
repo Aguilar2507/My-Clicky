@@ -15,6 +15,14 @@ enum Main {
         if CommandLine.arguments.contains("--bench-bot") { BotBenchmark.run() }
         // Developer tool: `MyClicky --demo-agent-bot` summons the agent bot, then sends it away, printing its frames.
         if CommandLine.arguments.contains("--demo-agent-bot") { BotBenchmark.demoAgentBot() }
+        // Developer tool: `--hold-mic <seconds>` keeps the microphone busy like a call (quiet-mode checks).
+        if let index = CommandLine.arguments.firstIndex(of: "--hold-mic") {
+            MicHolder.run(seconds: Double(CommandLine.arguments.dropFirst(index + 1).first ?? "") ?? 20)
+        }
+        // Developer tool: `--screenshot <out.png>` saves every display and exits (end-to-end checks, scripts/e2e/).
+        if let index = CommandLine.arguments.firstIndex(of: "--screenshot") {
+            ScreenshotTool.run(output: CommandLine.arguments.dropFirst(index + 1).first ?? "/tmp/myclicky-screen.png")
+        }
         let app = NSApplication.shared
         app.delegate = delegate
         app.setActivationPolicy(.accessory) // the "Show in Dock" setting turns on the Dock icon at launch (spec 019)

@@ -104,6 +104,7 @@ final class Assistant {
             try speech.start(settings, expecting: WakeWords.hints)
             listenStart = Date()
             state = .listening
+            Log.events.notice("listen start")
             companion.setLook(.listening)
             Haptics.tap(.listen) // same moment the companion starts listening (spec 014 US6)
         } catch {
@@ -120,6 +121,7 @@ final class Assistant {
         currentRequest = Task {
             let text = WakeWords.canonical(await speech.stop())
             let spoken = speech.lastLanguage
+            Log.events.notice("listen end chars=\(text.count, privacy: .public) lang=\(spoken ?? "?", privacy: .public) agent=\(Router.agentTask(text) != nil, privacy: .public)")
             sendAgentBotAway(gotTask: !tooShort && Router.agentTask(text) != nil)
             if tooShort || text.isEmpty {
                 state = .idle
@@ -231,6 +233,7 @@ final class Assistant {
         companion.showBubble("“\(text)”", style: .thinking)
 
         let modelID = Router.wantsPointing(text) ? settings.pointingModel : settings.fastModel
+        Log.events.notice("talk request model=\(modelID, privacy: .public) lang=\(language, privacy: .public) via=\(via.rawValue, privacy: .public) quiet=\(self.model.isQuiet, privacy: .public)")
         var screenshots: [Screenshot] = []
         if ScreenCapture.hasPermission {
             screenshots = (try? await ScreenCapture.captureAll()) ?? []
@@ -270,11 +273,14 @@ final class Assistant {
             model.appendReply(Message(role: .assistant, text: answer, via: via), to: talkID)
             guard !Task.isCancelled else { return }
 
+            Log.events.notice("talk answered chars=\(answer.count, privacy: .public) point=\(parsed.point != nil, privacy: .public) drawings=\(parsed.drawings.count, privacy: .public)")
             model.emit(.talkAnswered)
             if via == .typed { model.emit(.textModeSent) }
             if case .point(let x, let y, let label, let screen)? = parsed.point, screenshots.indices.contains(screen - 1) {
                 let shot = screenshots[screen - 1]
-                companion.point(at: shot.globalPoint(x: x, y: y), label: label)
+                let target = shot.globalPoint(x: x, y: y)
+                Log.events.notice("pointed x=\(Int(target.x), privacy: .public) y=\(Int(target.y), privacy: .public) screen=\(screen, privacy: .public)")
+                companion.point(at: target, label: label)
                 model.emit(.pointed)
             }
             if !parsed.drawings.isEmpty { companion.draw(parsed.drawings, screenshots: screenshots) }
@@ -302,6 +308,7 @@ final class Assistant {
 
     /// Quiet mode (spec 007 US4): show the answer without sound, with a chip to play it.
     private func finishQuietly(_ answer: String, language: String) {
+        Log.events.notice("talk quiet reasons=\(self.model.quietReasons.map { "\($0)" }.sorted().joined(separator: ","), privacy: .public)")
         state = .idle
         companion.setLook(.idle)
         companion.showBubble("🔇 " + answer, style: .quiet, autoHide: 12)

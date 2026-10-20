@@ -59,6 +59,20 @@ enum WakeWordChecks {
             Check.equal(WakeWords.canonical("harvest the data"), "harvest the data")
         }
 
+        Check.group("Microphone list") {
+            Check.expect(AudioDeviceFilter.isUserFacing(name: "MacBook Pro Microphone", uid: "BuiltInMicrophoneDevice"))
+            Check.expect(!AudioDeviceFilter.isUserFacing(name: "CADefaultDeviceAggregate-76427-0", uid: "CADefaultDeviceAggregate-76427-0"),
+                         "CoreAudio's private per-app device isn't listed")
+        }
+
+        Check.group("Talk context: local time") {
+            let date = Date(timeIntervalSince1970: 1_792_532_820) // 2026-10-20 21:47 UTC
+            Check.equal(TalkContext.now(date, timeZone: TimeZone(identifier: "America/Costa_Rica")!),
+                        "Local time: Tuesday, 20 October 2026, 15:47 (America/Costa_Rica, UTC-6).")
+            Check.equal(TalkContext.now(date, timeZone: TimeZone(identifier: "Asia/Kolkata")!),
+                        "Local time: Wednesday, 21 October 2026, 03:17 (Asia/Kolkata, UTC+5:30).")
+        }
+
         Check.group("Reply language (spec 020)") {
             Check.equal(ReplyLanguage.resolve(spoken: "es", guessed: "en", previous: "en", fallback: "en"), "es",
                         "what the recognizer heard wins over a guess")

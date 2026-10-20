@@ -40,6 +40,9 @@ final class SpeechQueue: NSObject, AVSpeechSynthesizerDelegate {
         lastLanguage = language
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = Self.voice(for: language, settings: settings)
+        if pending == 0 {
+            Log.events.notice("speak voice=\(utterance.voice?.identifier ?? "none", privacy: .public) lang=\(language, privacy: .public)")
+        }
         utterance.rate = VoiceRanking.rate(for: settings.speechSpeed)
         pending += 1
         synthesizer.speak(utterance)
@@ -62,6 +65,7 @@ final class SpeechQueue: NSObject, AVSpeechSynthesizerDelegate {
 
     /// Stops immediately (push-to-talk interrupts). Doesn't call onFinish.
     func stopNow() {
+        if isSpeaking { Log.events.notice("speak stopped") }
         generation += 1
         pending = 0
         inputClosed = true
@@ -104,7 +108,10 @@ final class SpeechQueue: NSObject, AVSpeechSynthesizerDelegate {
 
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
         let text = utterance.speechString
-        Task { @MainActor in self.onSentenceStart(text) }
+        Task { @MainActor in
+            Log.events.notice("speak sentence start")
+            self.onSentenceStart(text)
+        }
     }
 
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {

@@ -12,34 +12,79 @@ Your settings now: window shortcut **⌃⌥⇧⌘3**, push to talk **⌃⌥** (h
 
 ## A. Window, settings, shortcuts (002, 004)
 
-- [ ] ⌃⌥⇧⌘3 shows MyClicky; pressing it again hides it. The menu bar bot icon opens it too
-- [ ] Settings → General: turn **Show in Dock** off → the Dock icon goes away; on → it's back
-- [ ] Settings → General → What's new shows the changelog
-- [ ] Turn **Show in screen recordings** OFF, record the screen with QuickTime (File → New Screen Recording) with MyClicky
+- [x] ⌃⌥⇧⌘3 shows MyClicky; pressing it again hides it. The menu bar bot icon opens it too
+      → ✓ 4 presses alternated shown/hidden; a click on the icon opens it. **Fixed:** the ⌃⌥ on the way started push to
+      talk (two taps + a "Hold the key while you talk" bubble); now it cancels quietly
+- [x] Settings → General: turn **Show in Dock** off → the Dock icon goes away; on → it's back
+      → ✓ off: no longer running in the Dock (your pinned icon stays, as pinned apps do); on: back
+- [x] Settings → General → What's new shows the changelog
+      → ✓ the sheet lists 0.4.0 (4) and 0.3.0 (3).
+- [x] Turn **Show in screen recordings** OFF, record the screen with QuickTime (File → New Screen Recording) with MyClicky
       open, and watch the recording: is MyClicky hidden? Write **hidden** or **visible**:
-- [ ] Shortcuts: change Push to talk to ⌥ option → holding ⌥ talks. Try binding Text mode to ⌥ option → "Already used".
+      → **hidden** ✓ checked with a ScreenCaptureKit capture (what screen recorders use): switched off, the
+      window isn't in the image; on, it is.
+- [x] Shortcuts: change Push to talk to ⌥ option → holding ⌥ talks. Try binding Text mode to ⌥ option → "Already used".
       **Reset to defaults**, then set your window shortcut back to ⌃⌥⇧⌘3
-- [ ] Type in Notes for a couple of minutes using ⌃A, ⌃E and fn-arrows → MyClicky never starts by itself
-- [ ] Quit MyClicky right after changing a setting (menu bar icon → right-click → Quit), reopen → the setting is kept
+      → ✓ holding ⌥ started listening; "Already used for Push to talk."; Reset restored the defaults; ⌃⌥⇧⌘3 is
+      back. **Fixed:** with five keys the "Open MyClicky" row squeezed its title ("MyClic / ky"); long shortcuts
+      now show symbols (⌃ ⌥ ⇧ ⌘ 3).
+- [x] Type in Notes for a couple of minutes using ⌃A, ⌃E and fn-arrows → MyClicky never starts by itself
+      → ✓ (TextEdit, unsaved) text typed with ⌃A, ⌃E, fn-← and fn-→: no shortcut or listening events at all.
+- [x] Quit MyClicky right after changing a setting (menu bar icon → right-click → Quit), reopen → the setting is kept
+      → ✓ a switch change reached disk within 0.3 s, survived a force kill (kill -9) and showed after relaunch.
 
 ## B. Talk, companion, voice (005, 006, 007)
 
-- [ ] Hold ⌃⌥: "Jarvis, what app am I in?" → spoken answer; the cursor turns into sound waves while you talk
-- [ ] Type a follow-up in the Talk chat → the answer uses what came before
-- [ ] **Pointing (10 tries):** ask "Jarvis, where is …?" for things in Finder, Safari and System Settings. Hits out of 10
+- [x] Hold ⌃⌥: "Jarvis, what app am I in?" → spoken answer; the cursor turns into sound waves while you talk
+      → ✓ spoken answers in English (Zoe) and Spanish (Marisol); the cursor turned into blue sound waves while
+      listening. **Fixed:** English was never recognized: macOS runs one speech recognition at a time, so with
+      auto-detect only the second language (Spanish) heard anything and every voice answer came back in Spanish.
+      Now the main language listens live and the other one reads the same audio afterwards (+0.35 s).
+- [x] Type a follow-up in the Talk chat → the answer uses what came before
+      → ✓ typed "How many hours apart are those two cities?" after asking about Tokyo and London → it answered
+      about London and Tokyo. **Fixed:** time answers were guesses ("16 hours and 46 minutes ahead") because the
+      request never said what time it is; each question now carries the local date, time and time zone (~20
+      tokens).
+- [x] **Pointing (10 tries):** ask "Jarvis, where is …?" for things in Finder, Safari and System Settings. Hits out of 10
       (target 8 or more):
-- [ ] "Jarvis, circle the search field in Safari" → a circle draws itself and fades
-- [ ] Double-tap ⌃ → a text box appears by the cursor; type a question + Return → answer, and it's saved in Talk
-- [ ] Settings → Cursor: change the color (it changes at once). Dock cursor ON → it rests under the menu bar icon,
+      → **8/10** ✓ (checked against each element's real on-screen frame). Finder 3/3 (Apple menu, Applications
+      in the sidebar, Downloads), System Settings 3/3 (Wi-Fi, Bluetooth, Battery), Safari 2/4 (address bar and
+      new tab hit; "back button" went to VS Code's ← just above Safari; "share" was mis-heard). First round was
+      6/10; **fixed:** the prompt now says to always point for "where is…" and at the exact item named ("in the
+      sidebar").
+- [x] "Jarvis, circle the search field in Safari" → a circle draws itself and fades
+      → ✓ "draw a circle around the address bar in Safari" → a blue circle around the address bar plus the
+      pointer and its label; gone a few seconds later. (A first try was heard as "circular" and didn't draw: a
+      hearing slip with the synthetic voice.)
+- [x] Double-tap ⌃ → a text box appears by the cursor; type a question + Return → answer, and it's saved in Talk
+      → ✓ double-tap ⌃ opened the box; "what is the capital of France?" + Return → "The capital of France is
+      Paris.", saved in Talk as typed.
+- [x] Settings → Cursor: change the color (it changes at once). Dock cursor ON → it rests under the menu bar icon,
       pointing still flies out and back. Then turn it OFF again
-- [ ] Ask something long, then hold ⌃⌥ mid-answer → it stops at once and listens
-- [ ] With an English page on screen, ask in Spanish: "Jarvis, ¿qué hay en mi pantalla?" → the whole answer is in Spanish,
+      → ✓ Green showed at once beside the pointer. Dock ON: the companion is hidden and stops following (as the
+      setting says; not drawn under the icon), and a "where is" question still flew it out to point, then it
+      went away. Set back to Blue, undocked.
+- [x] Ask something long, then hold ⌃⌥ mid-answer → it stops at once and listens
+      → ✓ speech stopped 1 ms after ⌃⌥ went down; listening started 67 ms later.
+- [x] With an English page on screen, ask in Spanish: "Jarvis, ¿qué hay en mi pantalla?" → the whole answer is in Spanish,
       in a Spanish voice
-- [ ] **Speed (10 tries):** time from letting go of ⌃⌥ to the first spoken word. Median (target 2.5 s or less):
-- [ ] Settings → Voice: tap a voice to preview; Settings → Microphone: the test bars move when you talk
-- [ ] During a FaceTime/Teams call (or with Voice Memos recording), ask a question → bubble only, no voice. Did quiet
+      → ✓ "Jarvis, ¿qué aplicación estoy usando?" with English windows on screen → answered fully in Spanish
+      with Marisol (es-ES); English questions get Zoe in English.
+- [x] **Speed (10 tries):** time from letting go of ⌃⌥ to the first spoken word. Median (target 2.5 s or less):
+      → **1.77 s** median over 18 spoken questions (1.49–2.41 s), from letting go of ⌃⌥ to the first spoken word
+      ✓
+- [x] Settings → Voice: tap a voice to preview; Settings → Microphone: the test bars move when you talk
+      → ✓ tapping Zoe played the preview (speakers became active) without changing your voice; the test bars
+      moved with the voice. **Fixed:** the device list showed "CADefaultDeviceAggregate-…", a hidden helper
+      device macOS makes for MyClicky's own audio; it's filtered out now.
+- [x] During a FaceTime/Teams call (or with Voice Memos recording), ask a question → bubble only, no voice. Did quiet
       mode kick in by itself? Write **auto** or **no**:
-- [ ] Right-click the menu bar icon → Quiet for 1 hour → answers are silent; turn it back off
+      → **auto** ✓ with the microphone held by another process (like a call app), the answer came as a silent
+      bubble (quiet, reason: call). **Fixed:** quiet mode forgot the call as soon as you held ⌃⌥ (it can't tell
+      whose mic use it sees while listening), so answers were spoken during calls.
+- [x] Right-click the menu bar icon → Quiet for 1 hour → answers are silent; turn it back off
+      → ✓ menu → Quiet for 1 hour → the next answer came only as a silent bubble (no voice); set back to
+      Automatic.
 
 ## C. Dictation (008)
 

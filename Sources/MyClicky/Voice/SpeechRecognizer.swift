@@ -5,8 +5,9 @@ import Speech
 import MyClickyCore
 
 /// Speech-to-text with Apple's on-device recognizer (free, private). Used by push-to-talk, dictation and the composer.
-/// With auto-detect on it runs an English and a Spanish recognizer on the same audio and keeps the better result
-/// (spec 008, research R2), then applies the user's custom words.
+/// With auto-detect on, the preferred language listens live and the other one reads a copy of the same audio once you
+/// stop; the better result wins (spec 008, research R2), then the user's custom words apply. macOS runs one recognition
+/// at a time: starting a second live one cancels the first (kAFAssistantErrorDomain 1110), so they can't run together.
 @MainActor
 final class SpeechRecognizer {
     enum SpeechError: LocalizedError {
@@ -47,10 +48,40 @@ final class SpeechRecognizer {
         }
     }
 
+    /// A copy of the recorded audio for the other language's pass (filled on the audio thread).
+    private final class AudioStore: @unchecked Sendable {
+        private let lock = NSLock()
+        private var buffers: [AVAudioPCMBuffer] = []
+        private var frames: Double = 0
+        static let maxSeconds = 150.0 // longer than hands-free dictation's cap
+
+        func append(_ buffer: AVAudioPCMBuffer) {
+            guard let source = buffer.floatChannelData, buffer.frameLength > 0,
+                  let copy = AVAudioPCMBuffer(pcmFormat: buffer.format, frameCapacity: buffer.frameLength),
+                  let target = copy.floatChannelData else { return }
+            copy.frameLength = buffer.frameLength
+            for channel in 0..<Int(buffer.format.channelCount) {
+                target[channel].update(from: source[channel], count: Int(buffer.frameLength))
+            }
+            lock.lock(); defer { lock.unlock() }
+            guard frames < Self.maxSeconds * buffer.format.sampleRate else { return }
+            buffers.append(copy)
+            frames += Double(buffer.frameLength)
+        }
+
+        var all: [AVAudioPCMBuffer] { lock.lock(); defer { lock.unlock() }; return buffers }
+    }
+
     private let engine = AVAudioEngine()
     private var sessions: [Session] = []
     private var languages = Languages(locales: ["en-US"], preferred: "en", words: [])
-    private var finishContinuation: CheckedContinuation<String, Never>?
+    private var finishContinuation: CheckedContinuation<Void, Never>?
+    private var passContinuation: CheckedContinuation<Void, Never>?
+    /// Languages that read the recorded audio after the live one finishes.
+    private var laterLocales: [String] = []
+    private var recorded: AudioStore?
+    /// Bumped by every start/cancel, so a stop that was interrupted returns nothing.
+    private var generation = 0
     /// Microphone level 0…1 while recording (drives the companion's listening pulse, spec 006).
     var onLevel: ((Float) -> Void)?
     /// Live transcript while recording (hands-free dictation shows it in the bubble).
@@ -81,67 +112,104 @@ final class SpeechRecognizer {
         self.languages = languages
         lastLanguage = nil
         missingOnDeviceLanguages = []
+        laterLocales = []
+        // The first available language listens live; the others read the recording afterwards.
         for identifier in languages.locales {
-            guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: identifier)), recognizer.isAvailable else { continue }
-            let request = SFSpeechAudioBufferRecognitionRequest()
-            request.shouldReportPartialResults = true
-            request.addsPunctuation = true
-            request.contextualStrings = languages.words + languages.hints
-            if recognizer.supportsOnDeviceRecognition {
-                request.requiresOnDeviceRecognition = true // audio never leaves the Mac
-            } else {
-                missingOnDeviceLanguages.append(identifier)
-            }
-            let session = Session(languageCode: String(identifier.prefix(2)), request: request)
-            session.task = recognizer.recognitionTask(with: request, resultHandler: makeResultHandler(for: session))
+            if !sessions.isEmpty { laterLocales.append(identifier); continue }
+            guard let (recognizer, session) = makeSession(identifier) else { continue }
+            session.task = recognizer.recognitionTask(with: session.request, resultHandler: makeResultHandler(for: session, live: true))
             sessions.append(session)
         }
         guard !sessions.isEmpty else {
             throw SpeechError.unavailable("Speech recognition isn't available for \(languages.locales.joined(separator: ", ")).")
         }
+        recorded = laterLocales.isEmpty ? nil : AudioStore()
 
         Self.selectInput(deviceUID, on: engine)
-        let requests = sessions.map(\.request)
-        Self.installTap(on: engine.inputNode, feeding: requests) { [weak self] level in
+        Self.installTap(on: engine.inputNode, feeding: sessions.map(\.request), recording: recorded) { [weak self] level in
             Task { @MainActor in self?.onLevel?(level) }
         }
         engine.prepare()
         try engine.start()
     }
 
+    private func makeSession(_ identifier: String) -> (SFSpeechRecognizer, Session)? {
+        guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: identifier)), recognizer.isAvailable else { return nil }
+        let request = SFSpeechAudioBufferRecognitionRequest()
+        request.shouldReportPartialResults = true
+        request.addsPunctuation = true
+        request.contextualStrings = languages.words + languages.hints
+        if recognizer.supportsOnDeviceRecognition {
+            request.requiresOnDeviceRecognition = true // audio never leaves the Mac
+        } else if !missingOnDeviceLanguages.contains(identifier) {
+            missingOnDeviceLanguages.append(identifier)
+        }
+        return (recognizer, Session(languageCode: String(identifier.prefix(2)), request: request))
+    }
+
     /// Stops recording and returns the best final transcript (custom words applied).
     func stop() async -> String {
         guard !sessions.isEmpty else { return "" }
+        let run = generation
         engine.stop()
         engine.inputNode.removeTap(onBus: 0)
         sessions.forEach { $0.request.endAudio() }
-        if sessions.allSatisfy(\.isFinal) { return cleanup() }
-        return await withCheckedContinuation { continuation in
-            finishContinuation = continuation
-            Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .seconds(2)) // safety net if no final result arrives
-                self?.finish()
+        if !sessions.allSatisfy(\.isFinal) {
+            await withCheckedContinuation { continuation in
+                finishContinuation = continuation
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: .seconds(2)) // safety net if no final result arrives
+                    self?.finish()
+                }
             }
         }
+        // The other languages, one at a time, on the same audio.
+        let audio = recorded?.all ?? []
+        recorded = nil
+        for identifier in laterLocales where run == generation && !audio.isEmpty {
+            guard let (recognizer, session) = makeSession(identifier) else { continue }
+            session.request.shouldReportPartialResults = false
+            audio.forEach(session.request.append)
+            session.request.endAudio()
+            sessions.append(session)
+            await withCheckedContinuation { continuation in
+                passContinuation = continuation
+                session.task = recognizer.recognitionTask(with: session.request,
+                                                          resultHandler: makeResultHandler(for: session, live: false))
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: .seconds(3)) // safety net
+                    self?.finishPass()
+                }
+            }
+        }
+        laterLocales = []
+        guard run == generation else { return "" }
+        return cleanup()
     }
 
     func cancel() {
+        generation += 1
         if engine.isRunning {
             engine.stop()
             engine.inputNode.removeTap(onBus: 0)
         }
         sessions.forEach { $0.task?.cancel() }
         sessions = []
-        if let continuation = finishContinuation {
-            finishContinuation = nil
-            continuation.resume(returning: "")
-        }
+        recorded = nil
+        finish()
+        finishPass()
     }
 
     private func finish() {
         guard let continuation = finishContinuation else { return }
         finishContinuation = nil
-        continuation.resume(returning: cleanup())
+        continuation.resume()
+    }
+
+    private func finishPass() {
+        guard let continuation = passContinuation else { return }
+        passContinuation = nil
+        continuation.resume()
     }
 
     private func cleanup() -> String {
@@ -150,6 +218,9 @@ final class SpeechRecognizer {
         sessions = []
         let best = LanguagePicker.pick(results, default: languages.preferred, tieBreak: Self.guessLanguage)
         lastLanguage = best?.languageCode
+        for r in results {
+            Log.events.notice("heard \(r.languageCode, privacy: .public) chars=\(r.text.count, privacy: .public) conf=\(String(format: "%.2f", r.meanConfidence), privacy: .public) reads=\(Self.guessLanguage(r.text) ?? "?", privacy: .public)")
+        }
         return CustomWords.apply(languages.words, to: best?.text.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
     }
 
@@ -178,10 +249,11 @@ final class SpeechRecognizer {
 
     // Built outside the main actor: these callbacks run on audio / recognizer threads.
     private nonisolated static func installTap(on node: AVAudioInputNode, feeding requests: [SFSpeechAudioBufferRecognitionRequest],
-                                               level: @escaping @Sendable (Float) -> Void) {
+                                               recording: AudioStore?, level: @escaping @Sendable (Float) -> Void) {
         let format = node.outputFormat(forBus: 0)
         node.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
             requests.forEach { $0.append(buffer) }
+            recording?.append(buffer)
             level(Self.level(of: buffer))
         }
     }
@@ -203,21 +275,29 @@ final class SpeechRecognizer {
         return min(1, max(0, (db + 50) / 50))
     }
 
-    private nonisolated func makeResultHandler(for session: Session) -> @Sendable (SFSpeechRecognitionResult?, Error?) -> Void {
+    private nonisolated func makeResultHandler(for session: Session, live: Bool) -> @Sendable (SFSpeechRecognitionResult?, Error?) -> Void {
         { [weak self, weak session] result, error in
             let text = result?.bestTranscription.formattedString
             let confidences = result?.bestTranscription.segments.map(\.confidence) ?? []
             let isFinal = result?.isFinal ?? false
             let failed = error != nil
+            let errorInfo = (error as NSError?).map { "\($0.domain) \($0.code)" }
             Task { @MainActor in
                 guard let self, let session else { return }
+                if let errorInfo {
+                    Log.events.notice("recognizer \(session.languageCode, privacy: .public) error \(errorInfo, privacy: .public)")
+                }
                 if let text {
                     session.text = text
                     if isFinal { session.confidences = confidences }
-                    self.onPartial?(self.livePartial)
+                    if live { self.onPartial?(self.livePartial) }
                 }
                 if isFinal || failed { session.isFinal = true }
-                if self.finishContinuation != nil, self.sessions.allSatisfy(\.isFinal) { self.finish() }
+                if !live {
+                    if session.isFinal { self.finishPass() }
+                } else if self.finishContinuation != nil, self.sessions.allSatisfy(\.isFinal) {
+                    self.finish()
+                }
             }
         }
     }

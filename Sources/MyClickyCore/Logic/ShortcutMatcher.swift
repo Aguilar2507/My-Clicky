@@ -42,9 +42,15 @@ public struct ShortcutMatcher: Sendable {
         }
         sessionMax.formUnion(newMods)
 
-        // Leaving the active hold's chord ends it.
-        if let hold = activeHold, chord(of: hold) != newMods {
-            events.append(.ended(hold))
+        // Leaving the active hold's chord ends it. Adding modifiers on top (⌃⌥ on the way to ⌃⌥⇧⌘3) is another
+        // shortcut, so it cancels quietly, like pressing a key does.
+        if let hold = activeHold, let held = chord(of: hold), held != newMods {
+            if newMods.isStrictSuperset(of: held) {
+                events.append(.cancelled(hold))
+                sessionHadKey = true // no re-begin or tap in this press
+            } else {
+                events.append(.ended(hold))
+            }
             activeHold = nil
         }
         pendingHold = nil

@@ -123,7 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handle(_ event: ShortcutMatcher.Event) {
-        Log.shortcuts.notice("Shortcut: \(String(describing: event))")
+        Log.shortcuts.notice("Shortcut: \(String(describing: event), privacy: .public)")
         switch event {
         case .began(.pushToTalk): assistant.beginListening()
         case .ended(.pushToTalk): assistant.endListening()

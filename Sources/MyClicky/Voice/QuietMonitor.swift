@@ -22,14 +22,19 @@ final class QuietMonitor {
 
     func refresh() {
         var reasons = Set<QuietPolicy.Reason>()
-        // A call: another app is using the microphone while MyClicky isn't listening.
-        if model.talkState != .listening, !model.isDictating, let mic = AudioDevices.defaultInput,
-           AudioDevices.isRunningSomewhere(mic) {
+        // A call: another app is using the microphone while MyClicky isn't listening. While MyClicky listens it can't
+        // tell whose the microphone use is, so it keeps what it knew: clearing it let answers speak during calls.
+        if model.talkState == .listening || model.isDictating {
+            if model.quietReasons.contains(.call) { reasons.insert(.call) }
+        } else if let mic = AudioDevices.defaultInput, AudioDevices.isRunningSomewhere(mic) {
             reasons.insert(.call)
         }
         if Self.screenSharingVisible() { reasons.insert(.screenSharing) }
         if Self.focusIsOn() { reasons.insert(.focus) }
-        if model.quietReasons != reasons { model.quietReasons = reasons }
+        if model.quietReasons != reasons {
+            Log.events.notice("quiet reasons=\(reasons.map { "\($0)" }.sorted().joined(separator: ","), privacy: .public)")
+            model.quietReasons = reasons
+        }
     }
 
     /// Known screen-sharing UI (window names need Screen Recording permission, which MyClicky already has).

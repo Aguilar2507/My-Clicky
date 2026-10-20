@@ -1,6 +1,7 @@
 import CoreAudio
 import AudioToolbox
 import Foundation
+import MyClickyCore
 
 /// Microphones on this Mac (spec 007 US3, research R5), identified by their stable UID.
 struct AudioInputDevice: Identifiable, Equatable {
@@ -20,7 +21,8 @@ enum AudioDevices {
         guard AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &ids) == noErr else { return [] }
         return ids.compactMap { id in
             guard hasInput(id), let uid = string(id, kAudioDevicePropertyDeviceUID),
-                  let name = string(id, kAudioObjectPropertyName) else { return nil }
+                  let name = string(id, kAudioObjectPropertyName),
+                  AudioDeviceFilter.isUserFacing(name: name, uid: uid) else { return nil }
             return AudioInputDevice(id: id, uid: uid, name: name)
         }
     }

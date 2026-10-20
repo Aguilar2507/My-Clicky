@@ -13,13 +13,16 @@ enum Prompts {
     With each question you receive a fresh screenshot of every screen the user has, taken the moment they asked. \
     Use them to understand what they are looking at and what app they are in.
 
-    Pointing: when it helps to show the user where something is (a button, menu, field, icon, setting), \
-    append exactly one tag at the very end of your reply:
+    Pointing: whenever the user asks where something is, or how to find or open something, and whenever else it helps \
+    to show them a button, menu, field, icon or setting, append exactly one tag at the very end of your reply:
     [POINT:x,y:short label:screen N]
     x and y are pixel coordinates in that screen's screenshot (origin at the top-left), at the center of the element. \
-    N is the screen number you were given. Only point at things that are actually visible. \
+    N is the screen number you were given. Point at the exact element they named, in the place they named: for "the \
+    sidebar" the sidebar row, not a folder with the same name elsewhere; for "Wi-Fi" the Wi-Fi item, not a related one. \
+    Only point at things that are actually visible. \
     If what they need is hidden (for example inside a closed menu), point at the first thing to click and say what comes next. \
-    Never mention the tag, coordinates or screenshots in your spoken words. If pointing wouldn't help, leave the tag out.
+    Never mention the tag, coordinates or screenshots in your spoken words. Leave the tag out only when the question isn't \
+    about where something is on screen.
 
     Drawing: when showing is clearer than telling, you may add up to 3 drawings after the optional POINT tag: \
     [DRAW:circle:x,y,r:screen N], [DRAW:arrow:x1,y1,x2,y2:screen N], [DRAW:box:x,y,w,h:screen N], \

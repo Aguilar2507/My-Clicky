@@ -13,6 +13,16 @@ enum DictationChecks {
             Check.equal(LanguagePicker.pick([enClose, esClose], default: "en", tieBreak: { _ in "es" })?.languageCode, "es",
                         "close call → the text's language decides")
             Check.equal(LanguagePicker.pick([enClose, esClose], default: "es")?.languageCode, "es", "no tie-break → default")
+            let enQuestion = RecognitionResult(languageCode: "en", text: "What app am I in?", segmentConfidences: [0.5])
+            let esHeardEnglish = RecognitionResult(languageCode: "es", text: "What app am I in?", segmentConfidences: [0.85])
+            Check.equal(LanguagePicker.pick([enQuestion, esHeardEnglish], default: "en",
+                                            tieBreak: { $0.hasPrefix("What") ? "en" : "es" })?.languageCode, "en",
+                        "Spanish recognizer confident about English words → English")
+            let enNoScore = RecognitionResult(languageCode: "en", text: "Where is the share button in Safari", segmentConfidences: [0, 0])
+            let esNoise = RecognitionResult(languageCode: "es", text: "El maje el maestro", segmentConfidences: [0.41])
+            Check.equal(LanguagePicker.pick([enNoScore, esNoise], default: "en",
+                                            tieBreak: { $0.hasPrefix("Where") ? "en" : "es" })?.languageCode, "en",
+                        "a recognizer without confidence data doesn't lose to a confident guess")
             let empty = RecognitionResult(languageCode: "es", text: " ", segmentConfidences: [])
             Check.equal(LanguagePicker.pick([en, empty], default: "es")?.languageCode, "en", "empty results ignored")
             Check.equal(LanguagePicker.pick([], default: "en"), nil)

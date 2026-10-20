@@ -49,6 +49,7 @@ struct ClaudeClient {
             content.append(["type": "text", "text": "(No screenshot available — screen recording permission may be missing.)"])
         }
         content.append(["type": "text", "text": question])
+        content.append(["type": "text", "text": TalkContext.now(Date())])
         // Spec 020: in the user turn, not the system prompt, so the cached prompt is the same for both languages.
         if let language { content.append(["type": "text", "text": ReplyLanguage.instruction(language)]) }
         messages.append(["role": "user", "content": content])

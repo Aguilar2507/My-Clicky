@@ -29,6 +29,7 @@ final class MainWindowController: NSObject, NSWindowDelegate {
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         updateOpen()
+        Log.events.notice("window shown")
         model.emit(.appOpened)
         if fullScreen { enterFullScreen(window) }
     }
@@ -37,6 +38,7 @@ final class MainWindowController: NSObject, NSWindowDelegate {
     func hide() {
         guard let window, window.isVisible else { return }
         if window.styleMask.contains(.fullScreen) { window.miniaturize(nil) } else { window.orderOut(nil) }
+        Log.events.notice("window hidden")
         updateOpen()
         previousApp?.activate()
         previousApp = nil

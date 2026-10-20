@@ -25,10 +25,16 @@ public enum LanguagePicker {
         let candidates = results.filter { !$0.text.trimmingCharacters(in: .whitespaces).isEmpty }
         guard !candidates.isEmpty else { return nil }
         guard candidates.count > 1 else { return candidates[0] }
+        // A transcript that reads like its recognizer's own language wins: the Spanish recognizer can be very confident
+        // about English words ("what app am I in?"), which made English questions get Spanish answers.
+        let agreeing = candidates.filter { tieBreak($0.text) == $0.languageCode }
+        if agreeing.count == 1 { return agreeing[0] }
         let sorted = candidates.sorted { $0.meanConfidence > $1.meanConfidence }
-        if sorted[0].meanConfidence - sorted[1].meanConfidence >= 0.1 { return sorted[0] }
-        let votes = candidates.compactMap { result in tieBreak(result.text).map { ($0, result) } }
-        if let agreed = votes.first(where: { $0.0 == $0.1.languageCode })?.1 { return agreed }
+        // Confidence only counts when every recognizer reported one (0 means "no data", not "wrong").
+        if candidates.allSatisfy({ $0.meanConfidence > 0 }), sorted[0].meanConfidence - sorted[1].meanConfidence >= 0.1 {
+            return sorted[0]
+        }
+        if let agreed = agreeing.first(where: { $0.languageCode == preferred }) ?? agreeing.first { return agreed }
         return candidates.first { $0.languageCode == preferred } ?? sorted[0]
     }
 

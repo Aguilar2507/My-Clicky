@@ -77,6 +77,7 @@ final class AgentSupervisor {
             announce("Agents need Claude Code. Open Settings, Agents, to set it up.", nil, nil)
             return
         }
+        Log.events.notice("agent start chat=\(chatID.uuidString.prefix(8), privacy: .public) lang=\(self.languages[chatID] ?? "?", privacy: .public)")
         if queue.request(chatID) {
             launch(chatID: chatID, instruction: instruction)
         } else {
@@ -95,6 +96,7 @@ final class AgentSupervisor {
         }
         guard let run = runs[chatID], let process = run.process else { return }
         run.stopReason = "Stopped."
+        Log.events.notice("agent stop requested chat=\(chatID.uuidString.prefix(8), privacy: .public)")
         process.interrupt() // SIGINT, then SIGTERM after 2 s
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { if process.isRunning { process.terminate() } }
     }
@@ -304,6 +306,7 @@ final class AgentSupervisor {
     /// while quiet) and the bubble beside the cursor.
     private func finishAnnouncement(_ chatID: UUID, _ spoken: String, bubble: String? = nil, title: String, body: String) {
         let language = languages[chatID]
+        Log.events.notice("agent finished chat=\(chatID.uuidString.prefix(8), privacy: .public) spoken=\(self.model.settings.announceStartFinish, privacy: .public)")
         if model.visibleChatID != chatID { model.updateChat(chatID) { $0.isUnread = true } }
         TaskAlerts.shared.post(chatID: chatID, title: title, body: body)
         Haptics.tap(.done)
@@ -374,6 +377,7 @@ final class AgentSupervisor {
         card.status = sensitive ? "pendingSensitive" : "pending"
         card.refID = requestID
         model.append(card, to: chat.id)
+        Log.events.notice("agent approval asked tool=\(tool, privacy: .public) sensitive=\(sensitive, privacy: .public)")
         if model.visibleChatID != chat.id {
             approvalChip.show(title: "\(chat.title) wants to: \(text)", detail: detail, allowAlways: !sensitive) { [weak self] answer in
                 self?.decide(requestID, answer)
@@ -391,6 +395,7 @@ final class AgentSupervisor {
     func decide(_ requestID: String, _ answer: String) {
         guard let continuation = approvals.removeValue(forKey: requestID) else { return }
         approvalChip.close()
+        Log.events.notice("agent approval \(answer, privacy: .public)")
         for chat in model.chats where chat.messages.contains(where: { $0.refID == requestID }) {
             model.updateChat(chat.id) { chat in
                 if let i = chat.messages.lastIndex(where: { $0.refID == requestID }) { chat.messages[i].status = answer }

@@ -12,6 +12,7 @@ final class TaskAlerts: NSObject, UNUserNotificationCenterDelegate {
     private var asked = false
 
     func post(chatID: UUID, title: String, body: String) {
+        Log.events.notice("notification posted chat=\(chatID.uuidString.prefix(8), privacy: .public)")
         let center = UNUserNotificationCenter.current()
         center.delegate = self
         let send = {
