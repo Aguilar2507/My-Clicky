@@ -48,12 +48,13 @@ final class SpeechRecognizer {
         }
     }
 
-    /// A copy of the recorded audio for the other language's pass (filled on the audio thread).
+    /// A copy of the recorded audio that every language reads once you stop (filled on the audio thread).
     private final class AudioStore: @unchecked Sendable {
         private let lock = NSLock()
         private var buffers: [AVAudioPCMBuffer] = []
         private var frames: Double = 0
-        static let maxSeconds = 150.0 // longer than hands-free dictation's cap
+        private var full = false
+        static let maxSeconds = 150.0 // ~29 MB; longer recordings (hands-free) keep the live transcript
 
         func append(_ buffer: AVAudioPCMBuffer) {
             guard let source = buffer.floatChannelData, buffer.frameLength > 0,
@@ -64,12 +65,14 @@ final class SpeechRecognizer {
                 target[channel].update(from: source[channel], count: Int(buffer.frameLength))
             }
             lock.lock(); defer { lock.unlock() }
-            guard frames < Self.maxSeconds * buffer.format.sampleRate else { return }
+            guard frames < Self.maxSeconds * buffer.format.sampleRate else { full = true; return }
             buffers.append(copy)
             frames += Double(buffer.frameLength)
         }
 
         var all: [AVAudioPCMBuffer] { lock.lock(); defer { lock.unlock() }; return buffers }
+        /// True when the recording outgrew the cap (the copy is missing its end).
+        var isCapped: Bool { lock.lock(); defer { lock.unlock() }; return full }
     }
 
     private let engine = AVAudioEngine()
@@ -77,8 +80,6 @@ final class SpeechRecognizer {
     private var languages = Languages(locales: ["en-US"], preferred: "en", words: [])
     private var finishContinuation: CheckedContinuation<Void, Never>?
     private var passContinuation: CheckedContinuation<Void, Never>?
-    /// Languages that read the recorded audio after the live one finishes.
-    private var laterLocales: [String] = []
     private var recorded: AudioStore?
     /// Bumped by every start/cancel, so a stop that was interrupted returns nothing.
     private var generation = 0
@@ -112,10 +113,8 @@ final class SpeechRecognizer {
         self.languages = languages
         lastLanguage = nil
         missingOnDeviceLanguages = []
-        laterLocales = []
-        // The first available language listens live; the others read the recording afterwards.
-        for identifier in languages.locales {
-            if !sessions.isEmpty { laterLocales.append(identifier); continue }
+        // The first available language listens live (live text, wake words); every language reads the recording at the end.
+        for identifier in languages.locales where sessions.isEmpty {
             guard let (recognizer, session) = makeSession(identifier) else { continue }
             session.task = recognizer.recognitionTask(with: session.request, resultHandler: makeResultHandler(for: session, live: true))
             sessions.append(session)
@@ -123,7 +122,7 @@ final class SpeechRecognizer {
         guard !sessions.isEmpty else {
             throw SpeechError.unavailable("Speech recognition isn't available for \(languages.locales.joined(separator: ", ")).")
         }
-        recorded = laterLocales.isEmpty ? nil : AudioStore()
+        recorded = AudioStore()
 
         Self.selectInput(deviceUID, on: engine)
         Self.installTap(on: engine.inputNode, feeding: sessions.map(\.request), recording: recorded) { [weak self] level in
@@ -163,26 +162,36 @@ final class SpeechRecognizer {
                 }
             }
         }
-        // The other languages, one at a time, on the same audio.
-        let audio = recorded?.all ?? []
+        // Every language reads the whole recording, one at a time. The live transcript can drop what came before a
+        // pause (a 20 s hands-free dictation kept 67 of ~150 characters); a pass over the recording keeps it all.
+        let store = recorded
         recorded = nil
-        for identifier in laterLocales where run == generation && !audio.isEmpty {
-            guard let (recognizer, session) = makeSession(identifier) else { continue }
-            session.request.shouldReportPartialResults = false
-            audio.forEach(session.request.append)
-            session.request.endAudio()
-            sessions.append(session)
-            await withCheckedContinuation { continuation in
-                passContinuation = continuation
-                session.task = recognizer.recognitionTask(with: session.request,
-                                                          resultHandler: makeResultHandler(for: session, live: false))
-                Task { @MainActor [weak self] in
-                    try? await Task.sleep(for: .seconds(3)) // safety net
-                    self?.finishPass()
+        let audio = store?.all ?? []
+        if let store, !store.isCapped, !audio.isEmpty {
+            let live = sessions
+            var passes: [Session] = []
+            for identifier in languages.locales where run == generation {
+                guard let (recognizer, session) = makeSession(identifier) else { continue }
+                session.request.shouldReportPartialResults = false
+                audio.forEach(session.request.append)
+                session.request.endAudio()
+                sessions.append(session) // so cancel() stops it too
+                passes.append(session)
+                await withCheckedContinuation { continuation in
+                    passContinuation = continuation
+                    session.task = recognizer.recognitionTask(with: session.request,
+                                                              resultHandler: makeResultHandler(for: session, live: false))
+                    Task { @MainActor [weak self] in
+                        try? await Task.sleep(for: .seconds(3)) // safety net
+                        self?.finishPass()
+                    }
                 }
             }
+            // A language whose pass heard nothing keeps its live transcript.
+            let heard = passes.filter { !$0.text.trimmingCharacters(in: .whitespaces).isEmpty }
+            let liveFallback = live.filter { session in !heard.contains { $0.languageCode == session.languageCode } }
+            if run == generation { sessions = heard + liveFallback }
         }
-        laterLocales = []
         guard run == generation else { return "" }
         return cleanup()
     }

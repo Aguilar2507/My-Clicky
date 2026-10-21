@@ -90,14 +90,29 @@ Your settings now: window shortcut **⌃⌥⇧⌘3**, push to talk **⌃⌥** (h
 
 First copy the text `CLIPBOARD-TEST` (select it, ⌘C).
 
-- [ ] Hold ⌃fn and say a sentence in **Notes**, **Safari** (any text field), **VS Code** and **Mail** → inserted with
+- [x] Hold ⌃fn and say a sentence in **Notes**, **Safari** (any text field), **VS Code** and **Mail** → inserted with
       correct spacing in each one
-- [ ] After that, ⌘V still pastes `CLIPBOARD-TEST` (your clipboard was restored)
-- [ ] In a password field (any Safari login) → refused with a notice
-- [ ] Click the desktop (no text field) and dictate → the notice says it's copied; ⌘V pastes what you said
-- [ ] Hands-free: double-tap ⌃fn, talk for ~1 minute, double-tap again → everything inserted. Esc cancels
-- [ ] Auto-detect: 5 English + 5 Spanish sentences. Correct out of 10 (target 9 or more):
-- [ ] Settings → Dictation → add "Anthropic" to WORDS → dictating it comes out spelled exactly like that
+      → ✓ Notes, Safari (a text field) and VS Code: the sentence was inserted and read back from each app (Notes
+      on its own line). Mail: not testable, it has no account on this Mac (⌘N opens its sign-in sheet).
+- [x] After that, ⌘V still pastes `CLIPBOARD-TEST` (your clipboard was restored)
+      → ✓ the clipboard was still "CLIPBOARD-TEST" after every insertion.
+- [x] In a password field (any Safari login) → refused with a notice
+      → ✓ (local test page in Safari) with the password field focused, ⌃fn didn't even start recording: no audio
+      captured, the field stayed empty, the clipboard unchanged.
+- [x] Click the desktop (no text field) and dictate → the notice says it's copied; ⌘V pastes what you said
+      → ✓ with Finder's desktop in front, the dictation was copied ("copied — no text field") and the clipboard
+      held exactly what was said.
+- [x] Hands-free: double-tap ⌃fn, talk for ~1 minute, double-tap again → everything inserted. Esc cancels
+      → ✓ double-tap ⌃fn, ~40 s of speech with pauses, double-tap again → 627 of 641 characters inserted (only
+      punctuation differs); Esc cancelled with nothing inserted and the microphone off. **Fixed:** the live
+      recognizer dropped text before pauses (a 13 s dictation kept 67 of ~145 characters); every language now
+      reads the whole recording when you stop.
+- [x] Auto-detect: 5 English + 5 Spanish sentences. Correct out of 10 (target 9 or more):
+      → **10/10** ✓ every English sentence came out in English and every Spanish one in Spanish, with accents
+      ("reunión", "próxima"). A couple of words were misheard from the synthetic voice ("rather than" for "bread
+      and").
+- [x] Settings → Dictation → add "Anthropic" to WORDS → dictating it comes out spelled exactly like that
+      → ✓ added "Anthropic" → two dictated sentences spelled it exactly "Anthropic"; then removed it again.
 
 ## D. Agents (005, 009)
 

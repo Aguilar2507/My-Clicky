@@ -68,5 +68,10 @@ on the Claude subscription via Claude Code, API spend always visible.
 - `build.sh` signs with the self-signed `MyClicky Dev` certificate (login keychain), so permissions survive rebuilds.
   If it prints "Signed with: ad-hoc", the certificate is missing and each rebuild silently revokes Device Control and
   Data Access (macOS 27's name for Accessibility) and Input Monitoring.
+- Each new build asks once for the API key ("MyClicky wants to use… in your keychain": click **Allow**). Apps without an
+  Apple team ID are trusted per build; `Keychain` re-saves the key from each build, so its later launches don't ask.
 - Diagnostic log: `/usr/bin/log show --last 10m --predicate 'subsystem == "com.myclicky.app"'` (plain `log` is a zsh
-  builtin).
+  builtin). The `events` category records what happened (never what was said): talk, voice, pointing, dictation,
+  agents, alerts, budget, window.
+- End-to-end checks drive the installed app: `source scripts/e2e/lib.sh` (keys, Accessibility, `say` into the mic,
+  `shot` screenshots through `MyClicky --screenshot`, `--hold-mic` to fake a call). Needs Accessibility for the terminal.

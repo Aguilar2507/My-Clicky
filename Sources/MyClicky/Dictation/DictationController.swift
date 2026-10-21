@@ -59,6 +59,7 @@ final class DictationController {
 
     private func start(_ mode: Mode) {
         if TextInserter.focusedElement().isSecure {
+            Log.events.notice("dictation refusedSecure (before recording)")
             companion.showBubble("Can't dictate into password fields", style: .info, autoHide: 2.5)
             return
         }
