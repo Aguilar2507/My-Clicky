@@ -1,6 +1,6 @@
 import Foundation
 
-/// Pastel avatar colors for Clickys (spec 005 data model): blob color + lighter ring.
+/// Pastel avatar colors for agents (spec 005 data model): blob color + lighter ring.
 public enum AvatarColor: String, Codable, CaseIterable, Sendable {
     case peach, sky, butter, lilac, pink, mint, coral, slate
 

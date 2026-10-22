@@ -3,7 +3,7 @@ import SwiftUI
 import MyClickyCore
 
 /// MyClicky's menu bar icon (spec 019): the bot as a template image. Click shows or hides the window; right-click or
-/// ⌃-click opens the menu that used to be on the notch. A dot appears while a Clicky has news, an agent is working or
+/// ⌃-click opens the menu that used to be on the notch. A dot appears while an agent has news, an agent is working or
 /// setup isn't finished.
 @MainActor
 final class StatusItemController: NSObject {

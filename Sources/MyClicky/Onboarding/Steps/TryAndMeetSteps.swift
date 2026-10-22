@@ -28,7 +28,7 @@ struct HandsOnStep: View {
     }
 }
 
-/// Three questions → three Clickys made for you (Claude Code first, then Haiku, then starters).
+/// Three questions → three agents made for you (Claude Code first, then Haiku, then starters).
 struct InterviewStep: View {
     @Environment(AppModel.self) private var model
     let canContinue: Box<Bool>
@@ -46,7 +46,7 @@ struct InterviewStep: View {
             if !created.value.isEmpty {
                 StepTitle(title: "Meet your agents", subtitle: note.value ?? "They're in your sidebar, ready for tasks.")
                 HStack(spacing: 18) {
-                    ForEach(model.clickys.filter { created.value.contains($0.title) }) { chat in
+                    ForEach(model.agents.filter { created.value.contains($0.title) }) { chat in
                         VStack(spacing: 8) {
                             ChatAvatar(chat: chat, size: 60)
                             Text(chat.title).textStyle(.callout.weight(.semibold)).foregroundStyle(Theme.textPrimary)
@@ -110,13 +110,13 @@ struct InterviewStep: View {
         }
         let result = InterviewParser.parse(reply, existing: model.chats.map(\.title))
         var names: [String] = []
-        for clicky in result.clickys {
-            let id = model.createClicky(purpose: clicky.purpose)
+        for agent in result.agents {
+            let id = model.createAgent(purpose: agent.purpose)
             model.updateChat(id) {
-                $0.title = clicky.name
-                $0.avatarColor = clicky.color
+                $0.title = agent.name
+                $0.avatarColor = agent.color
             }
-            names.append(clicky.name)
+            names.append(agent.name)
         }
         if result.usedFallback { note.value = "I couldn't reach Claude, so here are three starters. Rename them anytime." }
         created.value = names

@@ -1,7 +1,7 @@
 import SwiftUI
 import MyClickyCore
 
-/// A chat's avatar (spec 016): Talk is the logo's cursor on the brand gradient; each Clicky is a white glass bot on
+/// A chat's avatar (spec 016): Talk is the logo's cursor on the brand gradient; each agent is a white glass bot on
 /// its own color, Apple Contacts style.
 struct ChatAvatar: View {
     let chat: Chat

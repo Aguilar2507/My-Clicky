@@ -1,7 +1,7 @@
 import SwiftUI
 import MyClickyCore
 
-/// Home sidebar (ref 02): window buttons (spec 015), Search + "+", pinned Talk, Clickys, Apps chip, profile footer.
+/// Home sidebar (ref 02): window buttons (spec 015), Search + "+", pinned Talk, agents, Apps chip, profile footer.
 struct SidebarView: View {
     @Environment(AppModel.self) private var model
     @StateObject private var query = Box("")
@@ -12,7 +12,7 @@ struct SidebarView: View {
             SidebarHeader().padding(.bottom, 16)
             HStack(spacing: 8) {
                 SearchField(text: $query.value, placeholder: "Search")
-                Button { model.select(model.createClicky()) } label: {
+                Button { model.select(model.createAgent()) } label: {
                     Image(systemName: "plus").font(.icon(17, .semibold)).foregroundStyle(Theme.textPrimary)
                         .frame(width: 42, height: 42)
                         .background(Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -52,7 +52,7 @@ struct SidebarView: View {
     }
 
     private var results: [(chat: Chat, snippet: String?)] {
-        let ordered = [model.talkChatIfExists].compactMap { $0 } + model.clickys // Talk pinned first
+        let ordered = [model.talkChatIfExists].compactMap { $0 } + model.agents // Talk pinned first
         let q = query.value.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return ordered.map { ($0, nil) } }
         return ordered.compactMap { chat in SearchIndex.search(q, in: chat).map { (chat, $0.snippet) } }

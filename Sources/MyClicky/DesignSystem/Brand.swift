@@ -216,7 +216,7 @@ struct GlassBot: View {
     enum Eyes: Equatable { case happy, open, wide }
     enum Style: Equatable {
         case brand
-        /// White glass with the face tinted (Clicky avatars).
+        /// White glass with the face tinted (agent avatars).
         case white(face: Color)
     }
 
@@ -582,7 +582,7 @@ private struct ProbeView: NSViewRepresentable {
 }
 
 /// The bot, alive (spec 016 US3): it breathes, floats with its shadow reacting, sways, blinks naturally (sometimes
-/// twice), follows the pointer with its eyes, hops when you point at it, and reacts to Clicky's state: listening (eyes
+/// twice), follows the pointer with its eyes, hops when you point at it, and reacts to the assistant's state: listening (eyes
 /// wide, leaning in), thinking (looking up), speaking (its mouth moves). With Reduce Motion it stands still and blinks
 /// every 8 s. Measure changes with `MyClicky --bench-bot`.
 struct LivelyBot: View {
@@ -637,7 +637,7 @@ struct LivelyBot: View {
 
 // MARK: Avatars
 
-/// A Clicky's avatar, Apple Contacts style: a circle in the Clicky's color (light at the top, deeper at the bottom)
+/// An agent's avatar, Apple Contacts style: a circle in the agent's color (light at the top, deeper at the bottom)
 /// with a white glass bot whose face takes the same color.
 struct BotAvatar: View {
     var ring: Color

@@ -15,8 +15,8 @@ private final class StreamState {
     }
 }
 
-/// Orchestrates listening → screenshot → Claude → speech/pointing, and Clicky agent tasks.
-/// Screen questions are saved in the pinned Talk chat; "agent…" requests go to Clickys (spec 005, ChatRouter).
+/// Orchestrates listening → screenshot → Claude → speech/pointing, and agent tasks.
+/// Screen questions are saved in the pinned Talk chat; "agent…" requests go to agents (spec 005, ChatRouter).
 @MainActor
 final class Assistant {
     enum State: Equatable {
@@ -30,7 +30,7 @@ final class Assistant {
     let companion: CompanionController
     private let claude = ClaudeClient()
     private lazy var memory = MemoryManager(model: model)
-    /// Set by AppDelegate: runs Clicky tasks (spec 009).
+    /// Set by AppDelegate: runs agent tasks (spec 009).
     weak var agents: AgentSupervisor?
     /// While announcing with its own bubble, the speech doesn't overwrite it.
     private var bubbleFollowsSpeech = true
@@ -149,7 +149,7 @@ final class Assistant {
 
     // MARK: Typed input
 
-    /// Text mode and voice go through the router ("agent…" → Clickys, otherwise Talk).
+    /// Text mode and voice go through the router ("agent…" → agents, otherwise Talk).
     func ask(typed text: String) {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
@@ -159,7 +159,7 @@ final class Assistant {
         currentRequest = Task { await handle(text, via: .typed) }
     }
 
-    /// The composer sends straight to the open chat: Talk asks about the screen, a Clicky gets an instruction.
+    /// The composer sends straight to the open chat: Talk asks about the screen, an agent gets an instruction.
     func send(_ text: String, toChat chatID: UUID) {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, let chat = model.chat(chatID) else { return }
@@ -173,7 +173,7 @@ final class Assistant {
             // An agent made with + gets its name and purpose from its first instruction, like one made by voice.
             if chat.messages.isEmpty, chat.purpose.isEmpty {
                 model.updateChat(chatID) { $0.purpose = text }
-                Task { await ClickyNamer.name(chatID, from: text, model: model) }
+                Task { await AgentNamer.name(chatID, from: text, model: model) }
             }
             startAgent(text, in: chatID, via: .typed, language: language)
         }
@@ -192,16 +192,16 @@ final class Assistant {
 
     private func handle(_ text: String, via: Message.Via, spoken: String? = nil) async {
         let language = requestLanguage(for: text, spoken: spoken)
-        switch ChatRouter.route(text, clickys: model.clickyRefs) {
+        switch ChatRouter.route(text, agents: model.agentRefs) {
         case .talk(let question):
             await talk(question, via: via, language: language)
-        case .clicky(let id, let task):
+        case .agent(let id, let task):
             finishListening()
             startAgent(task, in: id, via: via, language: language)
-        case .newClicky(let task):
+        case .newAgent(let task):
             finishListening()
-            let id = model.createClicky(purpose: task)
-            Task { await ClickyNamer.name(id, from: task, model: model) }
+            let id = model.createAgent(purpose: task)
+            Task { await AgentNamer.name(id, from: task, model: model) }
             startAgent(task, in: id, via: via, language: language)
         }
     }
@@ -338,7 +338,7 @@ final class Assistant {
         voice.speakAll(text, settings: settings)
     }
 
-    // MARK: Clickys (agents run in AgentSupervisor, spec 009)
+    // MARK: Agents (they run in AgentSupervisor, spec 009)
 
     private func startAgent(_ task: String, in chatID: UUID, via: Message.Via, language: String) {
         model.append(Message(role: .user, text: task, via: via), to: chatID)

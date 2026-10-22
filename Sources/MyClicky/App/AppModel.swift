@@ -50,7 +50,7 @@ final class AppModel {
     /// Talk without creating it (for lists).
     var talkChatIfExists: Chat? { chats.first { $0.kind == .talk } }
 
-    /// Clickys with an agent task running right now (spec 009 fills this for real; 005 sets it around each run).
+    /// agents with an agent task running right now (spec 009 fills this for real; 005 sets it around each run).
     var workingChatIDs: Set<UUID> = []
 
     /// Applies a change to a chat and saves it (debounced).
@@ -64,7 +64,7 @@ final class AppModel {
         updateChat(id) { $0.append(message) }
     }
 
-    // MARK: Clickys (spec 005)
+    // MARK: Agents (spec 005)
 
     /// The chat open on the right side (nil = greeting screen).
     var selectedChatID: UUID?
@@ -79,13 +79,13 @@ final class AppModel {
         return selectedChatID
     }
 
-    /// Clickys, newest activity first (Talk is pinned separately).
-    var clickys: [Chat] {
-        chats.filter { $0.kind == .clicky }.sorted { $0.updatedAt > $1.updatedAt }
+    /// agents, newest activity first (Talk is pinned separately).
+    var agents: [Chat] {
+        chats.filter { $0.kind == .agent }.sorted { $0.updatedAt > $1.updatedAt }
     }
 
-    var clickyRefs: [ChatRouter.ClickyRef] {
-        clickys.map { ChatRouter.ClickyRef(id: $0.id, title: $0.title, lastAgentUseAt: $0.lastAgentUseAt) }
+    var agentRefs: [ChatRouter.AgentRef] {
+        agents.map { ChatRouter.AgentRef(id: $0.id, title: $0.title, lastAgentUseAt: $0.lastAgentUseAt) }
     }
 
     /// Adds a reply to a chat and marks it unread if the user isn't looking at it.
@@ -93,14 +93,14 @@ final class AppModel {
         let unseen = visibleChatID != id
         updateChat(id) {
             $0.append(message)
-            if unseen && $0.kind == .clicky { $0.isUnread = true }
+            if unseen && $0.kind == .agent { $0.isUnread = true }
         }
     }
 
     func select(_ id: UUID?) {
         // Drop a "+" draft the user left without writing anything.
         if let previous = selectedChatID, previous != id, let draft = chat(previous),
-           draft.kind == .clicky, draft.messages.isEmpty, draft.purpose.isEmpty {
+           draft.kind == .agent, draft.messages.isEmpty, draft.purpose.isEmpty {
             deleteChat(previous)
         }
         selectedChatID = id
@@ -111,15 +111,15 @@ final class AppModel {
         if chat(id)?.isUnread == true { updateChat(id) { $0.isUnread = false } }
     }
 
-    /// A new, empty Clicky (named after its first message).
+    /// A new, empty agent (named after its first message).
     @discardableResult
-    func createClicky(purpose: String = "") -> UUID {
-        var clicky = Chat(kind: .clicky, title: NamingParser.fallbackName(existing: chats.map(\.title)))
-        clicky.avatarColor = AvatarColor.next(avoiding: clickys.map(\.avatarColor))
-        clicky.purpose = purpose
-        chats.append(clicky)
-        chatStore.save(clicky)
-        return clicky.id
+    func createAgent(purpose: String = "") -> UUID {
+        var agent = Chat(kind: .agent, title: NamingParser.fallbackName(existing: chats.map(\.title)))
+        agent.avatarColor = AvatarColor.next(avoiding: agents.map(\.avatarColor))
+        agent.purpose = purpose
+        chats.append(agent)
+        chatStore.save(agent)
+        return agent.id
     }
 
     func rename(_ id: UUID, to title: String) {
@@ -134,7 +134,7 @@ final class AppModel {
     }
 
     func deleteChat(_ id: UUID) {
-        guard chat(id)?.kind == .clicky else { return } // Talk can only be cleared
+        guard chat(id)?.kind == .agent else { return } // Talk can only be cleared
         chats.removeAll { $0.id == id }
         chatStore.delete(id: id)
         if selectedChatID == id { selectedChatID = nil }
@@ -176,8 +176,8 @@ final class AppModel {
 
     // MARK: Status
 
-    /// Clickys with something new (blue dot); drives the menu bar dot (spec 019). Filled in by spec 005.
-    var unreadCount: Int { previewUnreadCount ?? chats.filter { $0.kind == .clicky && $0.isUnread }.count }
+    /// agents with something new (blue dot); drives the menu bar dot (spec 019). Filled in by spec 005.
+    var unreadCount: Int { previewUnreadCount ?? chats.filter { $0.kind == .agent && $0.isUnread }.count }
     /// Snapshot/preview override for the badge.
     var previewUnreadCount: Int?
     /// Mirrors the talk flow (listening, thinking, speaking) for views like the greeting pill.

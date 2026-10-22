@@ -1,7 +1,7 @@
 import Foundation
 
 /// Who you're talking to (spec 018, name changed in spec 020): "Jarvis…" is the cursor companion (Talk), "Jarvis
-/// agent…" gives a task to a Clicky run by Claude Code. Recognized at the start of what you said, after an optional
+/// agent…" gives a task to an agent run by Claude Code. Recognized at the start of what you said, after an optional
 /// greeting. The name is matched by sound, not spelling, so the ways English and Spanish speech recognition write it
 /// ("Harvis", "Yarvis", "Jarbis", "jar vis", "Járvis") all count.
 public enum WakeWords {

@@ -156,7 +156,7 @@ struct APIKeyStep: View {
     }
 }
 
-/// Claude Code for Clickys: status, copyable commands, check again, or skip.
+/// Claude Code for agents: status, copyable commands, check again, or skip.
 struct ClaudeCodeStep: View {
     @Environment(AppModel.self) private var model
     @StateObject private var status = Box<ClaudeCodeLocator.Status?>(nil)

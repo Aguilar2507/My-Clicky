@@ -2,7 +2,7 @@ import AppKit
 import UserNotifications
 
 /// Project rule (spec 018 US3): every task end tells you. This part is the macOS notification: one per task end,
-/// shown even while MyClicky is in front, and clicking it opens that Clicky's chat. Permission is asked the first
+/// shown even while MyClicky is in front, and clicking it opens that agent's chat. Permission is asked the first
 /// time a task ends. Nothing leaves the Mac.
 @MainActor
 final class TaskAlerts: NSObject, UNUserNotificationCenterDelegate {

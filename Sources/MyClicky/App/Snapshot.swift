@@ -21,9 +21,9 @@ enum Snapshot {
         "settings-agents": (MainWindowController.defaultSize, { AnyView(routePreview(.settings(.agents))) }),
         "agent-chat": (MainWindowController.defaultSize, { AnyView(routePreview(.home, select: seedAgentChat())) }),
         "morning": (CGSize(width: 420, height: 202), { AnyView(MorningIdeasView(ideas: [
-            Suggestion(text: "Draft the weekly update from Build Lab's notes", clickyTitle: "Build Lab", createdAt: Date()),
-            Suggestion(text: "Check new remote AI architect roles", clickyTitle: "Role Scout", createdAt: Date()),
-            Suggestion(text: "Summarize today's top 3 AI announcements", clickyTitle: nil, createdAt: Date()),
+            Suggestion(text: "Draft the weekly update from Build Lab's notes", agentTitle: "Build Lab", createdAt: Date()),
+            Suggestion(text: "Check new remote AI architect roles", agentTitle: "Role Scout", createdAt: Date()),
+            Suggestion(text: "Summarize today's top 3 AI announcements", agentTitle: nil, createdAt: Date()),
         ], onStart: { _ in }, onClose: {})) }),
         "settings-integrations": (MainWindowController.defaultSize, {
             let i = previewModel.integrations
@@ -85,11 +85,11 @@ enum Snapshot {
             .frame(width: size.width, height: size.height)
     }
 
-    /// A Clicky mid-task: steps (grouped), an Allow card and a Keep going card (spec 009 UI contract).
+    /// An agent mid-task: steps (grouped), an Allow card and a Keep going card (spec 009 UI contract).
     static func seedAgentChat() -> UUID {
         MessageBubble.custom = { message, chat in AgentCards.render(message, chat: chat) }
         let m = previewModel
-        let id = m.createClicky(purpose: "Keep an eye on the latest AI news")
+        let id = m.createAgent(purpose: "Keep an eye on the latest AI news")
         func step(_ text: String, _ tool: String, _ status: String) -> Message {
             var s = Message(role: .system, text: text, via: .agent)
             s.kind = .step; s.toolName = tool; s.status = status; s.refID = UUID().uuidString
@@ -120,7 +120,7 @@ enum Snapshot {
     @discardableResult
     static func seedChats(select title: String?) -> UUID? {
         let m = previewModel
-        guard m.clickys.isEmpty else { return m.clickys.first { $0.title == title }?.id }
+        guard m.agents.isEmpty else { return m.agents.first { $0.title == title }?.id }
         let cal = Calendar.current
         let now = Date()
         func day(_ back: Int, _ hour: Int, _ minute: Int = 0) -> Date {
@@ -135,7 +135,7 @@ enum Snapshot {
             ("Research Buddy", .mint, day(5, 11), "Two-page SpaceX competitor summary with sources.", false),
         ]
         for (name, color, date, preview, unread) in samples.reversed() {
-            let id = m.createClicky(purpose: preview)
+            let id = m.createAgent(purpose: preview)
             m.updateChat(id) {
                 $0.title = name
                 $0.avatarColor = color
@@ -146,7 +146,7 @@ enum Snapshot {
         }
         m.append(Message(role: .user, text: "What app am I in?", createdAt: day(6, 9), via: .voice, screensSeen: 2), to: m.talkChat.id)
         m.append(Message(role: .assistant, text: "You're in Safari, on the Apple Store page.", createdAt: day(6, 9)), to: m.talkChat.id)
-        if let research = m.clickys.first(where: { $0.title == "Research Buddy" }) {
+        if let research = m.agents.first(where: { $0.title == "Research Buddy" }) {
             m.updateChat(research.id) {
                 $0.messages = [
                     Message(role: .user, text: "Make a two-page summary of SpaceX's main competitors, with sources.", createdAt: day(5, 10, 50), via: .voice),
@@ -156,7 +156,7 @@ enum Snapshot {
                 ]
             }
         }
-        return m.clickys.first { $0.title == title }?.id
+        return m.agents.first { $0.title == title }?.id
     }
 
     /// Brand artwork (spec 013), drawn with SwiftUI's ImageRenderer because the layer render below drops blur and glow.

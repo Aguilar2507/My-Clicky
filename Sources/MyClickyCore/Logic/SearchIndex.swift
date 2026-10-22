@@ -35,7 +35,7 @@ public enum SearchIndex {
     }
 }
 
-/// Parses the Clicky naming reply {"name": "...", "color": "..."} and keeps names unique (spec 005 R4).
+/// Parses the agent naming reply {"name": "...", "color": "..."} and keeps names unique (spec 005 R4).
 public enum NamingParser {
     public static func parse(_ reply: String) -> (name: String, color: AvatarColor?)? {
         guard let start = reply.firstIndex(of: "{"), let end = reply.lastIndex(of: "}"),

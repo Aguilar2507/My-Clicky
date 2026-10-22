@@ -45,7 +45,7 @@ struct Composer: View {
     }
 
     private var placeholder: String {
-        if chat.kind == .clicky && chat.messages.isEmpty { return "What should this agent do?" }
+        if chat.kind == .agent && chat.messages.isEmpty { return "What should this agent do?" }
         return "Message \(chat.title)…"
     }
 

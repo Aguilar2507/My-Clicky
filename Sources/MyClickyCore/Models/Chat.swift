@@ -1,17 +1,18 @@
 import Foundation
 
-/// A conversation: the single pinned Talk chat, or a named Clicky. Stored as `chats/<id>.json`.
+/// A conversation: the single pinned Talk chat, or a named agent. Stored as `chats/<id>.json`.
 public struct Chat: Codable, Equatable, Identifiable, Sendable {
-    public enum Kind: String, Codable, Sendable { case talk, clicky }
+    /// Agents are stored as "clicky", their name before 1.0, so existing chat files keep loading.
+    public enum Kind: String, Codable, Sendable { case talk, agent = "clicky" }
 
     public var id = UUID()
-    public var kind: Kind = .clicky
+    public var kind: Kind = .agent
     public var title = ""
     public var createdAt = Date()
     public var updatedAt = Date()
     public var messages: [Message] = []
     public var memorySummary = ""
-    // 005 Clickys and chats
+    // 005 agents and chats
     public var avatarColor: AvatarColor = .sky
     public var purpose = ""
     public var isUnread = false
@@ -38,7 +39,7 @@ public struct Chat: Codable, Equatable, Identifiable, Sendable {
             throw DecodingError.keyNotFound(CodingKeys.id, .init(codingPath: [], debugDescription: "Chat without id"))
         }
         self.id = id
-        kind = c.value(.kind, default: .clicky)
+        kind = c.value(.kind, default: .agent)
         title = c.value(.title, default: "")
         createdAt = c.value(.createdAt, default: Date(timeIntervalSince1970: 0))
         updatedAt = c.value(.updatedAt, default: createdAt)

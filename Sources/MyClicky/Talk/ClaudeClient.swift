@@ -132,7 +132,7 @@ struct ClaudeClient {
         return Reply(text: text.trimmingCharacters(in: .whitespacesAndNewlines), usage: usage)
     }
 
-    // MARK: Small text requests (memory summaries, naming Clickys)
+    // MARK: Small text requests (memory summaries, naming agents)
 
     /// `prefill` starts the reply (e.g. "{" so the model can only continue a JSON object); it's included in the text.
     func complete(system: String, user: String, model: String, maxTokens: Int = 300, prefill: String? = nil,
