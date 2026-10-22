@@ -34,7 +34,7 @@ public enum PermissionDescriber {
             let action = parts.count > 2 ? parts[2...].joined(separator: " ") : "an action"
             let sensitive = ["create", "update", "delete", "post", "send", "publish", "merge", "comment", "write"]
                 .contains { action.lowercased().contains($0) }
-            return Description(text: "Use \(server.capitalized): \(action)", detail: input.isEmpty ? nil : compact(input),
+            return Description(text: "Use \(appName(server)): \(action)", detail: input.isEmpty ? nil : compact(input),
                                sensitive: sensitive, rule: tool, isComputerUse: false)
         }
         switch tool {
@@ -93,5 +93,12 @@ public enum PermissionDescriber {
 
     static func compact(_ input: [String: String]) -> String {
         input.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value)" }.joined(separator: ", ").prefix(160).description
+    }
+
+    /// The catalog's spelling for its servers ("GitHub", not "Github"); others are capitalized.
+    static func appName(_ server: String) -> String {
+        let names = ["github": "GitHub", "notion": "Notion", "linear": "Linear", "atlassian": "Jira & Confluence",
+                     "asana": "Asana", "sentry": "Sentry", "myclicky": "MyClicky"]
+        return names[server.lowercased()] ?? server.capitalized
     }
 }

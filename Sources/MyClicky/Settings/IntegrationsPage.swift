@@ -172,7 +172,7 @@ struct SignInCard: View {
             if askingForApp.value, let port = integration.oauthCallbackPort {
                 Text("\(integration.name) needs your own OAuth app (free, once). Create one with the homepage http://localhost and the callback URL below, then paste its Client ID and a client secret. The secret goes to Claude Code only.")
                     .textStyle(.callout).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
-                Text("http://localhost:\(port)/callback").textStyle(.callout, design: .monospaced).foregroundStyle(Theme.textPrimary)
+                Text(verbatim: "http://localhost:\(String(port))/callback").textStyle(.callout, design: .monospaced).foregroundStyle(Theme.textPrimary)
                     .textSelection(.enabled)
                 TextField("Client ID", text: $clientID.value).darkField()
                 SecretField(placeholder: "Client secret", text: $clientSecret.value)

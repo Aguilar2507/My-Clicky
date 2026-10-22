@@ -169,19 +169,29 @@ First copy the text `CLIPBOARD-TEST` (select it, ⌘C).
 
 ## E. Integrations (010) — GitHub only
 
-- [ ] Settings → Integrations → GitHub → **Connect** → a small Terminal window opens and your browser asks you to sign in
-      → back in MyClicky it shows ● Connected within a few seconds. You can close the Terminal window
-- [ ] In an agent: "list my open pull requests" → Allow card → an answer from GitHub
+- [x] Settings → Integrations → GitHub → **Connect** → a small Terminal window opens and your browser asks you to sign in
+      → ✓ (with your own OAuth app) Connect asked once for the Client ID and secret, a Terminal ran claude mcp
+      login, you clicked Authorize → "Connected". Only the Client ID is kept in MyClicky; no secret in its
+      files. **Fixed:** GitHub's MCP server doesn't allow apps to register themselves, so the old Connect could
+      never work.
+- [x] In an agent: "list my open pull requests" → Allow card → an answer from GitHub
+      → ✓ Allow cards for get_me and search_pull_requests → "I checked GitHub as Aguilar2507 and you have no
+      open pull requests."
 - [x] Your claude.ai connectors (Claude Docs, Canva) show under Connected as "Managed in Claude Code"
       → ✓ both listed under Connected as "Managed in Claude Code" with their addresses (missing before the
       parser fix of 2026-10-20).
-- [ ] On github.com → Settings → Applications, revoke access → reopen the page → "Reconnect required" → Reconnect works
-- [ ] **Disconnect** → GitHub goes back to Available
+- [x] On github.com → Settings → Applications, revoke access → reopen the page → "Reconnect required" → Reconnect works
+      → ✓ simulated with claude mcp logout (Claude Code drops the GitHub sign-in) → "Reconnect required" →
+      Reconnect went straight to sign-in → Connected again.
+- [x] **Disconnect** → GitHub goes back to Available
+      → ✓ tested on Sentry (added from the command line, then removed with its button in MyClicky): gone from
+      Claude Code and back under Available. GitHub was left connected so you keep it.
 - [x] Add custom connector with `http://bad` → error; with `https://mcp.sentry.dev/mcp` → added. Then remove it
       → ✓ http://bad → "Use a full https:// address."; https://mcp.sentry.dev/mcp → added to Claude Code
       (myclicky-test-sentry) with "Reconnect required" and a Terminal running `claude mcp login` for the
       sign-in; removed with its × (gone from Claude Code too).
-- [ ] The **Apps** chip in the sidebar shows the connected icon and opens this page
+- [x] The **Apps** chip in the sidebar shows the connected icon and opens this page
+      → ✓ the chip shows GitHub's "G" once connected, and opens the Integrations page.
 
 ## F. Spending (011)
 

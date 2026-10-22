@@ -49,7 +49,7 @@ enum AgentChecks {
             Check.equal(click.text, "Click on your screen")
             Check.expect(click.isComputerUse)
             let gh = PermissionDescriber.describe(tool: "mcp__myclicky-github__create_issue", input: ["title": "Bug"])
-            Check.expect(gh.text.hasPrefix("Use Github"), gh.text)
+            Check.expect(gh.text.hasPrefix("Use GitHub: "), gh.text)
             Check.expect(gh.sensitive, "creating things in connected apps is sensitive")
             Check.expect(PermissionDescriber.isPreApproved(ls, rules: ["Bash(ls:*)"]))
             let rm = PermissionDescriber.describe(tool: "Bash", input: ["command": "rm a"])
