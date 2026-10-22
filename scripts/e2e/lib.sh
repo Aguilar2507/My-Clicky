@@ -34,7 +34,8 @@ for f in glob.glob(sys.argv[1] + "/chats/*.json"):
 EOF
 }
 # bring MyClicky's window forward (the shell's app tends to take focus between commands)
-front_app() { osascript -e 'tell application id "com.myclicky.app" to activate' >/dev/null 2>&1; wait_s 0.8; }
+# `open` (like a Dock click) also shows a hidden window; `activate` alone doesn't.
+front_app() { open "$HOME/Applications/MyClicky.app"; wait_s 0.8; }
 in_dock() { "$D" find com.apple.dock "MyClicky" AXDockItem >/dev/null 2>&1 && "$D" find com.apple.dock "MyClicky" AXDockItem | grep -q . && echo yes || echo no; }
 setting() { python3 -I -c "import json,os,sys;print(json.load(open(os.path.expanduser('~/Library/Application Support/MyClicky/settings.json'))).get(sys.argv[1]))" "$1"; }
 # Pointing accuracy: `point_test <bundle-id> "<x,y,w,h AX frame>" "<question>"` → HIT/MISS line.

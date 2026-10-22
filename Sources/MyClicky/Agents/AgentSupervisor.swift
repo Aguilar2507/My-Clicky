@@ -79,7 +79,7 @@ final class AgentSupervisor {
         }
         Log.events.notice("agent start chat=\(chatID.uuidString.prefix(8), privacy: .public) lang=\(self.languages[chatID] ?? "?", privacy: .public)")
         if queue.request(chatID) {
-            launch(chatID: chatID, instruction: instruction)
+            launchWhenNamed(chatID: chatID, instruction: instruction)
         } else {
             waiting[chatID] = instruction
             notice(chatID, "Waiting for another agent to finish…", status: "queued")
@@ -109,6 +109,22 @@ final class AgentSupervisor {
     }
 
     // MARK: Launch
+
+    /// A brand-new agent's folder comes from its name, which arrives ~1.5 s after its first instruction. Without
+    /// waiting, every agent got the placeholder's folder ("new-agent", "new-clicky") and shared it with the others.
+    private func launchWhenNamed(chatID: UUID, instruction: String) {
+        guard let chat = model.chat(chatID), chat.folderName.isEmpty, NamingParser.isFallback(chat.title) else {
+            launch(chatID: chatID, instruction: instruction)
+            return
+        }
+        Task { @MainActor [weak self] in
+            for _ in 0..<30 { // up to 3 s, then the placeholder name it is
+                try? await Task.sleep(for: .milliseconds(100))
+                guard let title = self?.model.chat(chatID)?.title, NamingParser.isFallback(title) else { break }
+            }
+            self?.launch(chatID: chatID, instruction: instruction)
+        }
+    }
 
     private func launch(chatID: UUID, instruction: String) {
         guard let chat = model.chat(chatID), let claude = ClaudeCodeLocator.find(model.settings) else { return }
@@ -307,7 +323,9 @@ final class AgentSupervisor {
     private func finishAnnouncement(_ chatID: UUID, _ spoken: String, bubble: String? = nil, title: String, body: String) {
         let language = languages[chatID]
         Log.events.notice("agent finished chat=\(chatID.uuidString.prefix(8), privacy: .public) spoken=\(self.model.settings.announceStartFinish, privacy: .public)")
-        if model.visibleChatID != chatID { model.updateChat(chatID) { $0.isUnread = true } }
+        let unseen = model.visibleChatID != chatID
+        Log.events.notice("agent result unread=\(unseen, privacy: .public) windowOpen=\(self.model.isWindowOpen, privacy: .public)")
+        if unseen { model.updateChat(chatID) { $0.isUnread = true } }
         TaskAlerts.shared.post(chatID: chatID, title: title, body: body)
         Haptics.tap(.done)
         let speak = model.settings.announceStartFinish

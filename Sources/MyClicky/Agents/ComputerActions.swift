@@ -11,12 +11,15 @@ final class ComputerActions {
     private var lastShots: [String: [Screenshot]] = [:]
     /// Set when you touch the mouse/keyboard during a run; the next action asks "Continue?".
     private(set) var interrupted: Set<String> = []
-    private var lastSyntheticEvent = Date.distantPast
     private var monitor: Any?
 
     init(companion: CompanionController) {
         self.companion = companion
-        monitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .keyDown, .mouseMoved]) { [weak self] _ in
+        monitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .keyDown, .mouseMoved]) { [weak self] event in
+            // Our own clicks carry our process ID; anything else is you. (A 0.8 s quiet window after each of our
+            // clicks used to hide your input during fast click runs, so the "Continue?" pause never came.)
+            let poster = event.cgEvent?.getIntegerValueField(.eventSourceUnixProcessID) ?? 0
+            guard poster != Int64(getpid()) else { return }
             DispatchQueue.main.async { self?.userActed() } // not assumeIsolated: see CompanionController.init
         }
     }
@@ -25,7 +28,7 @@ final class ComputerActions {
     var activeChats: Set<String> = []
 
     private func userActed() {
-        guard !activeChats.isEmpty, Date().timeIntervalSince(lastSyntheticEvent) > 0.8 else { return }
+        guard !activeChats.isEmpty else { return }
         interrupted.formUnion(activeChats)
     }
 
@@ -75,7 +78,6 @@ final class ComputerActions {
             return BridgeResponse(id: id, ok: true, content: [.text("ok")])
         case "scroll":
             let dy = Int32(input["dy"]?.double ?? 0), dx = Int32(input["dx"]?.double ?? 0)
-            lastSyntheticEvent = Date()
             CGEvent(scrollWheelEvent2Source: nil, units: .line, wheelCount: 2, wheel1: -dy, wheel2: dx, wheel3: 0)?.post(tap: .cghidEventTap)
             return BridgeResponse(id: id, ok: true, content: [.text("ok")])
         default:
@@ -112,7 +114,6 @@ final class ComputerActions {
     }
 
     private func post(mouse type: CGEventType, at point: CGPoint, clicks: Int = 1, right: Bool = false) {
-        lastSyntheticEvent = Date()
         let event = CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: quartz(point),
                             mouseButton: right ? .right : .left)
         event?.setIntegerValueField(.mouseEventClickState, value: Int64(clicks))
@@ -120,7 +121,6 @@ final class ComputerActions {
     }
 
     private func type(_ text: String) {
-        lastSyntheticEvent = Date()
         for chunk in text.chunked(20) {
             let utf16 = Array(chunk.utf16)
             let down = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true)
@@ -133,7 +133,6 @@ final class ComputerActions {
     }
 
     private func press(_ code: CGKeyCode, flags: CGEventFlags) {
-        lastSyntheticEvent = Date()
         let down = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: true)
         down?.flags = flags
         down?.post(tap: .cghidEventTap)

@@ -134,14 +134,19 @@ struct ClaudeClient {
 
     // MARK: Small text requests (memory summaries, naming Clickys)
 
-    func complete(system: String, user: String, model: String, maxTokens: Int = 300, apiKey: String) async throws -> Reply {
+    /// `prefill` starts the reply (e.g. "{" so the model can only continue a JSON object); it's included in the text.
+    func complete(system: String, user: String, model: String, maxTokens: Int = 300, prefill: String? = nil,
+                  apiKey: String) async throws -> Reply {
+        var messages: [[String: Any]] = [["role": "user", "content": user]]
+        if let prefill { messages.append(["role": "assistant", "content": prefill]) }
         let body: [String: Any] = [
             "model": model,
             "max_tokens": maxTokens,
             "system": system,
-            "messages": [["role": "user", "content": user]],
+            "messages": messages,
         ]
-        return try await send(body, model: model, apiKey: apiKey)
+        let reply = try await send(body, model: model, apiKey: apiKey)
+        return prefill.map { Reply(text: $0 + reply.text, usage: reply.usage) } ?? reply
     }
 
     // MARK: Transport

@@ -46,7 +46,7 @@ final class MemoryManager {
 @MainActor
 enum ClickyNamer {
     static let system = """
-    Name a helper based on its job. Reply with JSON only: {"name": 1-3 words, Title Case, playful but clear, \
+    Name a helper based on its job (the user's message is the job description; don't do the job). Reply with JSON only: {"name": 1-3 words, Title Case, playful but clear, \
     like "Research Buddy" or "Signal Radar"; "color": one of peach, sky, butter, lilac, pink, mint, coral, slate}.
     """
 
@@ -54,7 +54,7 @@ enum ClickyNamer {
         guard let apiKey = Keychain.apiKey(), PaidRequestGate.allowsBackground(model) else { return } // keeps "New agent N"
         do {
             let reply = try await ClaudeClient().complete(system: system, user: instruction, model: model.settings.fastModel,
-                                                          maxTokens: 60, apiKey: apiKey)
+                                                          maxTokens: 60, prefill: "{", apiKey: apiKey)
             model.recordUsage(reply.usage, kind: .naming)
             guard let parsed = NamingParser.parse(reply.text) else {
                 Log.events.notice("naming unparsed chars=\(reply.text.count, privacy: .public)")

@@ -87,7 +87,10 @@ final class MainWindowController: NSObject, NSWindowDelegate {
 
     private func updateOpen() {
         let open = isFrontmost
-        if model.isWindowOpen != open { model.isWindowOpen = open }
+        if model.isWindowOpen != open {
+            Log.events.notice("window open=\(open, privacy: .public)")
+            model.isWindowOpen = open
+        }
     }
 
     /// Where macOS put the window buttons (top-left based), so the sidebar header lines up with them (spec 017).

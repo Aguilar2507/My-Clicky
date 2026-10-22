@@ -145,11 +145,14 @@ case "key":
     let code = keyCodes[name] ?? CGKeyCode(Int(name) ?? 0)
     keyPress(code, args.count > 2 ? mods(args[2]) : [])
 case "type": typeText(args.dropFirst().joined(separator: " "))
-case "rightclick":
+case "rightclick": // rightclick <x> <y> [mods]: the modifiers ride on the click (e.g. opt for hidden menu items)
     let p = CGPoint(x: Double(args[1])!, y: Double(args[2])!)
-    post(CGEvent(mouseEventSource: source, mouseType: .mouseMoved, mouseCursorPosition: p, mouseButton: .right))
-    post(CGEvent(mouseEventSource: source, mouseType: .rightMouseDown, mouseCursorPosition: p, mouseButton: .right))
-    post(CGEvent(mouseEventSource: source, mouseType: .rightMouseUp, mouseCursorPosition: p, mouseButton: .right))
+    let f = args.count > 3 ? flags(mods(args[3])) : []
+    for type in [CGEventType.mouseMoved, .rightMouseDown, .rightMouseUp] {
+        let e = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: p, mouseButton: .right)
+        e?.flags = f
+        post(e)
+    }
 case "move", "click":
     let p = CGPoint(x: Double(args[1])!, y: Double(args[2])!)
     post(CGEvent(mouseEventSource: source, mouseType: .mouseMoved, mouseCursorPosition: p, mouseButton: .left))

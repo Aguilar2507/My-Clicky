@@ -128,17 +128,44 @@ First copy the text `CLIPBOARD-TEST` (select it, ⌘C).
       Breakfast Builder": the Claude Code process was gone 0.7 s later. Both stops were announced. (One earlier
       Stop crashed the app while the mouse moved, not reproducible; **hardened:** the mouse-move handlers no
       longer use the runtime check that crashed.)
-- [ ] "run `ls ~/Desktop` and tell me what's there" → Allow card. Deny once, then Allow. **Always allow** → the next
+- [x] "run `ls ~/Desktop` and tell me what's there" → Allow card. Deny once, then Allow. **Always allow** → the next
       `ls` doesn't ask
-- [ ] "delete the file you made" → it asks first (never silent)
-- [ ] "open Calculator and compute 128 × 46" → Allow card, the companion moves to each click, result 5,888. Move your
+      → ✓ Allow card for "Run a command"; Deny → the agent wrapped up without running it; Allow → "26 items";
+      Always allow → the next ls ran with no card. **Fixed:** Deny used to kill MyClicky (SIGPIPE from answering
+      a closed agent connection), orphaning the agent.
+- [x] "delete the file you made" → it asks first (never silent)
+      → ✓ "delete the file test-note.txt you made" → a sensitive Allow card (Allow / Deny only, no Always).
+      Denied, and the file is still there.
+- [x] "open Calculator and compute 128 × 46" → Allow card, the companion moves to each click, result 5,888. Move your
       mouse during the run → it pauses and asks to continue
-- [ ] Switch to another app and let a ~1-minute task finish → notification + trackpad tap + spoken line + blue dot +
+      → ✓ Allow card (screenshot), then the agent clicked Calculator's buttons: 5,888. Moving the mouse mid-run
+      → "You used the mouse or keyboard. Should … keep using your Mac?" → Continue → done. A run with nobody
+      touching anything didn't pause. **Fixed:** input during a fast click run was ignored (a 0.8 s quiet window
+      after each of the agent's own clicks), so the pause never came; MyClicky now tells its own clicks apart by
+      process.
+- [x] Switch to another app and let a ~1-minute task finish → notification + trackpad tap + spoken line + blue dot +
       menu bar dot
-- [ ] Say "Jarvis agent, ask <that agent's name> to also add a fourth story" → it goes to that agent
-- [ ] Tomorrow (or after a restart): a follow-up in the same agent remembers its earlier work
-- [ ] Hold ⌥ and right-click the menu bar icon → Run suggestions now → today's ideas drop down from the icon
-- [ ] Rename, recolor and delete an agent; search "summary" finds the right chat (also without accents)
+      → ✓ with Finder in front: notification posted, trackpad tap, spoken finish line (Zoe), the chat marked
+      unread and the menu bar bot showing its dot. **Fixed:** the unread dot was skipped whenever MyClicky's
+      window was open behind another app; a chat only counts as seen while MyClicky is in front.
+- [x] Say "Jarvis agent, ask <that agent's name> to also add a fourth story" → it goes to that agent
+      → ✓ by voice: "Jarvis agent, ask Math Button Clicker to also compute nine times nine…" → the instruction
+      went to Math Button Clicker (not a new agent), which showed 81 in Calculator.
+- [x] Tomorrow (or after a restart): a follow-up in the same agent remembers its earlier work
+      → ✓ after quitting and reopening MyClicky, Math Button Clicker listed all three earlier calculations and
+      results (144, 5,888, 81) without tools.
+- [x] Hold ⌥ and right-click the menu bar icon → Run suggestions now → today's ideas drop down from the icon
+      → ✓ today's ideas were made automatically at 08:26 (first activity after 7:00); menu → Today's ideas (3)
+      drops a "3 ideas for today" card from the icon, each with its agent and a Start button. The ⌥ developer
+      item couldn't be opened with synthetic keys (it reads the real ⌥ state).
+      ideas (3) drops a "3 ideas for today" card from the icon, each with its agent and a Start button. The ⌥
+      developer item couldn't be opened with synthetic keys (it reads the real ⌥ state).
+      ideas (3) drops a "3 ideas for today" card from the icon, each with its agent and a Start button. The ⌥
+      developer item couldn't be opened with synthetic keys (it reads the real ⌥ state).
+- [x] Rename, recolor and delete an agent; search "summary" finds the right chat (also without accents)
+      → ✓ renamed "New agent 4" → "Test Renamed", recolored slate → mint, deleted after a "Delete Test Renamed?"
+      confirmation (its chat file is gone). Search "summary" listed the two chats that said it, with the
+      snippet; "jose" found "San José" (accents ignored).
 
 ## E. Integrations (010) — GitHub only
 

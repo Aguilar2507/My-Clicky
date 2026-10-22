@@ -61,4 +61,9 @@ public enum NamingParser {
     public static func fallbackName(existing: [String]) -> String {
         unique("New agent", existing: existing)
     }
+
+    /// "New agent", "New agent 3": the placeholder before the real name arrives.
+    public static func isFallback(_ title: String) -> Bool {
+        title == "New agent" || title.range(of: #"^New agent \d+$"#, options: .regularExpression) != nil
+    }
 }
