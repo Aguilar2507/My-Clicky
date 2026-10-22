@@ -18,9 +18,9 @@ MyClicky's own design (spec 013) lives in `references/myclicky/` (git-ignored): 
 Each feature has `spec.md` → `plan.md` (+ `research.md`, `data-model.md`, `contracts/`, `quickstart.md`) → `tasks.md`.
 Build them in this order; each one depends on those above it.
 
-**Implementation status (2026-10-22, 1.0.0):** 335/336 tasks done, 521 checks passing; every feature tried end to end
-(see [docs/FOUNDATION-CHECKLIST.md](../docs/FOUNDATION-CHECKLIST.md) and the report). The open task is 011 T013, the
-Console spend comparison. New features each get their own branch (see `CLAUDE.md`).
+**Implementation status (2026-10-22, 1.0.0):** 336/336 tasks done, 521 checks passing; every feature tried end to end
+(see [docs/FOUNDATION-CHECKLIST.md](../docs/FOUNDATION-CHECKLIST.md) and the report). New features each get their own
+branch (see `CLAUDE.md`).
 
 | # | Feature | Depends on | What you get |
 |---|---|---|---|

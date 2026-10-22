@@ -4,8 +4,9 @@
 
 ## In one minute
 
-- **335 of 336 tasks are done.** The only open one is 011 T013: comparing MyClicky's October spend with the total on
-  console.anthropic.com, which needs your Console number.
+- **All 336 tasks are done.** The last one, 011 T013, compared MyClicky's October spend with console.anthropic.com:
+  within 1.2% through yesterday (today's requests weren't on the Console yet). The Console also showed that prompt
+  caching never applies (Haiku 4.5 caches only 4,096+ token prefixes), a cost item for a future spec.
 - **Every feature was tried for real** on 2026-10-20–22 by driving the installed app end to end (keys, clicks,
   Accessibility, a synthetic voice through the speakers, screenshots). The results, line by line, are in
   [`docs/FOUNDATION-CHECKLIST.md`](FOUNDATION-CHECKLIST.md). That run found and fixed 20+ real bugs (see 1.0.0 below).

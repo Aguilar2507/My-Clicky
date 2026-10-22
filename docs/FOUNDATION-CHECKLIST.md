@@ -1,9 +1,9 @@
 # MyClicky 1.0 — Foundation checklist
 
-**Result (2026-10-22): 52 of 53 lines pass.** Every line was run on the installed app by driving it end to end
+**Result (2026-10-22): all 53 lines pass.** Every line was run on the installed app by driving it end to end
 (synthetic keys and clicks, Accessibility reads, a synthetic voice played through the speakers, screenshots through
 `MyClicky --screenshot`). The helpers are in `scripts/e2e/`. Each line ends with what was seen; **Fixed** marks a bug
-found by that line and fixed on main (1.0.0). The one open line is the Console spend total, which needs your number.
+found by that line and fixed on main (1.0.0).
 
 Settings during the run: window shortcut **⌃⌥⇧⌘3**, push to talk **⌃⌥** (hold), text mode **⌃ ⌃** (double-tap),
 dictation **⌃fn** (hold; double-tap for hands-free).
@@ -204,7 +204,11 @@ First copy the text `CLIPBOARD-TEST` (select it, ⌘C).
       question was answered. With the budget reached, an agent still ran (Claude plan).
 - [x] Put the budget back to **$7**
       → ✓ budget $7, top-ups cleared, warning reset.
-- [ ] console.anthropic.com → Usage → **October** total so far: $ (I compare it with MyClicky's count)
+- [x] console.anthropic.com → Usage → **October** total so far: $ (I compare it with MyClicky's count)
+      → Console **$0.44** vs MyClicky $0.4812 (+9.4%). Without today's $0.0465, MyClicky is $0.4347 (within
+      1.2%), and the Console doesn't show today's latest requests yet; prices match the official table. Console
+      also shows no cache reads: Haiku 4.5 needs 4,096+ tokens to cache, and MyClicky's prompt is shorter
+      (future cost item).
 
 ## G. Welcome tour from zero (012) — last
 

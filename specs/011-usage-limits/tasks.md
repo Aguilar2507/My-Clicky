@@ -36,7 +36,7 @@ description: "Tasks for 011-usage-limits"
 ## Phase 6: Polish
 
 - [X] T012 Update README cost section (budget, sheet)
-- [ ] T013 Run quickstart.md and record the Console comparison
+- [X] T013 Run quickstart.md and record the Console comparison
 
 ## Dependencies
 
@@ -59,3 +59,12 @@ Implemented 2026-09-25. `swift build` ✓, checks: 3 spending groups (21 checks)
 - Files: `BudgetPolicy` and `CreditProjection` share `Core/Logic/Budget.swift`; `SpendRing`, `SpendingSheet` and
   `SpendingSection` share `Usage/SpendingViews.swift`.
 - **T013 not done**: comparing a week of real spend with console.anthropic.com needs you and real usage. → **Needs you.**
+
+### Console comparison 2026-10-22
+
+- **T013 done.** Console "Spend this month": $0.44. MyClicky's October count: $0.4812 (79 questions), 9.4% higher; without
+  today's $0.0465 it's $0.4347, within 1.2% of the Console, and today's requests (late morning) weren't on the Console
+  yet. The price table matches the official prices (Haiku 4.5 $1/$5, Sonnet 5 $2/$10 per MTok); costs come from each
+  reply's token counts. Recheck the next day to confirm the Console catches up to ~$0.48.
+- **Finding:** the Console shows no cache reads. MyClicky marks its prompt for caching, but Haiku 4.5 only caches
+  prefixes of at least 4,096 tokens and MyClicky's is much shorter, so caching never applies. A cost item for a future spec.
