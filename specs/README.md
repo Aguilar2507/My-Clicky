@@ -10,40 +10,56 @@ live in `references/heyclicky/` (git-ignored):
 | `02-app-home.png` | Opened app: sidebar of Clickys, search, +, Apps chip, profile footer, greeting |
 | `03`–`10-settings-*.png` | Settings pages: General, Voice, Microphone, Dictation, Shortcuts, Cursor, Agents, Integrations |
 
-MyClicky's own design (spec 013) lives in `references/myclicky/` (git-ignored): `LOGO.png` (app icon), `BOT.png`
+MyClicky's own design (spec 013, archived; refreshed by 016) lives in `references/myclicky/` (git-ignored): `LOGO.png` (app icon), `BOT.png`
 (in-app bot) and `visual-system.png` (palette and rules). **Layout follows HeyClicky; colors and art follow these.**
 
-## Build order
+## Where to start
 
-Each feature has `spec.md` → `plan.md` (+ `research.md`, `data-model.md`, `contracts/`, `quickstart.md`) → `tasks.md`.
-Build them in this order; each one depends on those above it.
+**[docs/HOW-IT-WORKS.md](../docs/HOW-IT-WORKS.md)** describes the app as it is today, area by area. The specs below
+are the history of how each area was built: read them for detail, and the map for the current picture.
 
-**Implementation status (2026-10-22, 1.0.0):** 336/336 tasks done, 521 checks passing; every feature tried end to end
-(see [docs/FOUNDATION-CHECKLIST.md](../docs/FOUNDATION-CHECKLIST.md) and the report). New features each get their own
-branch (see `CLAUDE.md`).
+Each spec folder has `spec.md` → `plan.md` (+ `research.md`, `data-model.md`, `contracts/`, `quickstart.md`) →
+`tasks.md`, which ends with implementation notes.
 
-| # | Feature | Depends on | What you get |
+**Status (2026-10-22, 1.0.0):** 336/336 tasks done, 521 checks passing; every feature tried end to end
+([docs/FOUNDATION-CHECKLIST.md](../docs/FOUNDATION-CHECKLIST.md)). Version tags: `v0.1.0`, `v0.2.0`, `v0.3.0`,
+`v0.4.0`, `v1.0.0`.
+
+## Specs by area
+
+| Area | Spec | What it built | Status |
 |---|---|---|---|
-| 001 | [baseline](001-baseline/spec.md) | — | What v0.1 does (history; partly replaced by the features below) |
-| 002 | [app-foundation](002-app-foundation/spec.md) | 001 | Code reorganized, settings and chats saved safely, shared look, checks runner |
-| 003 | [notch-home](003-notch-home/spec.md) | 002 | ~~MyClicky lives in the notch~~ — superseded by 019 |
-| 004 | [settings-shell](004-settings-shell/spec.md) | 003 | Settings with Back, profile card, sidebar; General and Shortcuts pages; rebindable keys |
-| 005 | [clickys-chats](005-clickys-chats/spec.md) | 004 | Chat list (pinned Talk + Clickys), search, new chat, conversation view, memory, greeting |
-| 006 | [cursor-companion](006-cursor-companion/spec.md) | 005 | Glowing triangle companion, colors, dock, bubble, flying pointer, drawing, text mode |
-| 007 | [voice-talk](007-voice-talk/spec.md) | 006 | ⌃⌥ push-to-talk (was fn), streaming spoken answers, voice picker, speed, microphone page |
-| 008 | [dictation](008-dictation/spec.md) | 007 | Hold ⌃+Fn to type by voice anywhere, hands-free mode, English/Spanish, custom words |
-| 009 | [agents](009-agents/spec.md) | 005, 007 | Clickys run tasks with Claude Code, live progress, Allow cards, computer use, suggestions |
-| 010 | [integrations](010-integrations/spec.md) | 009 | Connector catalog (GitHub, Notion, Linear…) and custom connectors for agents |
-| 011 | [usage-limits](011-usage-limits/spec.md) | 005 | Monthly spend ring, monthly cap, warnings |
-| 012 | [welcome-tour](012-welcome-tour/spec.md) | all | First-run setup, hands-on tour, interview that creates three Clickys |
-| 013 | [visual-identity](013-visual-identity/spec.md) | 012 | Glass-cursor app icon, glass bot, midnight-navy palette |
-| 014 | [premium-feel](014-premium-feel/spec.md) | 013 | Apple-style motion, navy glass, type scale, press/hover feedback, accessibility, haptics |
-| 015 | [apple-look](015-apple-look/spec.md) | 014 | Light & dark following the Mac, system colors and accent, red/green hover on confirmations, traffic lights |
-| 016 | [brand-refresh](016-brand-refresh/spec.md) | 015 | 3D glass icon, bot and avatars in the Apple look; a bot that follows the pointer, hops and reacts |
-| 017 | [adaptive-layout](017-adaptive-layout/spec.md) | 016 | Centered columns at any window size and full screen; logo + name header that goes home |
-| 018 | [agent-presence](018-agent-presence/spec.md) | 017 | "Clicky" / "Clicky Agent" wake words; the bot flies in to take agent tasks; every task end is announced |
-| 019 | [app-home](019-app-home/spec.md) | 018 | No notch: a normal window (Dock, ⌘Tab), a menu bar bot icon with a news dot, ⌥Space to show/hide |
-| 020 | [jarvis-voice](020-jarvis-voice/spec.md) | 019 | The assistant is Jarvis: wake word matched by sound in English/Spanish; replies stay in the language you spoke |
+| Foundation | [002 app-foundation](002-app-foundation/spec.md) | Core library, safe settings and chat storage, design system, checks runner | Current |
+| App and window | [019 app-home](019-app-home/spec.md) | A normal window (Dock, ⌘Tab), menu bar bot icon with a news dot, a shortcut to show/hide | Current |
+| App and window | [017 adaptive-layout](017-adaptive-layout/spec.md) | Centered columns at any size and full screen; logo + name header that goes home | Current |
+| Settings | [004 settings-shell](004-settings-shell/spec.md) | Settings pages, General and Shortcuts, rebindable keys | Current |
+| Chats | [005 clickys-chats](005-clickys-chats/spec.md) | Chat list (Talk + agents), search, conversation view, memory, greeting | Current ("Clickys" are now agents, 020) |
+| Voice | [007 voice-talk](007-voice-talk/spec.md) | ⌃⌥ push to talk, streaming spoken answers, voices, speed, microphone, quiet mode | Current |
+| Voice | [020 jarvis-voice](020-jarvis-voice/spec.md) | "Jarvis" wake word matched by sound (EN/ES); answers in the language you spoke | Current |
+| Companion | [006 cursor-companion](006-cursor-companion/spec.md) | Cursor companion, colors, dock, bubble, pointing, drawing, text mode | Current |
+| Dictation | [008 dictation](008-dictation/spec.md) | ⌃fn dictation anywhere, hands-free, English/Spanish, custom words | Current |
+| Agents | [009 agents](009-agents/spec.md) | Agents run tasks with Claude Code: live steps, Allow cards, computer use, daily ideas | Current |
+| Agents | [018 agent-presence](018-agent-presence/spec.md) | The agent bot that flies in; every task end announced | Current (its wake words: replaced by 020) |
+| Integrations | [010 integrations](010-integrations/spec.md) | Connector catalog and custom connectors through Claude Code | Current |
+| Spending | [011 usage-limits](011-usage-limits/spec.md) | Monthly budget, spend ring, Spending sheet, credit projection | Current |
+| Welcome tour | [012 welcome-tour](012-welcome-tour/spec.md) | First-run setup, hands-on practice, interview that creates three agents | Current |
+| Look | [014 premium-feel](014-premium-feel/spec.md) | Springs, glass, type scale, press/hover feedback, accessibility, haptics | Current |
+| Look | [015 apple-look](015-apple-look/spec.md) | Light/Dark following the Mac, system colors and accent, window buttons | Current |
+| Look | [016 brand-refresh](016-brand-refresh/spec.md) | 3D glass icon, lively bot, avatars | Current |
+| — | [001 baseline](archive/001-baseline/spec.md) | What v0.1 did | Archived (history) |
+| — | [003 notch-home](archive/003-notch-home/spec.md) | MyClicky in the notch | Archived (replaced by 019) |
+| — | [013 visual-identity](archive/013-visual-identity/spec.md) | First icon, bot and midnight-navy palette | Archived (replaced by 015, 016) |
+
+## Roadmap after 1.0.0
+
+One branch per feature, merged into main by pull request (see `CLAUDE.md`):
+
+| # | Branch | What you get | Status |
+|---|---|---|---|
+| 021 | `021-chats-and-agents` | Chats and Agents sections, many chats, cursor/bot logos, home bar with a Chat/Agent switch | Next (spec approved) |
+| 022 | `022-pimo-voice` | "Pimo…" wake word that tells questions from agent requests; text answers in the app, spoken outside it; docked companion from the bottom-left corner | Planned |
+| 023 | `023-agents` | Manual mode for agents, the YES/NO approval card, agent profile and test space, editing agents through chat, organized notifications | Planned |
+| 024 | `024-pimoai` | Rename to PimoAI (with data migration) and the new look, starting from 2–3 proposed directions | Planned |
 
 ## Shared architecture (all plans follow this)
 

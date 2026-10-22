@@ -11,7 +11,7 @@
 //   tree <bundle> [depth]                dump the UI tree: role "title" [value] {x,y,w,h}
 //   find <bundle> <text> [role]          elements whose title/value/description/identifier contains text
 //   press <bundle> <text> [role] [n]     AXPress the first (or n-th, from 0) match
-//   setvalue <bundle> <text> <value> [role]   set the value of the first match (text fields)
+//   setvalue <bundle> <text> <value> [role] [n]  set the value of the first (or n-th) match (text fields)
 //   focused                              focused app + element role and value
 //   windows <bundle>                     window titles and frames
 //   audio [seconds]                      watch the default output/input devices: is anything playing / recording?
@@ -178,8 +178,11 @@ case "press":
     let e = all[n]
     let r = AXUIElementPerformAction(e, kAXPressAction as CFString)
     print(r == .success ? "pressed \(describe(e))" : "press failed (\(r.rawValue)) \(describe(e))")
-case "setvalue":
-    guard let e = matches(args[1], args[2], role: args.count > 4 ? args[4] : nil).first else { fail("no match: \(args[2])") }
+case "setvalue": // setvalue <bundle> <text> <value> [role] [n]
+    let all = matches(args[1], args[2], role: args.count > 4 ? args[4] : nil)
+    let n = args.count > 5 ? Int(args[5]) ?? 0 : 0
+    guard all.indices.contains(n) else { fail("no match: \(args[2]) #\(n)") }
+    let e = all[n]
     AXUIElementSetAttributeValue(e, kAXFocusedAttribute as CFString, kCFBooleanTrue)
     let r = AXUIElementSetAttributeValue(e, kAXValueAttribute as CFString, args[3] as CFString)
     print(r == .success ? "set \(describe(e))" : "set failed (\(r.rawValue))")

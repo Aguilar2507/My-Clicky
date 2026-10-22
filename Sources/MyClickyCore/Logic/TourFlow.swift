@@ -72,23 +72,23 @@ public enum TourFlow {
     }
 }
 
-/// Parses the interview reply into three Clickys (spec 012 US3), with generic starters as the fallback.
+/// Parses the interview reply into three agents (spec 012 US3), with generic starters as the fallback.
 public enum InterviewParser {
-    public struct NewClicky: Equatable, Sendable {
+    public struct NewAgent: Equatable, Sendable {
         public let name: String
         public let color: AvatarColor
         public let purpose: String
     }
 
-    public static let starters: [NewClicky] = [
-        NewClicky(name: "Research Buddy", color: .mint, purpose: "Researches topics you ask about and writes short summaries with sources."),
-        NewClicky(name: "Build Lab", color: .butter, purpose: "Plans and scopes projects step by step and keeps a to-do list."),
-        NewClicky(name: "Inbox Helper", color: .sky, purpose: "Drafts replies and to-dos from the messages you share, and asks before sending anything."),
+    public static let starters: [NewAgent] = [
+        NewAgent(name: "Research Buddy", color: .mint, purpose: "Researches topics you ask about and writes short summaries with sources."),
+        NewAgent(name: "Build Lab", color: .butter, purpose: "Plans and scopes projects step by step and keeps a to-do list."),
+        NewAgent(name: "Inbox Helper", color: .sky, purpose: "Drafts replies and to-dos from the messages you share, and asks before sending anything."),
     ]
 
-    /// Exactly three Clickys with unique names (against `existing` and each other); missing ones come from the starters.
-    public static func parse(_ reply: String, existing: [String]) -> (clickys: [NewClicky], usedFallback: Bool) {
-        var parsed: [NewClicky] = []
+    /// Exactly three agents with unique names (against `existing` and each other); missing ones come from the starters.
+    public static func parse(_ reply: String, existing: [String]) -> (agents: [NewAgent], usedFallback: Bool) {
+        var parsed: [NewAgent] = []
         if let start = reply.firstIndex(of: "{"), let end = reply.lastIndex(of: "}"),
            let data = String(reply[start...end]).data(using: .utf8),
            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -98,7 +98,7 @@ public enum InterviewParser {
                         .trimmingCharacters(in: .whitespacesAndNewlines), !purpose.isEmpty,
                       let naming = NamingParser.parse(#"{"name": "\#(rawName.replacingOccurrences(of: "\"", with: ""))"}"#) else { continue }
                 let color = (item["color"] as? String).flatMap(AvatarColor.init(rawValue:)) ?? .next(avoiding: parsed.map(\.color))
-                parsed.append(NewClicky(name: naming.name, color: color, purpose: purpose))
+                parsed.append(NewAgent(name: naming.name, color: color, purpose: purpose))
             }
         }
         let usedFallback = parsed.count < 3
@@ -106,10 +106,10 @@ public enum InterviewParser {
             parsed.append(starter)
         }
         var taken = existing
-        let unique = parsed.prefix(3).map { clicky -> NewClicky in
-            let name = NamingParser.unique(clicky.name, existing: taken)
+        let unique = parsed.prefix(3).map { agent -> NewAgent in
+            let name = NamingParser.unique(agent.name, existing: taken)
             taken.append(name)
-            return NewClicky(name: name, color: clicky.color, purpose: clicky.purpose)
+            return NewAgent(name: name, color: agent.color, purpose: agent.purpose)
         }
         return (Array(unique), usedFallback)
     }

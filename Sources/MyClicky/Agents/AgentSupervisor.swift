@@ -1,7 +1,7 @@
 import AppKit
 import MyClickyCore
 
-/// Runs Clicky tasks with Claude Code on the Claude subscription (spec 009): up to 3 at once, live steps in the chat,
+/// Runs agent tasks with Claude Code on the Claude subscription (spec 009): up to 3 at once, live steps in the chat,
 /// Allow cards for sensitive actions, a step cap with "Keep going?", a 30-minute limit and a stall watchdog.
 @MainActor
 final class AgentSupervisor {
@@ -63,7 +63,7 @@ final class AgentSupervisor {
 
     // MARK: Start / stop
 
-    /// Gives a Clicky its next instruction (the caller already saved the user's message). `language` is the request's
+    /// Gives an agent its next instruction (the caller already saved the user's message). `language` is the request's
     /// ("en"/"es"); without it, a guess from the text, else the chat's last language.
     func start(chatID: UUID, instruction: String, language: String? = nil) {
         languages[chatID] = ReplyLanguage.resolve(spoken: language, guessed: SpeechRecognizer.guessLanguage(instruction),
@@ -111,7 +111,7 @@ final class AgentSupervisor {
     // MARK: Launch
 
     /// A brand-new agent's folder comes from its name, which arrives ~1.5 s after its first instruction. Without
-    /// waiting, every agent got the placeholder's folder ("new-agent", "new-clicky") and shared it with the others.
+    /// waiting, every agent got the placeholder's folder ("new-agent", "new-agent") and shared it with the others.
     private func launchWhenNamed(chatID: UUID, instruction: String) {
         guard let chat = model.chat(chatID), chat.folderName.isEmpty, NamingParser.isFallback(chat.title) else {
             launch(chatID: chatID, instruction: instruction)
@@ -136,7 +136,7 @@ final class AgentSupervisor {
         runs[chatID] = run
 
         var args = ["-p", instruction, "--output-format", "stream-json", "--verbose",
-                    "--append-system-prompt", Prompts.clicky(name: chat.title, purpose: chat.purpose, folder: folder.path,
+                    "--append-system-prompt", Prompts.agentRole(name: chat.title, purpose: chat.purpose, folder: folder.path,
                                                                     language: language),
                     "--max-turns", "\(RunQueue.stepLimit(autoApprove: model.settings.autoApproveExtraUsage))",
                     "--mcp-config", mcpConfig.path,
@@ -175,7 +175,7 @@ final class AgentSupervisor {
         if model.settings.announceStartFinish { announce(ReplyLanguage.text(.onIt(chat.title), language), nil, language) }
     }
 
-    /// Read, search and web tools run without asking; edits only inside the Clicky's folder.
+    /// Read, search and web tools run without asking; edits only inside the agent's folder.
     /// Everything else (commands, edits elsewhere, computer use, integrations) asks with an Allow card.
     static let safeTools = ["Read", "Glob", "Grep", "WebSearch", "WebFetch", "TodoWrite", "Edit(./**)", "Write(./**)"]
 
@@ -423,7 +423,7 @@ final class AgentSupervisor {
     }
 }
 
-/// Allow / Always / Deny chip next to the cursor when the Clicky's chat isn't open (spec 009 US2).
+/// Allow / Always / Deny chip next to the cursor when the agent's chat isn't open (spec 009 US2).
 @MainActor
 final class ApprovalChip: NSObject {
     private var panel: NSPanel?

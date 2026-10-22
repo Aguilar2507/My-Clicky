@@ -2,7 +2,7 @@ import Foundation
 import MyClickyCore
 
 // MyClickyComputer: a tiny MCP stdio server (spec 009, contracts/agent-bridge.md).
-// Claude Code starts it for each Clicky run. It has no permissions of its own: every tool call is forwarded over
+// Claude Code starts it for each agent run. It has no permissions of its own: every tool call is forwarded over
 // ~/Library/Application Support/MyClicky/agent.sock to the MyClicky app, which asks the user (Allow cards) and
 // performs screenshots/clicks/typing with the app's permissions.
 

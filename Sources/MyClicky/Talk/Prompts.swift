@@ -46,8 +46,8 @@ enum Prompts {
         """
     }
 
-    /// Clicky system prompt (spec 009 contracts/agent-bridge.md): v0.1's agent rules + who this Clicky is.
-    static func clicky(name: String, purpose: String, folder: String, language: String) -> String {
+    /// Agent system prompt (spec 009 contracts/agent-bridge.md): v0.1's agent rules + who this agent is.
+    static func agentRole(name: String, purpose: String, folder: String, language: String) -> String {
         agent(workingDirectory: folder) + "\n" + ReplyLanguage.instruction(language) + """
 
         You are \(name), one of the user's agents in MyClicky.\(purpose.isEmpty ? "" : " Your job: \(purpose)") Your folder is \(folder).

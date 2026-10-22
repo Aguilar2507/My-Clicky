@@ -127,7 +127,7 @@ enum AgentChecks {
             let now = Date()
             let parsed = SuggestionParser.parse(#"Here: [{"text":"Draft the weekly update","clicky":"Build Lab"},{"text":"Check new roles","clicky":null},{"text":" "},{"text":"a"},{"text":"b"}]"#, now: now)
             Check.equal(parsed.map(\.text), ["Draft the weekly update", "Check new roles", "a"], "max 3, blanks dropped")
-            Check.equal(parsed.first?.clickyTitle, "Build Lab")
+            Check.equal(parsed.first?.agentTitle, "Build Lab")
             Check.equal(SuggestionParser.parse("nothing"), [])
             var cal = Calendar(identifier: .gregorian)
             cal.timeZone = TimeZone(identifier: "UTC")!
@@ -146,7 +146,7 @@ enum AgentChecks {
             Check.equal(chat.alwaysAllowed, [])
             var step = Message(role: .system, text: "Searching the web")
             step.kind = .step
-            var c2 = Chat(kind: .clicky, title: "x")
+            var c2 = Chat(kind: .agent, title: "x")
             c2.append(Message(role: .assistant, text: "answer"))
             c2.append(step)
             Check.equal(c2.preview, "answer", "steps don't become the preview")

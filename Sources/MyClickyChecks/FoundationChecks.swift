@@ -60,8 +60,7 @@ enum FoundationChecks {
             """
             try JSONFile.write(legacy.data(using: .utf8)!, to: paths.legacyConfig)
             let store = SettingsStore(paths: paths, debounce: 0.05)
-            let s = store.load()
-            Check.equal(s.agentAllowedTools, ["Read"])
+            let s = store.load() // the removed "agentAllowedTools" key is ignored, the rest migrates
             Check.equal(s.agentWorkingDirectory, "~/Work")
             Check.equal(s.claudePath, "/x/claude")
             Check.equal(s.fastModel, "f")
@@ -120,13 +119,13 @@ enum FoundationChecks {
             talk.append(Message(role: .user, text: "hi", via: .voice, screensSeen: 2))
             talk.append(Message(role: .assistant, text: "hello"))
             store.saveNow(talk)
-            var clicky = Chat(kind: .clicky, title: "Research Buddy")
-            clicky.memorySummary = "likes Swift"
-            store.save(clicky)
+            var agent = Chat(kind: .agent, title: "Research Buddy")
+            agent.memorySummary = "likes Swift"
+            store.save(agent)
             store.flush()
 
             try JSONFile.write("{broken".data(using: .utf8)!, to: paths.chatFile(UUID()))
-            let wrongID = Chat(kind: .clicky, title: "Mismatch")
+            let wrongID = Chat(kind: .agent, title: "Mismatch")
             try JSONFile.write(wrongID, to: paths.chatFile(UUID()))
 
             let loaded = store.loadAll()
@@ -137,7 +136,7 @@ enum FoundationChecks {
             Check.equal(reloaded.map { try? JSONFile.encode($0) }, try JSONFile.encode(talk), "round trip")
             Check.equal(reloaded?.messages.map(\.text), ["hi", "hello"])
             Check.equal(reloaded?.messages.first?.screensSeen, 2)
-            Check.equal(loaded.chats.first { $0.kind == .clicky }?.memorySummary, "likes Swift")
+            Check.equal(loaded.chats.first { $0.kind == .agent }?.memorySummary, "likes Swift")
 
             let old = #"{"id":"\#(UUID().uuidString)","messages":[{"role":"user","text":"x"}]}"#
             let decoded = try JSONFile.decoder.decode(Chat.self, from: old.data(using: .utf8)!)
@@ -145,7 +144,7 @@ enum FoundationChecks {
 
             store.delete(id: talk.id)
             Check.equal(store.loadAll().chats.count, 1, "delete removes the file")
-            let raw = String(data: try Data(contentsOf: paths.chatFile(clicky.id)), encoding: .utf8) ?? ""
+            let raw = String(data: try Data(contentsOf: paths.chatFile(agent.id)), encoding: .utf8) ?? ""
             Check.expect(!raw.contains("base64") && !raw.contains("image"), "no images stored")
         }
     }

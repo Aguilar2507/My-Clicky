@@ -183,7 +183,7 @@ final class CompanionController: NSObject {
         }
     }
 
-    /// The docked companion's home: just below the menu bar icon (spec 019; was the notch's right wing).
+    /// The docked companion's home: just below the menu bar icon (spec 019).
     private var dockAnchor: CGPoint {
         let rect = StatusItemController.anchorRect
         return CGPoint(x: rect.midX, y: rect.minY - CompanionLayer.size / 2 - 4)

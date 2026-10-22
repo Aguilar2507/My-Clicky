@@ -1,24 +1,24 @@
 import Foundation
 import MyClickyCore
 
-/// Checks for spec 005 (Clickys and chats).
+/// Checks for spec 005 (agents and chats).
 enum ChatChecks {
     static func run() {
         let now = Date(timeIntervalSince1970: 1_790_000_000)
-        let research = ChatRouter.ClickyRef(id: UUID(), title: "Research Buddy", lastAgentUseAt: now.addingTimeInterval(-3600))
-        let scout = ChatRouter.ClickyRef(id: UUID(), title: "Role Scout", lastAgentUseAt: now.addingTimeInterval(-300))
+        let research = ChatRouter.AgentRef(id: UUID(), title: "Research Buddy", lastAgentUseAt: now.addingTimeInterval(-3600))
+        let scout = ChatRouter.AgentRef(id: UUID(), title: "Role Scout", lastAgentUseAt: now.addingTimeInterval(-300))
 
         Check.group("Chat routing") {
-            Check.equal(ChatRouter.route("what's on my screen?", clickys: [research], now: now), .talk("what's on my screen?"))
-            Check.equal(ChatRouter.route("agenda for today", clickys: [], now: now), .talk("agenda for today"), "agenda ≠ agent")
-            Check.equal(ChatRouter.route("agent, ask Research Buddy to add sources", clickys: [research, scout], now: now),
-                        .clicky(research.id, "add sources"), "named Clicky wins")
-            Check.equal(ChatRouter.route("agente, pídele a role scout que busque remoto", clickys: [research, scout], now: now),
-                        .clicky(scout.id, "busque remoto"), "Spanish, accents and case ignored")
-            Check.equal(ChatRouter.route("agent, also check remote roles", clickys: [research, scout], now: now),
-                        .clicky(scout.id, "also check remote roles"), "continues the Clicky used 5 min ago")
-            Check.equal(ChatRouter.route("agent, draft a summary", clickys: [research], now: now),
-                        .newClicky("draft a summary"), "1 hour ago is too old → new Clicky")
+            Check.equal(ChatRouter.route("what's on my screen?", agents: [research], now: now), .talk("what's on my screen?"))
+            Check.equal(ChatRouter.route("agenda for today", agents: [], now: now), .talk("agenda for today"), "agenda ≠ agent")
+            Check.equal(ChatRouter.route("agent, ask Research Buddy to add sources", agents: [research, scout], now: now),
+                        .agent(research.id, "add sources"), "named Clicky wins")
+            Check.equal(ChatRouter.route("agente, pídele a role scout que busque remoto", agents: [research, scout], now: now),
+                        .agent(scout.id, "busque remoto"), "Spanish, accents and case ignored")
+            Check.equal(ChatRouter.route("agent, also check remote roles", agents: [research, scout], now: now),
+                        .agent(scout.id, "also check remote roles"), "continues the Clicky used 5 min ago")
+            Check.equal(ChatRouter.route("agent, draft a summary", agents: [research], now: now),
+                        .newAgent("draft a summary"), "1 hour ago is too old → new Clicky")
         }
 
         Check.group("Context window + memory folding") {
@@ -63,7 +63,7 @@ enum ChatChecks {
         }
 
         Check.group("Search") {
-            var chat = Chat(kind: .clicky, title: "Research Buddy")
+            var chat = Chat(kind: .agent, title: "Research Buddy")
             chat.append(Message(role: .user, text: "Two-page SpaceX competitor summary please"))
             chat.append(Message(role: .assistant, text: "Here's the canción you asked for."))
             Check.expect(SearchIndex.search("spacex", in: chat) != nil, "case-insensitive")
@@ -95,6 +95,17 @@ enum ChatChecks {
             Check.equal(chat.avatarColor, .sky)
             Check.equal(chat.isUnread, false)
             Check.equal(chat.agentSessionID, nil)
+        }
+
+        Check.group("Saved data from before the Clicky → Agent rename") {
+            let saved = #"{"id":"\#(UUID().uuidString)","title":"Signal Radar","kind":"clicky"}"#
+            let chat = try JSONFile.decoder.decode(Chat.self, from: saved.data(using: .utf8)!)
+            Check.equal(chat.kind, .agent, "\"clicky\" chat files load as agents")
+            let resaved = String(decoding: try JSONFile.encode(chat), as: UTF8.self).replacingOccurrences(of: " ", with: "")
+            Check.expect(resaved.contains(#""kind":"clicky""#), "and are saved the same way")
+            let idea = #"{"text":"Draft the update","clickyTitle":"Build Lab","createdAt":"2026-10-20T15:21:11.493Z"}"#
+            let suggestion = try JSONFile.decoder.decode(Suggestion.self, from: idea.data(using: .utf8)!)
+            Check.equal(suggestion.agentTitle, "Build Lab", "saved ideas keep their agent")
         }
     }
 }

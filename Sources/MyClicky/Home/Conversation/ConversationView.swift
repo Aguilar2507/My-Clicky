@@ -112,7 +112,7 @@ struct ConversationView: View {
     }
 }
 
-/// Rename a Clicky.
+/// Rename an agent.
 struct RenameCard: View {
     @Environment(AppModel.self) private var model
     let chat: Chat

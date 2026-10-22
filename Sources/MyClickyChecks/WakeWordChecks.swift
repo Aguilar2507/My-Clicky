@@ -1,7 +1,7 @@
 import Foundation
 import MyClickyCore
 
-/// Checks for specs 018/020: "Jarvis" (Talk) and "Jarvis agent" (a Clicky task), matched by sound.
+/// Checks for specs 018/020: "Jarvis" (Talk) and "Jarvis agent" (an agent task), matched by sound.
 enum WakeWordChecks {
     static func run() {
         Check.group("Wake words: Jarvis agent → agent") {
@@ -32,7 +32,7 @@ enum WakeWordChecks {
             Check.equal(Router.talkQuestion("Oye Jarvis, ¿qué es esto?"), "¿qué es esto?")
             Check.equal(Router.talkQuestion("what is this?"), "what is this?", "no wake word")
             Check.equal(Router.talkQuestion("Jarvis"), "Jarvis", "nothing after it: keep the text")
-            Check.equal(ChatRouter.route("Jarvis, what's this?", clickys: []), .talk("what's this?"))
+            Check.equal(ChatRouter.route("Jarvis, what's this?", agents: []), .talk("what's this?"))
         }
 
         Check.group("Wake words: look-alikes are not the name") {

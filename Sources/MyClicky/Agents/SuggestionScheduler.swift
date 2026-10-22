@@ -3,7 +3,7 @@ import SwiftUI
 import MyClickyCore
 
 /// Daily task ideas (spec 009 US6): the first time you use the Mac after 07:00 (at most every 20 h), Claude Code
-/// (your Claude plan, never the API key) suggests 3 tasks from your Clickys' memories. They appear under the menu bar icon (spec 019).
+/// (your Claude plan, never the API key) suggests 3 tasks from your agents' memories. They appear under the menu bar icon (spec 019).
 @MainActor
 final class SuggestionScheduler {
     let model: AppModel
@@ -37,7 +37,7 @@ final class SuggestionScheduler {
         guard !isRunning, let claude = ClaudeCodeLocator.find(model.settings) else { return }
         isRunning = true
         defer { isRunning = false }
-        let context = model.clickys.prefix(12).map { chat in
+        let context = model.agents.prefix(12).map { chat in
             "- \(chat.title): \(chat.purpose.prefix(160)) \(chat.memorySummary.isEmpty ? "" : "Memory: \(chat.memorySummary.prefix(200))")"
         }.joined(separator: "\n")
         let prompt = """
@@ -117,8 +117,8 @@ struct MorningIdeasView: View {
                 HStack(spacing: 10) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(idea.text).textStyle(.footnote.weight(.medium)).foregroundStyle(.white).lineLimit(2)
-                        if let clicky = idea.clickyTitle {
-                            Text(clicky).textStyle(.caption2).foregroundStyle(Theme.textSecondary)
+                        if let agent = idea.agentTitle {
+                            Text(agent).textStyle(.caption2).foregroundStyle(Theme.textSecondary)
                         }
                     }
                     Spacer()

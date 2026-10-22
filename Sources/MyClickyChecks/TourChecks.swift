@@ -49,15 +49,15 @@ enum TourChecks {
             ]}
             """#
             let result = InterviewParser.parse(reply, existing: ["Role Scout"])
-            Check.equal(result.clickys.map(\.name), ["Signal Radar", "Role Scout 2", "Build Lab"], "unique names")
-            Check.equal(result.clickys.map(\.color), [.peach, .lilac, .butter])
+            Check.equal(result.agents.map(\.name), ["Signal Radar", "Role Scout 2", "Build Lab"], "unique names")
+            Check.equal(result.agents.map(\.color), [.peach, .lilac, .butter])
             Check.expect(!result.usedFallback)
             let partial = InterviewParser.parse(#"{"clickys":[{"name":"Shippy","purpose":"Ships things."}]}"#, existing: [])
-            Check.equal(partial.clickys.count, 3, "always three")
+            Check.equal(partial.agents.count, 3, "always three")
             Check.expect(partial.usedFallback)
-            Check.equal(partial.clickys.first?.name, "Shippy")
+            Check.equal(partial.agents.first?.name, "Shippy")
             let none = InterviewParser.parse("sorry", existing: ["Research Buddy"])
-            Check.equal(none.clickys.map(\.name), ["Research Buddy 2", "Build Lab", "Inbox Helper"], "generic starters")
+            Check.equal(none.agents.map(\.name), ["Research Buddy 2", "Build Lab", "Inbox Helper"], "generic starters")
         }
     }
 }

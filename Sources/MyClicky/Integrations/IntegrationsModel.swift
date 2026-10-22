@@ -2,7 +2,7 @@ import AppKit
 import Observation
 import MyClickyCore
 
-/// Integrations are MCP servers in Claude Code's user scope (spec 010 research R1): every Clicky can use them, and
+/// Integrations are MCP servers in Claude Code's user scope (spec 010 research R1): every agent can use them, and
 /// Claude Code keeps the sign-in tokens, so MyClicky never stores secrets (Principle IV).
 @MainActor
 @Observable

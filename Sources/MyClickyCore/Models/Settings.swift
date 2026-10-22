@@ -16,7 +16,8 @@ public struct Settings: Codable, Equatable, Sendable {
     public var maxHistoryTurns = 10
     public var claudePath = ""
     public var agentWorkingDirectory = "~/MyClickyAgent"
-    public var agentAllowedTools = ["Read", "Write", "Edit", "Glob", "Grep", "WebSearch", "WebFetch", "Bash"]
+    // `agentAllowedTools` (v0.1) was removed in 1.0: agents get a fixed safe tool list (`AgentSupervisor.safeTools`).
+    // Old settings files that still have it load fine (unknown keys are ignored).
 
     // 003 → 019: the window is home, so it's in the Dock by default.
     public var showInDock = true

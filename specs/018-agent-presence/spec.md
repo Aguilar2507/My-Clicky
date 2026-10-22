@@ -1,6 +1,9 @@
 # Feature Specification: Wake Words, Agent Bot and Task-Done Alerts
 
-**Feature Branch**: `018-agent-presence` · **Created**: 2026-09-29 · **Status**: Draft
+**Feature Branch**: `018-agent-presence` · **Created**: 2026-09-29 · **Status**: Implemented
+
+> **Partly replaced:** the "Clicky" / "Clicky Agent" wake words were replaced by "Jarvis" / "Jarvis agent" in
+> [020](../020-jarvis-voice/spec.md). The agent bot and the task-done alerts below are still how the app works.
 
 **Input**: "I want it to recognize some very specific voice commands: 'Clicky' = I'm talking to Clicky only, the
 cursor beside mine. 'Clicky Agent' = calls the Code CLI and uses my subscription. Every time I say 'Clicky Agent' or

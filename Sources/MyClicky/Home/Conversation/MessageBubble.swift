@@ -1,7 +1,7 @@
 import SwiftUI
 import MyClickyCore
 
-/// A message in an open chat: yours on the right in a soft bubble, the Clicky's on the left beside its avatar.
+/// A message in an open chat: yours on the right in a soft bubble, the agent's on the left beside its avatar.
 struct MessageBubble: View {
     let message: Message
     let chat: Chat

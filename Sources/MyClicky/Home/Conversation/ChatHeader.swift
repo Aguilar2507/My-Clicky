@@ -21,7 +21,7 @@ struct ChatHeader: View {
             Spacer()
             if let trailing = Self.trailing { trailing(chat, model) }
             Menu {
-                if chat.kind == .clicky {
+                if chat.kind == .agent {
                     Button("Rename…", action: onRename)
                     Menu("Change color") {
                         ForEach(AvatarColor.allCases, id: \.self) { color in

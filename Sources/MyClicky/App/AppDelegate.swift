@@ -4,7 +4,8 @@ import ApplicationServices
 import MyClickyCore
 
 /// App startup and wiring. MyClicky's home is a normal window (spec 019), opened from the Dock, ⌘Tab, the menu bar
-/// icon or the "Open MyClicky" shortcut. The menu bar icon's right-click menu has what the notch's used to.
+/// icon or the "Open MyClicky" shortcut. The menu bar icon's right-click menu has Open, Settings, ideas, quiet mode,
+/// Stop agents and Quit.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let model = AppModel.shared
@@ -67,7 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         suggestions = SuggestionScheduler(model: model)
         suggestions?.onStart = { [weak self] idea in self?.startSuggestion(idea) }
-        // Spec 018: clicking a "task finished" notification opens that Clicky's chat.
+        // Spec 018: clicking a "task finished" notification opens that agent's chat.
         TaskAlerts.shared.openChat = { [weak self] id in
             guard let self else { return }
             self.model.goHome()
@@ -171,11 +172,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(item)
     }
 
-    /// A morning idea → its Clicky (by name), or a new Clicky.
+    /// A morning idea → its agent (by name), or a new agent.
     private func startSuggestion(_ idea: Suggestion) {
-        let existing = model.clickys.first { SearchIndex.fold($0.title) == SearchIndex.fold(idea.clickyTitle ?? "") }
-        let id = existing?.id ?? model.createClicky(purpose: idea.text)
-        if existing == nil { Task { await ClickyNamer.name(id, from: idea.text, model: model) } }
+        let existing = model.agents.first { SearchIndex.fold($0.title) == SearchIndex.fold(idea.agentTitle ?? "") }
+        let id = existing?.id ?? model.createAgent(purpose: idea.text)
+        if existing == nil { Task { await AgentNamer.name(id, from: idea.text, model: model) } }
         model.append(Message(role: .user, text: idea.text, via: .typed), to: id)
         agents.start(chatID: id, instruction: idea.text)
     }

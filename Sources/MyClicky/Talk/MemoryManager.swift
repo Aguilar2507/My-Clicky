@@ -42,9 +42,9 @@ final class MemoryManager {
     }
 }
 
-/// Names and colors a new Clicky from its first instruction (spec 005 US4, contracts/prompts.md).
+/// Names and colors a new agent from its first instruction (spec 005 US4, contracts/prompts.md).
 @MainActor
-enum ClickyNamer {
+enum AgentNamer {
     static let system = """
     Name a helper based on its job (the user's message is the job description; don't do the job). Reply with JSON only: {"name": 1-3 words, Title Case, playful but clear, \
     like "Research Buddy" or "Signal Radar"; "color": one of peach, sky, butter, lilac, pink, mint, coral, slate}.

@@ -7,14 +7,18 @@ on the Claude subscription via Claude Code, API spend always visible.
 
 ## Rules
 
+- **Start with `docs/HOW-IT-WORKS.md`:** the app as it is today, area by area, with the code and specs behind each.
+  Update it when a feature changes an area.
 - Project principles: `.specify/memory/constitution.md` (v2.0.0). Read it before designing anything. **Cost first**,
   and **HeyClicky parity** (Principle VIII).
-- Roadmap, shared architecture, visual language and HeyClicky deviations: `specs/README.md`.
-- Reference screenshots: `references/heyclicky/` (git-ignored). Match their **layout**. MyClicky's own design
-  (icon, bot, palette, rules) is in `references/myclicky/` (spec 013). Match its **art** (logo, bot, avatars). App colors
-  follow the Mac's Light/Dark appearance with system colors and the system accent (spec 015).
-- Features are specified in `specs/002`–`020` (spec, plan, research, data model, contracts, quickstart, tasks).
-  **All are implemented and tried end to end** (1.0.0, `docs/FOUNDATION-CHECKLIST.md`); no tasks are open. Status: `docs/IMPLEMENTATION-REPORT.md`. Each `tasks.md` ends with implementation notes (deviations, files, findings).
+- Specs by area with their status, the roadmap after 1.0, shared architecture, visual language and HeyClicky
+  deviations: `specs/README.md`.
+- Reference screenshots: `references/heyclicky/` (git-ignored). Match their **layout**. MyClicky's own art (icon, bot)
+  is in `references/myclicky/` (spec 013, archived; refreshed by 016). Match its **art** (logo, bot, avatars). App
+  colors follow the Mac's Light/Dark appearance with system colors and the system accent (spec 015).
+- Current specs are in `specs/002`–`020`; specs that are only history (001, 003, 013) are in `specs/archive/`.
+  **All are implemented and tried end to end** (1.0.0, `docs/FOUNDATION-CHECKLIST.md`); no tasks are open. Status:
+  `docs/IMPLEMENTATION-REPORT.md`. Each `tasks.md` ends with implementation notes (deviations, files, findings).
 - Mark tasks with `.specify/scripts/local/mark_tasks.py <tasks.md> <ids|all-except:ids> [notes.md]`. Passing
   `notes.md` **replaces** the file's existing implementation notes, so append notes by hand instead.
 - Screens for comparison live in `docs/screens/` (re-render after UI changes).
@@ -35,7 +39,9 @@ on the Claude subscription via Claude Code, API spend always visible.
 - **main always builds and passes its checks.** Never commit feature work directly to main.
 - **One branch per feature,** created from an up-to-date main: `git switch main && git pull && git switch -c NNN-short-name`.
   The name matches the spec folder (e.g. `021-…`; Spec Kit names the feature but does not create the branch).
-  Small fixes go on `fix/<short-name>`.
+- **Few, meaningful branches:** a branch only for work that needs its own spec; related changes share one branch.
+  Small fixes (bugs, wording, constants) go straight on main once `swift build` and `swift run MyClickyChecks` pass.
+- **Roadmap after 1.0:** `021-chats-and-agents` → `022-pimo-voice` → `023-agents` → `024-pimoai` (`specs/README.md`).
 - Spec work (`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`) is committed on that branch,
   in small commits as it goes.
 - **Before merging:** `swift build`, `swift run MyClickyChecks`, re-render the affected screens, and add a CHANGELOG entry

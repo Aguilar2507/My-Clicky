@@ -72,7 +72,7 @@ public enum AgentEventParser {
     }
 }
 
-/// Up to 3 Clickys work at once; the rest wait their turn (spec 009 FR-003).
+/// Up to 3 agents work at once; the rest wait their turn (spec 009 FR-003).
 public struct RunQueue: Equatable, Sendable {
     public static let limit = 3
     public private(set) var running: [UUID] = []
@@ -109,26 +109,29 @@ public struct RunQueue: Equatable, Sendable {
 /// A daily task idea (spec 009 US6).
 public struct Suggestion: Codable, Equatable, Sendable {
     public var text: String
-    public var clickyTitle: String?
+    public var agentTitle: String?
     public var createdAt: Date
 
-    public init(text: String, clickyTitle: String?, createdAt: Date) {
+    /// Saved in settings as "clickyTitle" (its name before 1.0), so existing ideas keep loading.
+    enum CodingKeys: String, CodingKey { case text, agentTitle = "clickyTitle", createdAt }
+
+    public init(text: String, agentTitle: String?, createdAt: Date) {
         self.text = text
-        self.clickyTitle = clickyTitle
+        self.agentTitle = agentTitle
         self.createdAt = createdAt
     }
 }
 
 public enum SuggestionParser {
-    /// Parses `[{"text": "...", "clicky": "Name or null"}]` (possibly surrounded by prose); keeps at most 3.
+    /// Parses `[{"text": "...", "agent": "Name or null"}]` (possibly surrounded by prose); keeps at most 3.
     public static func parse(_ reply: String, now: Date = Date()) -> [Suggestion] {
         guard let start = reply.firstIndex(of: "["), let end = reply.lastIndex(of: "]"), start < end,
               let data = String(reply[start...end]).data(using: .utf8),
               let items = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return [] }
         return items.compactMap { item -> Suggestion? in
             guard let text = (item["text"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
-            let clicky = (item["clicky"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-            return Suggestion(text: text, clickyTitle: clicky, createdAt: now)
+            let agent = (item["clicky"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+            return Suggestion(text: text, agentTitle: agent, createdAt: now)
         }.prefix(3).map { $0 }
     }
 
