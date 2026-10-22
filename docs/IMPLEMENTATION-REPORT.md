@@ -1,6 +1,6 @@
 # MyClicky 1.0.0 — Implementation Report
 
-**Date:** 2026-10-22 · **Specs:** `specs/002`–`020` · **Screens:** [`docs/screens/`](screens/)
+**Date:** 2026-10-22 · **Specs:** `specs/002`–`020` (+ `specs/archive/`) · **Map:** [`HOW-IT-WORKS.md`](HOW-IT-WORKS.md) · **Screens:** [`docs/screens/`](screens/)
 
 ## In one minute
 

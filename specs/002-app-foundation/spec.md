@@ -27,7 +27,7 @@ back as before, the spend total is unchanged, and the old settings are still in 
 2. **Given** a saved API key, **When** the new app starts, **Then** it is used without asking again.
 3. **Given** this month's spend recorded by v0.1, **When** the new app starts, **Then** the same total is shown.
 4. **Given** the baseline behaviors (push-to-talk, pointing, agent, typed questions), **When** used, **Then** they
-   behave as described in `specs/001-baseline/spec.md`.
+   behave as described in `specs/archive/001-baseline/spec.md`.
 
 ---
 
