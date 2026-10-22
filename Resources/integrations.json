@@ -1,5 +1,5 @@
 [
-  {"id": "github", "name": "GitHub", "transport": "http", "url": "https://api.githubcopilot.com/mcp/", "icon": "letter:G",
+  {"id": "github", "name": "GitHub", "transport": "http", "url": "https://api.githubcopilot.com/mcp/", "icon": "letter:G", "oauthCallbackPort": 47823,
    "description": "Search repositories, inspect issues, PRs, commits, releases, and Actions, then create or update repo work with approval."},
   {"id": "notion", "name": "Notion", "transport": "http", "url": "https://mcp.notion.com/mcp", "icon": "letter:N",
    "description": "Search Notion pages and databases, read content, then create, update, comment on, or organize pages."},
@@ -7,7 +7,7 @@
    "description": "Search Linear issues, teams, projects, and cycles, then create or update issues, comments, and projects."},
   {"id": "atlassian", "name": "Jira & Confluence", "transport": "http", "url": "https://mcp.atlassian.com/v1/mcp", "icon": "letter:J",
    "description": "Search and update Jira issues and Confluence pages."},
-  {"id": "asana", "name": "Asana", "transport": "http", "url": "https://mcp.asana.com/v2/mcp", "icon": "letter:A",
+  {"id": "asana", "name": "Asana", "transport": "http", "url": "https://mcp.asana.com/mcp", "icon": "letter:A",
    "description": "Find, create and update Asana tasks and projects."},
   {"id": "sentry", "name": "Sentry", "transport": "http", "url": "https://mcp.sentry.dev/mcp", "icon": "letter:S",
    "description": "Look up Sentry issues, errors and releases."}

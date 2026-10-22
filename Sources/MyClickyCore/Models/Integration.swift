@@ -12,9 +12,12 @@ public struct Integration: Codable, Equatable, Identifiable, Sendable {
     public var command: [String]?
     public var icon: String
     public var isCustom: Bool
+    /// Set for services that don't let apps register themselves for sign-in (GitHub): you create an OAuth app with
+    /// the callback `http://localhost:<port>/callback` and give MyClicky its client ID and secret once.
+    public var oauthCallbackPort: Int?
 
     public init(id: String, name: String, description: String, transport: Transport, url: String? = nil,
-                command: [String]? = nil, icon: String = "", isCustom: Bool = false) {
+                command: [String]? = nil, icon: String = "", isCustom: Bool = false, oauthCallbackPort: Int? = nil) {
         self.id = id
         self.name = name
         self.description = description
@@ -23,6 +26,7 @@ public struct Integration: Codable, Equatable, Identifiable, Sendable {
         self.command = command
         self.icon = icon.isEmpty ? "letter:\(name.prefix(1).uppercased())" : icon
         self.isCustom = isCustom
+        self.oauthCallbackPort = oauthCallbackPort
     }
 
     public init(from decoder: Decoder) throws {
@@ -35,15 +39,25 @@ public struct Integration: Codable, Equatable, Identifiable, Sendable {
         command = c.value(.command, default: nil)
         icon = c.value(.icon, default: "letter:\(name.prefix(1).uppercased())")
         isCustom = c.value(.isCustom, default: false)
+        oauthCallbackPort = c.value(.oauthCallbackPort, default: nil)
     }
 
     /// The Claude Code server name MyClicky manages ("myclicky-github").
     public var serverName: String { "myclicky-\(id)" }
 
-    /// Arguments for `claude mcp add` (user scope, so every Clicky can use it).
-    public var addArguments: [String] {
+    /// Arguments for `claude mcp add` (user scope, so every agent can use it).
+    public var addArguments: [String] { addArguments(clientID: nil) }
+
+    /// With your own OAuth app (`oauthCallbackPort`), the client ID and a fixed callback port; the client secret comes
+    /// from the `MCP_CLIENT_SECRET` environment variable, so it never appears in arguments or MyClicky's files.
+    public func addArguments(clientID: String?) -> [String] {
         switch transport {
-        case .http, .sse: return ["mcp", "add", "--transport", transport.rawValue, "-s", "user", serverName, url ?? ""]
+        case .http, .sse:
+            var args = ["mcp", "add", "--transport", transport.rawValue, "-s", "user"]
+            if let clientID, !clientID.isEmpty, let port = oauthCallbackPort {
+                args += ["--client-id", clientID, "--client-secret", "--callback-port", String(port)]
+            }
+            return args + [serverName, url ?? ""]
         case .stdio: return ["mcp", "add", "-s", "user", serverName, "--"] + (command ?? [])
         }
     }

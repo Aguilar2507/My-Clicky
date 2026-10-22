@@ -172,10 +172,15 @@ First copy the text `CLIPBOARD-TEST` (select it, ⌘C).
 - [ ] Settings → Integrations → GitHub → **Connect** → a small Terminal window opens and your browser asks you to sign in
       → back in MyClicky it shows ● Connected within a few seconds. You can close the Terminal window
 - [ ] In an agent: "list my open pull requests" → Allow card → an answer from GitHub
-- [ ] Your claude.ai connectors (Claude Docs, Canva) show under Connected as "Managed in Claude Code"
+- [x] Your claude.ai connectors (Claude Docs, Canva) show under Connected as "Managed in Claude Code"
+      → ✓ both listed under Connected as "Managed in Claude Code" with their addresses (missing before the
+      parser fix of 2026-10-20).
 - [ ] On github.com → Settings → Applications, revoke access → reopen the page → "Reconnect required" → Reconnect works
 - [ ] **Disconnect** → GitHub goes back to Available
-- [ ] Add custom connector with `http://bad` → error; with `https://mcp.sentry.dev/mcp` → added. Then remove it
+- [x] Add custom connector with `http://bad` → error; with `https://mcp.sentry.dev/mcp` → added. Then remove it
+      → ✓ http://bad → "Use a full https:// address."; https://mcp.sentry.dev/mcp → added to Claude Code
+      (myclicky-test-sentry) with "Reconnect required" and a Terminal running `claude mcp login` for the
+      sign-in; removed with its × (gone from Claude Code too).
 - [ ] The **Apps** chip in the sidebar shows the connected icon and opens this page
 
 ## F. Spending (011)

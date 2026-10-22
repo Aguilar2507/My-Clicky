@@ -15,6 +15,13 @@ enum IntegrationChecks {
             Check.equal(catalog[0].serverName, "myclicky-github")
             Check.equal(catalog[0].addArguments, ["mcp", "add", "--transport", "http", "-s", "user", "myclicky-github",
                                                   "https://api.githubcopilot.com/mcp/"])
+            // GitHub doesn't allow dynamic client registration: your own OAuth app, secret via MCP_CLIENT_SECRET only.
+            Check.equal(catalog[0].oauthCallbackPort, 47823)
+            Check.equal(catalog[0].addArguments(clientID: "Ov23abc"),
+                        ["mcp", "add", "--transport", "http", "-s", "user", "--client-id", "Ov23abc", "--client-secret",
+                         "--callback-port", "47823", "myclicky-github", "https://api.githubcopilot.com/mcp/"])
+            Check.equal(catalog[1].addArguments(clientID: "x"), catalog[1].addArguments, "others ignore a client ID")
+            Check.equal(catalog.first { $0.id == "asana" }?.url, "https://mcp.asana.com/mcp", "Asana's address that allows sign-in")
             let local = Integration(id: "files", name: "Files", description: "", transport: .stdio, command: ["npx", "-y", "server"])
             Check.equal(local.addArguments, ["mcp", "add", "-s", "user", "myclicky-files", "--", "npx", "-y", "server"])
         }

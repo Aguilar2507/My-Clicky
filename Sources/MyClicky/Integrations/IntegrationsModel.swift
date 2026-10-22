@@ -46,11 +46,14 @@ final class IntegrationsModel {
         others = split.others
     }
 
-    /// Adds the server; if it needs a browser sign-in, starts that (research R2).
-    func connect(_ integration: Integration) async -> ConnectionStatus {
+    /// Adds the server; if it needs a browser sign-in, starts that (research R2). Services that need your own OAuth
+    /// app (GitHub) also get its client ID and secret; the secret goes to Claude Code only, through the environment.
+    func connect(_ integration: Integration, clientSecret: String? = nil) async -> ConnectionStatus {
         guard let claude else { return .failed("Claude Code isn't installed") }
         statuses[integration.id] = .checking
-        _ = await Self.run(claude, integration.addArguments, timeout: 20)
+        let clientID = model.settings.oauthClientIDs[integration.id]
+        let env = clientSecret.map { ["MCP_CLIENT_SECRET": $0] } ?? [:]
+        _ = await Self.run(claude, integration.addArguments(clientID: clientID), timeout: 20, extraEnvironment: env)
         await refresh()
         let now = status(integration)
         if now == .needsAuth || now == .notAdded { signIn(integration) }
@@ -115,12 +118,13 @@ final class IntegrationsModel {
     }
 
     /// Runs a command with a time limit and returns stdout+stderr.
-    static func run(_ path: String, _ args: [String], timeout: TimeInterval) async -> String {
+    static func run(_ path: String, _ args: [String], timeout: TimeInterval,
+                    extraEnvironment: [String: String] = [:]) async -> String {
         await withCheckedContinuation { continuation in
             let process = Process()
             process.executableURL = URL(fileURLWithPath: path)
             process.arguments = args
-            process.environment = ClaudeCodeLocator.environment
+            process.environment = ClaudeCodeLocator.environment.merging(extraEnvironment) { $1 }
             let out = Pipe()
             process.standardOutput = out
             process.standardError = out

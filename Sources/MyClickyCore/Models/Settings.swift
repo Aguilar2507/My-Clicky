@@ -63,6 +63,8 @@ public struct Settings: Codable, Equatable, Sendable {
 
     // 010 integrations (no secrets: Claude Code keeps sign-in tokens)
     public var customIntegrations: [Integration] = []
+    /// Your own OAuth apps' client IDs by integration id (not secret; the client secret stays in Claude Code).
+    public var oauthClientIDs: [String: String] = [:]
 
     // 011 spending and limits
     public var monthlyBudgetUSD = 7.0          // 0 = off; $20 ÷ ~3 months

@@ -151,12 +151,17 @@ struct IntegrationIcon: View {
     }
 }
 
-/// "Finish signing in to {Name}" while we poll Claude Code (research R2).
+/// "Finish signing in to {Name}" while we poll Claude Code (research R2). Services that need your own OAuth app
+/// (GitHub) first ask for its client ID and secret, unless the connector is already added.
 struct SignInCard: View {
+    @Environment(AppModel.self) private var model
     let integration: Integration
     let integrations: IntegrationsModel
     let onDone: () -> Void
     @StateObject private var state = Box("Adding \u{2026}")
+    @StateObject private var askingForApp = Box(false)
+    @StateObject private var clientID = Box("")
+    @StateObject private var clientSecret = Box("")
 
     var body: some View {
         ModalCard(width: 460, onDismiss: onDone) {
@@ -164,20 +169,58 @@ struct SignInCard: View {
                 IntegrationIcon(integration: integration, size: 36)
                 Text("Connect \(integration.name)").textStyle(.title3.weight(.bold)).foregroundStyle(Theme.textPrimary)
             }
-            Text(state.value).textStyle(.callout).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
-            HStack {
-                ProgressView().controlSize(.small)
-                Spacer()
-                Button("Open sign-in again") { integrations.signIn(integration) }.buttonStyle(.pill(.secondary, compact: true))
-                Button("Cancel", action: onDone).buttonStyle(.pill(.dark, compact: true))
+            if askingForApp.value, let port = integration.oauthCallbackPort {
+                Text("\(integration.name) needs your own OAuth app (free, once). Create one with the homepage http://localhost and the callback URL below, then paste its Client ID and a client secret. The secret goes to Claude Code only.")
+                    .textStyle(.callout).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("http://localhost:\(port)/callback").textStyle(.callout, design: .monospaced).foregroundStyle(Theme.textPrimary)
+                    .textSelection(.enabled)
+                TextField("Client ID", text: $clientID.value).darkField()
+                SecretField(placeholder: "Client secret", text: $clientSecret.value)
+                HStack {
+                    Button("Open \(integration.name)") { openAppPage() }.buttonStyle(.pill(.secondary, compact: true))
+                    Spacer()
+                    Button("Cancel", action: onDone).buttonStyle(.pill(.dark, compact: true))
+                    Button("Connect") {
+                        model.settings.oauthClientIDs[integration.id] = clientID.value.trimmingCharacters(in: .whitespacesAndNewlines)
+                        askingForApp.value = false
+                        Task { await start(secret: clientSecret.value.trimmingCharacters(in: .whitespacesAndNewlines)) }
+                    }
+                    .buttonStyle(.pill(.primary, compact: true))
+                    .disabled(clientID.value.trimmingCharacters(in: .whitespaces).isEmpty
+                              || clientSecret.value.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            } else {
+                Text(state.value).textStyle(.callout).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
+                HStack {
+                    ProgressView().controlSize(.small)
+                    Spacer()
+                    Button("Open sign-in again") { integrations.signIn(integration) }.buttonStyle(.pill(.secondary, compact: true))
+                    Button("Cancel", action: onDone).buttonStyle(.pill(.dark, compact: true))
+                }
             }
         }
         .task {
-            let status = await integrations.connect(integration)
-            if status == .connected { onDone(); return }
-            state.value = "Finish signing in to \(integration.name): your browser opened (from a small Terminal window). Sign in there. Waiting for \(integration.name)…"
-            if await integrations.waitUntilConnected(integration) { onDone() } else { state.value = "Sign-in wasn't finished. Try again." }
+            // Already added (only the sign-in is missing): Claude Code has the app's secret, go straight to sign-in.
+            if integration.oauthCallbackPort != nil, integrations.status(integration) == .notAdded {
+                clientID.value = model.settings.oauthClientIDs[integration.id] ?? ""
+                askingForApp.value = true
+                return
+            }
+            await start(secret: nil)
         }
+    }
+
+    private func start(secret: String?) async {
+        let status = await integrations.connect(integration, clientSecret: secret)
+        if status == .connected { onDone(); return }
+        state.value = "Finish signing in to \(integration.name): your browser opened (from a small Terminal window). Sign in there. Waiting for \(integration.name)…"
+        if await integrations.waitUntilConnected(integration) { onDone() } else { state.value = "Sign-in wasn't finished. Try again." }
+    }
+
+    /// Where you create the OAuth app (only GitHub needs one today).
+    private func openAppPage() {
+        let page = integration.id == "github" ? "https://github.com/settings/applications/new" : (integration.url ?? "")
+        if let url = URL(string: page) { NSWorkspace.shared.open(url) }
     }
 }
 
