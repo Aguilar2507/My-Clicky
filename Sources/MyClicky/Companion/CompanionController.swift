@@ -36,11 +36,13 @@ final class CompanionController: NSObject {
         super.init()
         rebuild()
         let moved: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged, .rightMouseDragged]
+        // Event monitors hop to the main queue instead of `MainActor.assumeIsolated`: that check crashed once inside
+        // AppKit's event observers (EXC_BAD_ACCESS in swift_task_isMainExecutor, 2026-10-21).
         if let m = NSEvent.addGlobalMonitorForEvents(matching: moved, handler: { [weak self] _ in
-            MainActor.assumeIsolated { self?.wake() }
+            DispatchQueue.main.async { self?.wake() }
         }) { monitors.append(m) }
         if let m = NSEvent.addLocalMonitorForEvents(matching: moved, handler: { [weak self] event in
-            MainActor.assumeIsolated { self?.wake() }
+            DispatchQueue.main.async { self?.wake() }
             return event
         }) { monitors.append(m) }
         NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,

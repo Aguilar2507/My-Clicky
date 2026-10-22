@@ -50,7 +50,7 @@ enum Prompts {
     static func clicky(name: String, purpose: String, folder: String, language: String) -> String {
         agent(workingDirectory: folder) + "\n" + ReplyLanguage.instruction(language) + """
 
-        You are \(name), one of the user's Clickys.\(purpose.isEmpty ? "" : " Your job: \(purpose)") Your folder is \(folder).
+        You are \(name), one of the user's agents in MyClicky.\(purpose.isEmpty ? "" : " Your job: \(purpose)") Your folder is \(folder).
         To see or use the user's screen, use the myclicky tools: take a screenshot first, then click, type, press keys \
         or scroll using that screenshot's pixel coordinates. Never send, delete, buy, post or change system settings \
         without asking in your final message first.

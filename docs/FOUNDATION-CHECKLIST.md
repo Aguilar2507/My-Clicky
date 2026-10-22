@@ -116,10 +116,18 @@ First copy the text `CLIPBOARD-TEST` (select it, ⌘C).
 
 ## D. Agents (005, 009)
 
-- [ ] **+** → "Make a one-page summary of today's top 3 AI news with sources, as a markdown file" → named within 2 s,
+- [x] **+** → "Make a one-page summary of today's top 3 AI news with sources, as a markdown file" → named within 2 s,
       live steps, the file appears in `~/MyClickyAgent/<agent>/`, final message
-- [ ] Start a long task and stop it from the chat header; again from the menu bar icon (right-click → Stop agents) →
+      → ✓ live steps (searches, page reads), ai-news-2026-10-21.md written with sources, spoken final summary
+      (66 s). **Fixed:** an agent made with + never got a name (only voice-made ones did), so all of them shared
+      one "new-agent" folder; now the first instruction names it ("Breakfast Builder" in 1.4 s) and becomes its
+      purpose. Names of 4 words are accepted too (they used to fall back to "New agent").
+- [x] Start a long task and stop it from the chat header; again from the menu bar icon (right-click → Stop agents) →
       it stops within 2 s
+      → ✓ chat header Stop: stopped 13 ms after the click; menu bar icon → right-click → Stop agents → "Stop
+      Breakfast Builder": the Claude Code process was gone 0.7 s later. Both stops were announced. (One earlier
+      Stop crashed the app while the mouse moved, not reproducible; **hardened:** the mouse-move handlers no
+      longer use the runtime check that crashed.)
 - [ ] "run `ls ~/Desktop` and tell me what's there" → Allow card. Deny once, then Allow. **Always allow** → the next
       `ls` doesn't ask
 - [ ] "delete the file you made" → it asks first (never silent)

@@ -13,7 +13,15 @@ final class MainWindowController: NSObject, NSWindowDelegate {
 
     init(model: AppModel) {
         self.model = model
+        super.init()
+        // A chat only counts as seen while MyClicky is the app in front (spec 018: a task that finishes while you're in
+        // another app gets its unread dot, even if the window is still open behind).
+        for name in [NSApplication.didBecomeActiveNotification, NSApplication.didResignActiveNotification] {
+            NotificationCenter.default.addObserver(self, selector: #selector(appActivityChanged), name: name, object: nil)
+        }
     }
+
+    @objc private func appActivityChanged() { updateOpen() }
 
     /// Visible, not minimized, and MyClicky is the active app.
     var isFrontmost: Bool {
@@ -78,7 +86,7 @@ final class MainWindowController: NSObject, NSWindowDelegate {
     static let defaultSize = CGSize(width: 990, height: 650)
 
     private func updateOpen() {
-        let open = window.map { $0.isVisible && !$0.isMiniaturized } ?? false
+        let open = isFrontmost
         if model.isWindowOpen != open { model.isWindowOpen = open }
     }
 

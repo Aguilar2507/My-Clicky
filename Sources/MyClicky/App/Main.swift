@@ -23,6 +23,8 @@ enum Main {
         if let index = CommandLine.arguments.firstIndex(of: "--screenshot") {
             ScreenshotTool.run(output: CommandLine.arguments.dropFirst(index + 1).first ?? "/tmp/myclicky-screen.png")
         }
+        // A write to a closed pipe or socket (an agent that exited, its bridge) returns an error instead of killing us.
+        signal(SIGPIPE, SIG_IGN)
         let app = NSApplication.shared
         app.delegate = delegate
         app.setActivationPolicy(.accessory) // the "Show in Dock" setting turns on the Dock icon at launch (spec 019)

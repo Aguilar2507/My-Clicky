@@ -57,6 +57,10 @@ public final class BridgeSocketServer: @unchecked Sendable {
     private func acceptOne() {
         let client = accept(listenFD, nil, nil)
         guard client >= 0 else { return }
+        // Writing an answer after the agent hung up must fail quietly: without this, SIGPIPE killed MyClicky
+        // (an Allow card denied after the agent's bridge had closed, 2026-10-22).
+        var on: Int32 = 1
+        setsockopt(client, SOL_SOCKET, SO_NOSIGPIPE, &on, socklen_t(MemoryLayout<Int32>.size))
         queue.async { [weak self] in self?.serve(client) }
     }
 

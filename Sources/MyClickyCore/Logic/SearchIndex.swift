@@ -44,7 +44,8 @@ public enum NamingParser {
               let rawName = json["name"] as? String else { return nil }
         let name = rawName.trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters))
         let words = name.split(separator: " ")
-        guard !name.isEmpty, words.count <= 3, name.count <= 32 else { return nil }
+        // Asked for 1-3 words; a fourth ("PC History Deep Diver") is still a fine name, better than "New agent 3".
+        guard !name.isEmpty, words.count <= 4, name.count <= 32 else { return nil }
         return (name, (json["color"] as? String).flatMap(AvatarColor.init(rawValue:)))
     }
 

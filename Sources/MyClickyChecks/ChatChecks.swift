@@ -77,7 +77,9 @@ enum ChatChecks {
             Check.equal(parsed?.name, "Role Scout")
             Check.equal(parsed?.color, .lilac)
             Check.expect(NamingParser.parse("no json") == nil)
-            Check.expect(NamingParser.parse(#"{"name": "A very long name for a helper"}"#) == nil, "more than 3 words rejected")
+            Check.expect(NamingParser.parse(#"{"name": "A very long name for a helper"}"#) == nil, "more than 4 words rejected")
+            Check.equal(NamingParser.parse(#"{"name": "PC History Deep Diver", "color": "slate"}"#)?.name, "PC History Deep Diver",
+                        "four words are fine")
             Check.equal(NamingParser.parse(#"{"name":"Shippy","color":"neon"}"#)?.color, nil, "unknown color ignored")
             Check.equal(NamingParser.unique("Role Scout", existing: ["role scout"]), "Role Scout 2")
             Check.equal(NamingParser.unique("Role Scout", existing: ["Role Scout", "Role Scout 2"]), "Role Scout 3")

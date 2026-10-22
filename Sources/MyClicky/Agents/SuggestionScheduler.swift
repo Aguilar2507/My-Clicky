@@ -17,7 +17,7 @@ final class SuggestionScheduler {
     init(model: AppModel) {
         self.model = model
         monitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .keyDown]) { [weak self] _ in
-            MainActor.assumeIsolated { self?.lastActivity = Date() }
+            DispatchQueue.main.async { self?.lastActivity = Date() } // not assumeIsolated: see CompanionController.init
         }
         timer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.check() }

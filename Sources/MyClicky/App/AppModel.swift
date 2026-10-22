@@ -68,7 +68,7 @@ final class AppModel {
 
     /// The chat open on the right side (nil = greeting screen).
     var selectedChatID: UUID?
-    /// True while MyClicky's window is on screen (not hidden or minimized).
+    /// True while MyClicky's window is on screen (not hidden or minimized) and MyClicky is the active app.
     var isWindowOpen = false {
         didSet { if isWindowOpen, let id = visibleChatID { markRead(id) } }
     }

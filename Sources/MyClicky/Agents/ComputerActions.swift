@@ -17,7 +17,7 @@ final class ComputerActions {
     init(companion: CompanionController) {
         self.companion = companion
         monitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .keyDown, .mouseMoved]) { [weak self] _ in
-            MainActor.assumeIsolated { self?.userActed() }
+            DispatchQueue.main.async { self?.userActed() } // not assumeIsolated: see CompanionController.init
         }
     }
 

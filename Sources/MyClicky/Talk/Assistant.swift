@@ -170,6 +170,11 @@ final class Assistant {
             quietChip.close()
             currentRequest = Task { await talk(text, via: .typed, language: language) }
         } else {
+            // An agent made with + gets its name and purpose from its first instruction, like one made by voice.
+            if chat.messages.isEmpty, chat.purpose.isEmpty {
+                model.updateChat(chatID) { $0.purpose = text }
+                Task { await ClickyNamer.name(chatID, from: text, model: model) }
+            }
             startAgent(text, in: chatID, via: .typed, language: language)
         }
     }

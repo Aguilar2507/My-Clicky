@@ -56,11 +56,15 @@ enum ClickyNamer {
             let reply = try await ClaudeClient().complete(system: system, user: instruction, model: model.settings.fastModel,
                                                           maxTokens: 60, apiKey: apiKey)
             model.recordUsage(reply.usage, kind: .naming)
-            guard let parsed = NamingParser.parse(reply.text) else { return }
+            guard let parsed = NamingParser.parse(reply.text) else {
+                Log.events.notice("naming unparsed chars=\(reply.text.count, privacy: .public)")
+                return
+            }
+            Log.events.notice("naming ok words=\(parsed.name.split(separator: " ").count, privacy: .public)")
             model.rename(chatID, to: parsed.name)
             if let color = parsed.color { model.recolor(chatID, to: color) }
         } catch {
-            // Keep the fallback name.
+            Log.events.notice("naming failed \(String(describing: type(of: error)), privacy: .public)") // keeps the fallback name
         }
     }
 }
