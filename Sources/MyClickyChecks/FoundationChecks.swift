@@ -60,8 +60,7 @@ enum FoundationChecks {
             """
             try JSONFile.write(legacy.data(using: .utf8)!, to: paths.legacyConfig)
             let store = SettingsStore(paths: paths, debounce: 0.05)
-            let s = store.load()
-            Check.equal(s.agentAllowedTools, ["Read"])
+            let s = store.load() // the removed "agentAllowedTools" key is ignored, the rest migrates
             Check.equal(s.agentWorkingDirectory, "~/Work")
             Check.equal(s.claudePath, "/x/claude")
             Check.equal(s.fastModel, "f")

@@ -2,7 +2,7 @@ import Foundation
 
 /// Things the hands-on tour watches for (spec 012 US2). Features call `AppModel.emit(_:)`.
 enum AppEvent: String, CaseIterable, Hashable {
-    /// Raw value kept from spec 012 so saved tour progress still matches.
+    /// Raw value kept from spec 012 (the notch home) so saved tour progress still matches.
     case appOpened = "notchExpanded"
     case talkAnswered, pointed, textModeSent, dictationInserted
 

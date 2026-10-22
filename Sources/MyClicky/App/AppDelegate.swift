@@ -4,7 +4,8 @@ import ApplicationServices
 import MyClickyCore
 
 /// App startup and wiring. MyClicky's home is a normal window (spec 019), opened from the Dock, ⌘Tab, the menu bar
-/// icon or the "Open MyClicky" shortcut. The menu bar icon's right-click menu has what the notch's used to.
+/// icon or the "Open MyClicky" shortcut. The menu bar icon's right-click menu has Open, Settings, ideas, quiet mode,
+/// Stop agents and Quit.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let model = AppModel.shared
