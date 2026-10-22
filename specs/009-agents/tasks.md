@@ -61,7 +61,7 @@ description: "Tasks for 009-agents"
 ## Phase 9: Polish
 
 - [X] T025 Mark the Agents page available. Update README/GUIDE (agents, Allow cards, computer use, Claude Code setup)
-- [ ] T026 Run quickstart.md and record the results
+- [X] T026 Run quickstart.md and record the results
 
 ## Dependencies
 
@@ -98,3 +98,7 @@ Code would, sends an MCP `tools/call`, and gets the answer back through the sock
   thinking text removed) and checked in `AgentChecks`. The shape matches research R1. New line types we don't use are
   ignored safely: `rate_limit_event`, `system`/`thinking_tokens` and assistant `thinking` blocks. The app's own history
   confirms it in practice: 7 agent chats, one with 652 steps and 52 Allow cards.
+
+### Foundation pass 2026-10-22
+
+- **T026 done** by an automated end-to-end run of the installed app (scripts/e2e/). File task with live steps; Stop from header (13 ms) and menu (0.7 s); Allow/Deny/Always allow (fixed: Deny killed MyClicky by SIGPIPE); sensitive delete asks; computer use 128 × 46 = 5,888 with the "keep using your Mac?" pause (fixed: user input was ignored during fast click runs); finish alerts; memory after restart; today's ideas; agents get their own folders (fixed). Evidence: checklist D.

@@ -146,7 +146,10 @@ struct APIKeyStep: View {
                 result.value = (true, "Key works")
                 canContinue.value = true
             } catch {
-                result.value = (false, error.localizedDescription)
+                // Anthropic's own text ("invalid x-api-key") means little to most people.
+                let message = error.localizedDescription
+                result.value = (false, message.localizedCaseInsensitiveContains("x-api-key")
+                                ? "That key didn't work. Copy it again from console.anthropic.com → API Keys." : message)
                 canContinue.value = false
             }
         }

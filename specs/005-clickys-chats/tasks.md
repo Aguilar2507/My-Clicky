@@ -59,7 +59,7 @@ description: "Tasks for 005-clickys-chats"
 ## Phase 9: Polish
 
 - [X] T025 Update README/GUIDE (chats, Talk, Clickys, "agent, ask X to…")
-- [ ] T026 Run quickstart.md and record the results
+- [X] T026 Run quickstart.md and record the results
 
 ## Dependencies
 
@@ -83,3 +83,7 @@ Implemented 2026-09-25. `swift build` ✓, checks: 6 chat groups (37 checks) pas
   live in `Home/Sidebar/SidebarView.swift`; the Apps chip hook is ready for 010.
 - **T026 not done**: the quickstart needs the running app and your API key (voice questions, naming a Clicky, the
   "Orion" memory test, unread badge). → **Needs you.**
+
+### Foundation pass 2026-10-22
+
+- **T026 done** by an automated end-to-end run of the installed app (scripts/e2e/). Talk with voice and typed follow-ups (context kept); agents named from their first instruction (fixed for +); "Jarvis agent, ask <name>…" routes to that agent; rename, recolor, delete with confirmation; search with snippets, accents ignored; unread dot and menu bar dot (fixed while the window is open behind another app). Evidence: checklist B and D.

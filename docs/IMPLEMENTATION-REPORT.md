@@ -1,19 +1,37 @@
-# MyClicky 0.4.0 — Implementation Report
+# MyClicky 1.0.0 — Implementation Report
 
-**Date:** 2026-10-20 · **Specs:** `specs/002`–`020` · **Screens:** [`docs/screens/`](screens/)
+**Date:** 2026-10-22 · **Specs:** `specs/002`–`020` · **Screens:** [`docs/screens/`](screens/)
 
 ## In one minute
 
-- **322 of 336 tasks are done.** Each finished task is marked `[X]` in its feature's `tasks.md`, with implementation
-  notes at the bottom of that file. 013–020 are complete. You tried the installed app on 2026-10-20 and it mostly works.
-- **The 14 open tasks are from 002–012 and only you can do them:**
-  - **11 are "run the quickstart" tasks**, one per feature (003's is moot: the notch is gone).
-  - **3 need Claude Code signed in** with your Claude plan: checking its commands and output format for agents
-    (009 T001) and integrations (010 T001–T002).
-- **Build:** `swift build` and the release build (`./build.sh --no-install`, signed with `MyClicky Dev`) both succeed
-  with **0 compiler warnings**.
-- **Automatic checks:** `swift run MyClickyChecks` → **All 487 checks passed**.
-- **How we work from here:** one branch per feature, merged into main by pull request (see "Workflow" in `CLAUDE.md`).
+- **335 of 336 tasks are done.** The only open one is 011 T013: comparing MyClicky's October spend with the total on
+  console.anthropic.com, which needs your Console number.
+- **Every feature was tried for real** on 2026-10-20–22 by driving the installed app end to end (keys, clicks,
+  Accessibility, a synthetic voice through the speakers, screenshots). The results, line by line, are in
+  [`docs/FOUNDATION-CHECKLIST.md`](FOUNDATION-CHECKLIST.md). That run found and fixed 20+ real bugs (see 1.0.0 below).
+- **Build:** `swift build` and the release build both succeed with **0 compiler warnings**.
+- **Automatic checks:** `swift run MyClickyChecks` → **All 521 checks passed**.
+- **How we work from here:** main is the foundation; every improvement gets its own branch and pull request
+  (see "Workflow" in `CLAUDE.md`). End-to-end helpers for future branches: `scripts/e2e/`.
+
+## 1.0.0 (the foundation)
+
+- **Speech:** macOS runs one speech recognition at a time, so with auto-detect English was never heard (every voice
+  answer came back in Spanish). The main language listens live; every language then reads the whole recording, which
+  also stopped long dictations from losing text before pauses. The language picker trusts a transcript that reads like
+  its own language and ignores missing confidence. Auto-detect 10/10, answer latency median 1.77 s.
+- **Agents:** Deny killed MyClicky (SIGPIPE on a closed bridge connection); + made agents never got a name or their own
+  folder; computer use ignored your input during fast click runs; the unread dot was skipped with the window open
+  behind another app. All fixed and re-tested.
+- **Integrations:** GitHub needs your own OAuth app (no dynamic client registration); Asana back on an address that
+  allows sign-in; claude.ai connectors listed; Connect runs `claude mcp login` directly.
+- **Talk:** quiet mode forgot calls while you held ⌃⌥; pointing 6/10 → 8/10 with clearer instructions; the local time
+  is sent with each question.
+- **Smaller:** ⌃⌥ on the way to ⌃⌥⇧⌘3 started listening; long shortcuts squeezed Settings; a private CoreAudio device in
+  the microphone list; the keychain prompt on every launch; a raw "invalid x-api-key" message.
+- **Known limits:** screen-sharing detection and Mail weren't exercised (no sharing app running, no Mail account);
+  the ⌥ developer menu item can't be opened with synthetic keys; the welcome tour's interview picks generic agents.
+  Bot animation uses 10–12% of a core on a 120 Hz display (6% at 60 Hz).
 
 ## 0.4.0 (013–020)
 

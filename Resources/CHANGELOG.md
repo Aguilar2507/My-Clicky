@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.0.0 (5)
+
+**MyClicky 1.0, the foundation.** Every feature was tried for real on your Mac, and these were fixed:
+
+- **English is heard again:** with auto-detect on, only Spanish was ever recognized, so voice answers came back in
+  Spanish. Now English and Spanish both listen, and long dictations keep every word, even across pauses.
+- **Quiet during calls really stays quiet:** answers no longer speak out loud when you ask during a call.
+- **Denying an agent's request no longer closes MyClicky,** and Stop is sturdier.
+- **Agents get their own name and folder,** also when you make them with +.
+- **Computer use pauses when you touch the mouse,** even in the middle of a fast run of clicks.
+- **The unread dot shows** when a task finishes while you're in another app, even with MyClicky open behind.
+- **GitHub connects** using your own GitHub OAuth app (GitHub doesn't allow the usual sign-in). Asana connects again.
+  Your claude.ai connectors show under Connected. Allow cards say "GitHub", not "Github".
+- **Pointing is more accurate:** Jarvis always points when you ask where something is, at the exact item you named.
+- **Time questions are right:** Jarvis knows your local date, time and time zone.
+- **Smaller fixes:** opening the window with ⌃⌥⇧⌘3 no longer starts listening; long shortcuts fit in Settings; the
+  microphone list hides a system helper device; the API key asks once per update instead of every launch; a wrong
+  API key gets a clear message.
+
 ## 0.4.0 (4)
 
 - **Say "Jarvis":** the assistant is now called Jarvis (the app is still MyClicky). Start with "Jarvis…" to ask the

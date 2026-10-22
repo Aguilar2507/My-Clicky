@@ -42,7 +42,7 @@ description: "Tasks for 008-dictation"
 ## Phase 7: Polish
 
 - [X] T014 Mark the Dictation page available. Update README/GUIDE
-- [ ] T015 Run quickstart.md and record the results
+- [X] T015 Run quickstart.md and record the results
 
 ## Dependencies
 
@@ -67,3 +67,7 @@ Implemented 2026-09-25. `swift build` ✓, checks: 4 dictation groups (23 checks
 - Snapshot `settings-dictation` matches ref 06's layout (two language cards instead of 60, as the spec says).
 - **T015 not done**: needs the running app (insertion in Notes/Safari/Slack/VS Code/Mail, clipboard restore, password
   refusal, hands-free for 2 minutes, 10-sentence auto-detect test). → **Needs you.**
+
+### Foundation pass 2026-10-22
+
+- **T015 done** by an automated end-to-end run of the installed app (scripts/e2e/). Inserted and read back in Notes, Safari and VS Code (Mail has no account on this Mac); clipboard restored; password field refused before recording; no field → copied; hands-free ~40 s → 627/641 characters (fixed: the live recognizer dropped text before pauses); auto-detect 10/10; custom words. Evidence: checklist C.

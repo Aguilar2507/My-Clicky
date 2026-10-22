@@ -71,7 +71,7 @@ description: "Tasks for 002-app-foundation"
 ## Phase 7: Polish
 
 - [X] T026 Update `README.md` (settings file name) and `GUIDE.md` (correct project path `~/Desktop/my-clicky`, checks command)
-- [ ] T027 Run `specs/002-app-foundation/quickstart.md` end to end and note the results in this file
+- [X] T027 Run `specs/002-app-foundation/quickstart.md` end to end and note the results in this file
 
 ## Dependencies & Execution Order
 
@@ -97,3 +97,7 @@ Implemented 2026-09-25. `swift build` ✓, `./build.sh --no-install` ✓, `swift
 - **T027 not done**: quickstart steps 1, 2 and 7 were verified (build, checks, gallery snapshot matches ref 03's controls).
   Steps 3–6 need the real app launched on your Mac (migration of your real `config.json`, a voice question, pointing,
   force-quit test). → **Needs you.**
+
+### Foundation pass 2026-10-22
+
+- **T027 done** by an automated end-to-end run of the installed app (scripts/e2e/). Settings and chats survive a force kill (written within 0.3 s); the v1 backup and settings v6 exist; the design gallery and snapshots render. Talk answers by voice and points. Evidence: docs/FOUNDATION-CHECKLIST.md groups A and B.

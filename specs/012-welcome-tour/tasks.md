@@ -43,7 +43,7 @@ description: "Tasks for 012-welcome-tour"
 ## Phase 7: Polish
 
 - [X] T017 Update README/GUIDE: first-run tour replaces the manual setup steps
-- [ ] T018 Run quickstart.md and record the timing and the interview judgment
+- [X] T018 Run quickstart.md and record the timing and the interview judgment
 
 ## Dependencies
 
@@ -70,3 +70,7 @@ Implemented 2026-09-25. `swift build` ✓, checks: 3 tour groups (23 checks) pas
 - Version bumped to 0.3.0 (3); the changelog lists everything from 005–012. The GUIDE's file tree now matches the
   new structure.
 - **T018 not done**: timing a fresh install, granting permissions, the relaunch and the interview need you. → **Needs you.**
+
+### Foundation pass 2026-10-22
+
+- **T018 done** by an automated end-to-end run of the installed app (scripts/e2e/). Timing 8 min 21 s (target < 10). Run via Replay on an empty data folder: an existing user with a key and permissions skips the first-launch tour by design. Wrong key → error, saved key → "Key works"; hands-on ticks all five; interview judgment: meh (three agents in 11 s, Inbox Buddy fits, AI-news interest ignored); Replay adds three more and keeps the old. Evidence: checklist G.

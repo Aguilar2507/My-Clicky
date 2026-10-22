@@ -47,7 +47,7 @@ description: "Tasks for 007-voice-talk"
 ## Phase 7: Polish
 
 - [X] T017 Mark the Voice and Microphone pages available. Update README/GUIDE (fn, voices, quiet mode)
-- [ ] T018 Run quickstart.md and fill in the Notes
+- [X] T018 Run quickstart.md and fill in the Notes
 
 ## Dependencies
 
@@ -80,3 +80,7 @@ Implemented 2026-09-25. `swift build` ✓, checks: 5 voice groups (40 checks) pa
 the Focus status (`INFocusStatusCenter`) and `Info.plist` had no `NSFocusStatusUsageDescription`. macOS kills an app
 that asks for a privacy permission without its usage text. Added the key; the app now launches and stays running. The
 other privacy APIs (microphone, speech, Apple Events) already had their texts.
+
+### Foundation pass 2026-10-22
+
+- **T018 done** by an automated end-to-end run of the installed app (scripts/e2e/). Latency median 1.77 s over 18 spoken questions (release → first word). Interrupt stops in 1 ms. Spanish question on an English screen → Spanish answer in Marisol. Fixed: with auto-detect English was never recognized (macOS runs one recognition at a time). Notes: quiet during a call works (mic held by another process; fixed: it was cleared while you held ⌃⌥); Quiet for 1 hour works; screen-sharing detection not exercised (no sharing app). Evidence: checklist B.

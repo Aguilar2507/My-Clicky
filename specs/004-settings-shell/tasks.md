@@ -51,7 +51,7 @@ description: "Tasks for 004-settings-shell"
 ## Phase 6: Polish
 
 - [X] T023 Update `README.md`/`GUIDE.md`: new keys (fn, double ⌃), Settings location, Input Monitoring permission
-- [ ] T024 Run quickstart.md and fill in its Notes
+- [X] T024 Run quickstart.md and fill in its Notes
 
 ## Dependencies
 
@@ -97,3 +97,7 @@ shows the right name per macOS version; README/GUIDE updated.
 codeSigning only) in the login keychain, trusted for code signing, with codesign allowed to use its key. `build.sh`
 picks it automatically (falls back to ad-hoc) and prints which one it used. Designated requirement is now
 `identifier "com.myclicky.app" and certificate leaf = H"d406…e16f"`, the same on every build, so permissions persist.
+
+### Foundation pass 2026-10-22
+
+- **T024 done** by an automated end-to-end run of the installed app (scripts/e2e/). Show in Dock on/off; What's new; screen-recording exclusion (hidden from a ScreenCaptureKit capture); rebinding, "Already used", Reset; typing with ⌃A/⌃E/fn-arrows triggers nothing. Fixed: ⌃⌥ on the way to ⌃⌥⇧⌘3 started push to talk; long shortcuts squeezed the row title. Notes: screen-recording exclusion works on macOS 27. Evidence: checklist A.

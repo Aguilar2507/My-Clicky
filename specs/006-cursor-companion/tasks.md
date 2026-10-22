@@ -52,7 +52,7 @@ description: "Tasks for 006-cursor-companion"
 ## Phase 9: Polish
 
 - [X] T018 Apply `showInScreenRecordings` to companion/bubble/drawing/text windows
-- [ ] T019 Run quickstart.md and record the results (incl. pointing accuracy)
+- [X] T019 Run quickstart.md and record the results (incl. pointing accuracy)
 
 ## Dependencies
 
@@ -82,3 +82,7 @@ its color (`WaveformLayer` in `Companion/CompanionLayer.swift`, 9 rounded bars, 
 The bars follow the mic level and breathe on their own rhythm in silence; they morph back into the cursor when
 listening ends. Reduce Motion: a cross-fade and no breathing (bars still follow the level). Snapshot:
 `companion-listening`.
+
+### Foundation pass 2026-10-22
+
+- **T019 done** by an automated end-to-end run of the installed app (scripts/e2e/). Pointing accuracy 8/10 against real element frames (6/10 before the prompt fix); circle drawing appears and fades; text mode; color change at once; docked companion hides and still flies out to point. Evidence: checklist B.

@@ -54,3 +54,5 @@ hit=fx-m<=x<=fx+fw+m and fy-m<=ay<=fy+fh+m
 print(('HIT ' if hit else 'MISS'),f'point=({x},{ay:.0f}) target={sys.argv[1]} |',sys.argv[3])" "$2" "$MAIN_H" "$3"
   wait_s 7
 }
+# Contents of the window whose frame starts with "x,y" (e.g. the welcome tour): `win_tree 668,205`
+win_tree() { "$D" tree "$APP" 20 | awk -v f="{$1," '/^AXWindow/ {on = index($0, f) > 0; next} on' | grep -v '^\s*AXGroup ""\s*{'; }

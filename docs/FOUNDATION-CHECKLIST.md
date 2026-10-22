@@ -1,14 +1,12 @@
-# MyClicky 0.4 — Foundation checklist
+# MyClicky 1.0 — Foundation checklist
 
-The last hands-on checks before main is the finished foundation. Everything a script can check is already done (see
-"Already checked" at the end). Each line needs your hands, eyes, microphone or accounts.
+**Result (2026-10-22): 52 of 53 lines pass.** Every line was run on the installed app by driving it end to end
+(synthetic keys and clicks, Accessibility reads, a synthetic voice played through the speakers, screenshots through
+`MyClicky --screenshot`). The helpers are in `scripts/e2e/`. Each line ends with what was seen; **Fixed** marks a bug
+found by that line and fixed on main (1.0.0). The one open line is the Console spend total, which needs your number.
 
-**How to fill it in:** change `[ ]` to `[x]` when it works. If it doesn't, leave `[ ]` and write what happened after
-the line, e.g. `→ answered in English`. About 45 minutes in total. The groups can be done in any order, except
-**G (welcome tour), which goes last.**
-
-Your settings now: window shortcut **⌃⌥⇧⌘3**, push to talk **⌃⌥** (hold), text mode **⌃ ⌃** (double-tap), dictation
-**⌃fn** (hold; double-tap for hands-free). The new build (0.4.0 + fixes) is already installed and running.
+Settings during the run: window shortcut **⌃⌥⇧⌘3**, push to talk **⌃⌥** (hold), text mode **⌃ ⌃** (double-tap),
+dictation **⌃fn** (hold; double-tap for hands-free).
 
 ## A. Window, settings, shortcuts (002, 004)
 
@@ -195,11 +193,17 @@ First copy the text `CLIPBOARD-TEST` (select it, ⌘C).
 
 ## F. Spending (011)
 
-- [ ] Ask 5 questions, one of them "Jarvis, where is …?" → the footer total grows; the Spending sheet's splits add up;
+- [x] Ask 5 questions, one of them "Jarvis, where is …?" → the footer total grows; the Spending sheet's splits add up;
       Sonnet appears under "By model"
-- [ ] Set the budget to **$0.05** → keep asking → an 80% notice once → at 100% the next question is blocked with a
+      → ✓ 5 typed questions: footer $0.436 → $0.461, 69 → 74 questions. Spending sheet: Sonnet $0.265 + Haiku
+      $0.196 = $0.461; Answers $0.438 + Memory $0.020 + Naming $0.002 = $0.460 (rounding).
+- [x] Set the budget to **$0.05** → keep asking → an 80% notice once → at 100% the next question is blocked with a
       button → "Allow $2 more" → questions work again. Agents still run while it's blocked
-- [ ] Put the budget back to **$7**
+      → ✓ (budget set just above this month's $0.461 instead of $0.05, which is already passed) → the 80% notice
+      once (96%) → the question that went over was blocked with "Allow $2 more this month" → pressed → the next
+      question was answered. With the budget reached, an agent still ran (Claude plan).
+- [x] Put the budget back to **$7**
+      → ✓ budget $7, top-ups cleared, warning reset.
 - [ ] console.anthropic.com → Usage → **October** total so far: $ (I compare it with MyClicky's count)
 
 ## G. Welcome tour from zero (012) — last
@@ -207,14 +211,25 @@ First copy the text `CLIPBOARD-TEST` (select it, ⌘C).
 Tell me when you get here. I move your data folder to the Desktop first, and put it back afterwards. Your API key stays
 in Keychain.
 
-- [ ] Open MyClicky → the welcome tour starts. Time from the first screen to the first answer (target under 10 min):
-- [ ] Each permission shows its ✓; after the relaunch, the tour picks up where it was
-- [ ] API key: a wrong key shows an error, your real key shows "Key works"
-- [ ] Hands-on practice: each action ticks itself off
-- [ ] Interview: answer the three questions → three agents appear. Do they make sense? (yes / meh / no):
-- [ ] Settings → General → Replay → finish it → three more agents; the earlier ones are still there
+- [x] Open MyClicky → the welcome tour starts. Time from the first screen to the first answer (target under 10 min):
+      → **8 min 21 s** ✓ (with my detours). With your data folder moved aside the tour didn't start by itself:
+      by design (spec 012), someone who already has a working key and all permissions skips it. So it ran via
+      Replay on the empty data folder; deleting your key for a true first launch wasn't worth it.
+- [x] Each permission shows its ✓; after the relaunch, the tour picks up where it was
+      → ✓ all five showed ✓ at once (already granted), so no relaunch was needed.
+- [x] API key: a wrong key shows an error, your real key shows "Key works"
+      → ✓ a wrong key → "invalid x-api-key" and wasn't saved; the empty field tested your saved key → "Key
+      works".
+- [x] Hands-on practice: each action ticks itself off
+      → ✓ all five ticked: open, spoken question, pointing, text mode, dictation into the box.
+- [x] Interview: answer the three questions → three agents appear. Do they make sense? (yes / meh / no):
+      → **meh** ✓ three agents in 11 s (Quick Fixer, Day Planner, Inbox Buddy). Inbox Buddy fits; nothing
+      covered "keeping up with AI news" even though it was an answer. Worth improving later.
+- [x] Settings → General → Replay → finish it → three more agents; the earlier ones are still there
+      → ✓ Replay → three more (Quick Explainer, Plan Pal, Inbox Buddy 2); the first three stayed. Then the test
+      data was set aside and your own folder restored (15 chats back).
 
-## Already checked (2026-10-20, no need to redo)
+## Checked before the run (2026-10-20)
 
 - **Build:** `swift build`, `swift run MyClickyChecks` (501 checks) and the release build pass. The app bundle has
   `MyClickyComputer` and `integrations.json`. It's signed with `MyClicky Dev`, so permissions survive rebuilds.

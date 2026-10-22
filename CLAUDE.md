@@ -14,8 +14,8 @@ on the Claude subscription via Claude Code, API spend always visible.
   (icon, bot, palette, rules) is in `references/myclicky/` (spec 013). Match its **art** (logo, bot, avatars). App colors
   follow the Mac's Light/Dark appearance with system colors and the system accent (spec 015).
 - Features are specified in `specs/002`–`020` (spec, plan, research, data model, contracts, quickstart, tasks).
-  **All are implemented** (0.4.0); open tasks are the 002–012 manual quickstarts + Claude Code verifications. Status and
-  to-do list: `docs/IMPLEMENTATION-REPORT.md`. Each `tasks.md` ends with implementation notes (deviations, files, findings).
+  **All are implemented and tried end to end** (1.0.0, `docs/FOUNDATION-CHECKLIST.md`); the one open task is 011 T013
+  (Console spend comparison). Status: `docs/IMPLEMENTATION-REPORT.md`. Each `tasks.md` ends with implementation notes (deviations, files, findings).
 - Mark tasks with `.specify/scripts/local/mark_tasks.py <tasks.md> <ids|all-except:ids> [notes.md]`. Passing
   `notes.md` **replaces** the file's existing implementation notes, so append notes by hand instead.
 - Screens for comparison live in `docs/screens/` (re-render after UI changes).

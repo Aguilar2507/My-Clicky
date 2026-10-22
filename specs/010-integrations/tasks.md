@@ -42,7 +42,7 @@ description: "Tasks for 010-integrations"
 ## Phase 7: Polish
 
 - [X] T014 Mark the Integrations page available. Update README/GUIDE
-- [ ] T015 Run quickstart.md and record the results
+- [X] T015 Run quickstart.md and record the results
 
 ## Dependencies
 
@@ -84,3 +84,7 @@ Implemented 2026-09-25. `swift build` ✓, checks: 3 integration groups (21 chec
 - **T002 done:** all six catalog addresses answer with 401 + an OAuth challenge (made-up paths on the same hosts
   return 404). Atlassian and Asana moved from the old SSE endpoints to their current HTTP ones:
   `https://mcp.atlassian.com/v1/mcp` and `https://mcp.asana.com/v2/mcp`. `build.sh` copies the file into the app.
+
+### Foundation pass 2026-10-22
+
+- **T015 done** by an automated end-to-end run of the installed app (scripts/e2e/). GitHub connected with your own OAuth app (GitHub doesn't allow dynamic client registration; fixed), listed PRs, reconnect after a revoke, Apps chip icon; custom connector bad/good/remove; claude.ai connectors listed; Disconnect tested on Sentry. Asana moved back to an address that allows sign-in. Evidence: checklist E.
